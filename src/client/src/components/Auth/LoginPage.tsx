@@ -1,0 +1,134 @@
+import React, { useState } from 'react';
+import { Activity, Mail, Lock, Eye, EyeOff, AlertCircle } from 'lucide-react';
+import { Button } from '../UI/Button';
+import { Input } from '../UI/Input';
+import { LoadingSpinner } from '../UI/LoadingSpinner';
+import { useAuth } from '../../contexts/AuthContext';
+import { LoginCredentials } from '../../../../shared/types/auth';
+
+export function LoginPage() {
+  const { login } = useAuth();
+  const [credentials, setCredentials] = useState<LoginCredentials>({
+    email: '',
+    password: ''
+  });
+  const [showPassword, setShowPassword] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError(null);
+    setLoading(true);
+
+    try {
+      const success = await login(credentials);
+      
+      if (!success) {
+        setError('Email ou senha incorretos');
+      }
+    } catch (err) {
+      setError('Erro ao fazer login. Tente novamente.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleChange = (field: keyof LoginCredentials, value: string) => {
+    setCredentials(prev => ({ ...prev, [field]: value }));
+    if (error) setError(null);
+  };
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-tellus-primary via-tellus-secondary to-tellus-accent flex items-center justify-center p-4">
+      <div className="w-full max-w-md">
+        {/* Logo e Header */}
+        <div className="text-center mb-8">
+          <div className="inline-flex items-center justify-center w-16 h-16 bg-white rounded-2xl shadow-lg mb-4">
+            <Activity className="w-8 h-8 text-tellus-primary" />
+          </div>
+          <h1 className="text-3xl font-bold text-white mb-2">Tellus CRM</h1>
+          <p className="text-blue-100">Faça login para acessar o sistema</p>
+        </div>
+
+        {/* Formulário de Login */}
+        <div className="bg-white rounded-2xl shadow-2xl p-8">
+          <form onSubmit={handleSubmit} className="space-y-6">
+            {/* Campo Email */}
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-gray-700 flex items-center space-x-2">
+                <Mail className="w-4 h-4" />
+                <span>Email</span>
+              </label>
+              <input
+                type="email"
+                value={credentials.email}
+                onChange={(e) => handleChange('email', e.target.value)}
+                className="w-full h-12 px-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-tellus-primary focus:border-transparent transition-all duration-200"
+                placeholder="admin@tellus.com"
+                required
+              />
+            </div>
+
+            {/* Campo Senha */}
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-gray-700 flex items-center space-x-2">
+                <Lock className="w-4 h-4" />
+                <span>Senha</span>
+              </label>
+              <div className="relative">
+                <input
+                  type={showPassword ? 'text' : 'password'}
+                  value={credentials.password}
+                  onChange={(e) => handleChange('password', e.target.value)}
+                  className="w-full h-12 px-4 pr-12 border border-gray-300 rounded-lg focus:ring-2 focus:ring-tellus-primary focus:border-transparent transition-all duration-200"
+                  placeholder="Digite sua senha"
+                  required
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
+                >
+                  {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                </button>
+              </div>
+            </div>
+
+            {/* Erro */}
+            {error && (
+              <div className="flex items-center space-x-2 text-red-600 bg-red-50 p-3 rounded-lg">
+                <AlertCircle className="w-4 h-4 flex-shrink-0" />
+                <span className="text-sm">{error}</span>
+              </div>
+            )}
+
+            {/* Botão de Login */}
+            <Button
+              type="submit"
+              disabled={loading || !credentials.email || !credentials.password}
+              className="w-full h-12 text-base font-medium"
+            >
+              {loading ? (
+                <div className="flex items-center justify-center space-x-2">
+                  <LoadingSpinner size="sm" />
+                  <span>Entrando...</span>
+                </div>
+              ) : (
+                'Entrar'
+              )}
+            </Button>
+          </form>
+
+        </div>
+
+        {/* Footer */}
+        <div className="text-center mt-8">
+          <p className="text-blue-100 text-sm">
+            © 2024 Tellus CRM. Sistema de gerenciamento de clientes.
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+}
