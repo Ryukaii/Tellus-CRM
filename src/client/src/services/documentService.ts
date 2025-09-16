@@ -252,9 +252,26 @@ export class DocumentService {
     return data.publicUrl
   }
 
-  // Gerar nova URL sempre (mais simples e confiável)
+  // Gerar nova URL assinada (mais simples e confiável)
   static async getFreshUrl(filePath: string): Promise<string> {
-    return this.getDownloadUrl(filePath)
+    try {
+      // Gerar URL assinada com 1 hora de validade
+      const { data, error } = await supabase.storage
+        .from(STORAGE_BUCKET)
+        .createSignedUrl(filePath, 3600) // 1 hora
+
+      if (error) {
+        console.log('Erro ao criar URL assinada:', error)
+        // Fallback para URL pública
+        return this.getDownloadUrl(filePath)
+      }
+
+      return data.signedUrl
+    } catch (error) {
+      console.log('Erro ao gerar URL assinada:', error)
+      // Fallback para URL pública
+      return this.getDownloadUrl(filePath)
+    }
   }
 
   // Regenerar URL de um documento existente
