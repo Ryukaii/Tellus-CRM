@@ -10,7 +10,16 @@ import { DocumentService } from '../../services/documentService';
 import { CPFService } from '../../services/cpfService';
 import { CepService } from '../../services/cepService';
 import { StateSelect } from '../UI/StateSelect';
-import { ESTADOS_POR_SIGLA } from '@data/estadosBrasileiros.ts';
+// Estados brasileiros
+const ESTADOS_POR_SIGLA: Record<string, string> = {
+  'AC': 'Acre', 'AL': 'Alagoas', 'AP': 'Amapá', 'AM': 'Amazonas', 'BA': 'Bahia',
+  'CE': 'Ceará', 'DF': 'Distrito Federal', 'ES': 'Espírito Santo', 'GO': 'Goiás',
+  'MA': 'Maranhão', 'MT': 'Mato Grosso', 'MS': 'Mato Grosso do Sul', 'MG': 'Minas Gerais',
+  'PA': 'Pará', 'PB': 'Paraíba', 'PR': 'Paraná', 'PE': 'Pernambuco', 'PI': 'Piauí',
+  'RJ': 'Rio de Janeiro', 'RN': 'Rio Grande do Norte', 'RS': 'Rio Grande do Sul',
+  'RO': 'Rondônia', 'RR': 'Roraima', 'SC': 'Santa Catarina', 'SP': 'São Paulo',
+  'SE': 'Sergipe', 'TO': 'Tocantins'
+};
 
 interface FormData {
   // Dados Pessoais
