@@ -1,135 +1,43 @@
-import React, { useState } from 'react';
+import React from 'react';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from './contexts/AuthContext';
 import { ProtectedRoute } from './components/Auth/ProtectedRoute';
 import { Layout } from './components/Layout/Layout';
 import { CustomerList } from './components/Customer/CustomerList';
-import { CustomerForm } from './components/Customer/CustomerForm';
-import { Modal } from './components/UI/Modal';
-import { useCustomers } from './hooks/useCustomers';
-import { Customer, CustomerFilters } from '../../shared/types/customer';
+import { CustomerDetailsPage } from './components/Customer/CustomerDetailsPage';
+import { CustomerEditPage } from './components/Customer/CustomerEditPage';
+import { PreRegistrationManager } from './components/PreRegistration/PreRegistrationManager';
+import { SharedCustomerView } from './components/Public/SharedCustomerView';
 
-function CrmApp() {
-  const [filters, setFilters] = useState<CustomerFilters>({
-    page: 1,
-    limit: 20
-  });
-  
-  const {
-    customers,
-    total,
-    page,
-    limit,
-    loading,
-    error,
-    createCustomer,
-    updateCustomer,
-    deleteCustomer
-  } = useCustomers(filters);
-
-  const [modalState, setModalState] = useState<{
-    isOpen: boolean;
-    customer?: Customer;
-    loading: boolean;
-  }>({
-    isOpen: false,
-    loading: false
-  });
-
-  const handleAddCustomer = () => {
-    setModalState({
-      isOpen: true,
-      customer: undefined,
-      loading: false
-    });
-  };
-
-  const handleEditCustomer = (customer: Customer) => {
-    setModalState({
-      isOpen: true,
-      customer,
-      loading: false
-    });
-  };
-
-  const handleSubmitCustomer = async (customerData: Omit<Customer, 'id' | 'createdAt' | 'updatedAt'>) => {
-    setModalState(prev => ({ ...prev, loading: true }));
-    
-    let success = false;
-    if (modalState.customer) {
-      // Update existing customer
-      success = await updateCustomer(modalState.customer.id!, customerData);
-    } else {
-      // Create new customer
-      success = await createCustomer(customerData);
-    }
-    
-    setModalState(prev => ({ ...prev, loading: false }));
-    
-    if (success) {
-      setModalState({ isOpen: false, loading: false });
-    }
-    
-    return success;
-  };
-
-  const handleDeleteCustomer = async (id: string) => {
-    await deleteCustomer(id);
-  };
-
-  const handleSearch = (search: string) => {
-    setFilters(prev => ({
-      ...prev,
-      search: search || undefined,
-      page: 1
-    }));
-  };
-
-  const handlePageChange = (newPage: number) => {
-    setFilters(prev => ({
-      ...prev,
-      page: newPage
-    }));
-  };
-
-  const handleCloseModal = () => {
-    setModalState({ isOpen: false, loading: false });
-  };
-
+function DashboardRoutes() {
   return (
     <Layout>
-      <div className="space-y-6">
-        {error && (
-          <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-            <p className="text-red-800">{error}</p>
+      <Routes>
+        {/* Redirecionar / para /dashboard/customers */}
+        <Route path="/" element={<Navigate to="/dashboard/customers" replace />} />
+        
+        {/* Rotas do Dashboard */}
+        <Route path="/dashboard/customers" element={<CustomerList />} />
+        <Route path="/dashboard/customers/:customerId" element={<CustomerDetailsPage />} />
+        <Route path="/dashboard/customers/:customerId/edit" element={<CustomerEditPage />} />
+        <Route path="/dashboard/pre-registrations" element={<PreRegistrationManager />} />
+        
+        {/* Rota 404 para dashboard */}
+        <Route path="/dashboard/*" element={
+          <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+            <div className="text-center">
+              <h1 className="text-4xl font-bold text-gray-900 mb-4">404</h1>
+              <p className="text-gray-600 mb-4">Página não encontrada</p>
+              <a 
+                href="/dashboard/customers" 
+                className="text-blue-600 hover:text-blue-700"
+              >
+                Voltar ao Dashboard
+              </a>
+            </div>
           </div>
-        )}
-
-        <CustomerList
-          customers={customers}
-          loading={loading}
-          onEdit={handleEditCustomer}
-          onDelete={handleDeleteCustomer}
-          onAdd={handleAddCustomer}
-          onSearch={handleSearch}
-          total={total}
-          page={page}
-          limit={limit}
-          onPageChange={handlePageChange}
-        />
-
-        <Modal
-          isOpen={modalState.isOpen}
-          onClose={handleCloseModal}
-          title={modalState.customer ? 'Editar Cliente' : 'Novo Cliente'}
-        >
-          <CustomerForm
-            customer={modalState.customer}
-            onSubmit={handleSubmitCustomer}
-            onCancel={handleCloseModal}
-            loading={modalState.loading}
-          />
-        </Modal>
-      </div>
+        } />
+      </Routes>
     </Layout>
   );
 }
@@ -137,9 +45,19 @@ function CrmApp() {
 function App() {
   return (
     <AuthProvider>
-      <ProtectedRoute>
-        <CrmApp />
-      </ProtectedRoute>
+      <Router>
+        <Routes>
+          {/* Rota pública para links compartilhados */}
+          <Route path="/shared/:linkId" element={<SharedCustomerView />} />
+          
+          {/* Rotas protegidas do dashboard */}
+          <Route path="/*" element={
+            <ProtectedRoute>
+              <DashboardRoutes />
+            </ProtectedRoute>
+          } />
+        </Routes>
+      </Router>
     </AuthProvider>
   );
 }

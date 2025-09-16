@@ -5,6 +5,9 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import customersRouter from './routes/customers.js';
 import authRouter from './routes/auth.js';
+import leadsRouter from './routes/leads.js';
+import preRegistrationRouter from './routes/preRegistration.js';
+import sharingRouter from './routes/sharing.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -23,6 +26,9 @@ app.use(express.urlencoded({ extended: true }));
 // API Routes
 app.use('/api/auth', authRouter);
 app.use('/api/customers', customersRouter);
+app.use('/api/leads', leadsRouter);
+app.use('/api/pre-registration', preRegistrationRouter);
+app.use('/api/sharing', sharingRouter);
 
 // Health check
 app.get('/api/health', (_req, res) => {
@@ -31,6 +37,48 @@ app.get('/api/health', (_req, res) => {
     message: 'Tellus CRM API is running',
     timestamp: new Date().toISOString()
   });
+});
+
+// Public form routes
+app.get('/cadastro', (_req, res) => {
+  if (process.env.NODE_ENV === 'production') {
+    res.sendFile(path.join(__dirname, '../client/public-form.html'));
+  } else {
+    // In development, redirect to Vite dev server
+    res.redirect('http://localhost:3000/public-form.html');
+  }
+});
+
+app.get('/cadastro/agro', (_req, res) => {
+  if (process.env.NODE_ENV === 'production') {
+    res.sendFile(path.join(__dirname, '../client/public-form.html'));
+  } else {
+    res.redirect('http://localhost:3000/public-form.html?form=agro');
+  }
+});
+
+app.get('/cadastro/credito', (_req, res) => {
+  if (process.env.NODE_ENV === 'production') {
+    res.sendFile(path.join(__dirname, '../client/public-form.html'));
+  } else {
+    res.redirect('http://localhost:3000/public-form.html?form=credito');
+  }
+});
+
+app.get('/cadastro/consultoria', (_req, res) => {
+  if (process.env.NODE_ENV === 'production') {
+    res.sendFile(path.join(__dirname, '../client/public-form.html'));
+  } else {
+    res.redirect('http://localhost:3000/public-form.html?form=consultoria');
+  }
+});
+
+app.get('/cadastro/creditoimobiliario', (_req, res) => {
+  if (process.env.NODE_ENV === 'production') {
+    res.sendFile(path.join(__dirname, '../client/public-form.html'));
+  } else {
+    res.redirect('http://localhost:3000/public-form.html?form=creditoimobiliario');
+  }
 });
 
 // Serve static files in production

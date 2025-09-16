@@ -1,250 +1,217 @@
-import React, { useState } from 'react';
-import { Customer } from '../../../../shared/types/customer';
+import React, { useState, useEffect } from 'react';
+import { Plus, AlertCircle, Trash2, Loader2 } from 'lucide-react';
 import { Button } from '../UI/Button';
-import { Input } from '../UI/Input';
+import { Modal } from '../UI/Modal';
 import { LoadingSpinner } from '../UI/LoadingSpinner';
-import { Edit, Trash2, Plus, Search, MapPin, Phone, Mail, Calendar, Shield, Users } from 'lucide-react';
+import { CustomerForm } from './CustomerForm';
+import { CustomerListView } from './CustomerListView';
+import { useCustomers } from '../../hooks/useCustomers';
 
-interface CustomerListProps {
-  customers: Customer[];
-  loading: boolean;
-  onEdit: (customer: Customer) => void;
-  onDelete: (id: string) => void;
-  onAdd: () => void;
-  onSearch: (search: string) => void;
-  total: number;
-  page: number;
-  limit: number;
-  onPageChange: (page: number) => void;
-}
+export function CustomerList() {
+  const {
+    customers,
+    loading,
+    error,
+    total,
+    page,
+    limit,
+    refetch: fetchCustomers,
+    createCustomer,
+    updateCustomer,
+    deleteCustomer
+  } = useCustomers();
 
-export function CustomerList({
-  customers,
-  loading,
-  onEdit,
-  onDelete,
-  onAdd,
-  onSearch,
-  total,
-  page,
-  limit,
-  onPageChange
-}: CustomerListProps) {
-  const [searchTerm, setSearchTerm] = useState('');
-  const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
+  const [showCreateModal, setShowCreateModal] = useState(false);
+  const [editingCustomer, setEditingCustomer] = useState(null);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [customerToDelete, setCustomerToDelete] = useState<any>(null);
+  const [deleting, setDeleting] = useState(false);
 
-  const handleSearch = (value: string) => {
-    setSearchTerm(value);
-    onSearch(value);
-  };
-
-  const handleDelete = async (id: string) => {
-    onDelete(id);
-    setDeleteConfirm(null);
-  };
-
-  const formatCPF = (cpf: string) => {
-    return cpf.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4');
-  };
-
-  const formatPhone = (phone: string) => {
-    if (phone.length <= 10) {
-      return phone.replace(/(\d{2})(\d{4})(\d{4})/, '($1) $2-$3');
+  const handleCreateCustomer = async (customerData: any) => {
+    try {
+      await createCustomer(customerData);
+      setShowCreateModal(false);
+      fetchCustomers();
+    } catch (error) {
+      console.error('Erro ao criar cliente:', error);
+      alert('Erro ao criar cliente');
     }
-    return phone.replace(/(\d{2})(\d{5})(\d{4})/, '($1) $2-$3');
   };
 
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('pt-BR');
+  const handleUpdateCustomer = async (customerData: any) => {
+    if (!editingCustomer) return;
+    
+    try {
+      await updateCustomer(editingCustomer.id, customerData);
+      setEditingCustomer(null);
+      fetchCustomers();
+    } catch (error) {
+      console.error('Erro ao atualizar cliente:', error);
+      alert('Erro ao atualizar cliente');
+    }
   };
 
-  const totalPages = Math.ceil(total / limit);
+  const handleDeleteCustomer = (customer: any) => {
+    setCustomerToDelete(customer);
+    setShowDeleteModal(true);
+  };
+
+  const confirmDeleteCustomer = async () => {
+    if (!customerToDelete) return;
+
+    try {
+      setDeleting(true);
+      await deleteCustomer(customerToDelete.id);
+      fetchCustomers();
+      setShowDeleteModal(false);
+      setCustomerToDelete(null);
+    } catch (error) {
+      console.error('Erro ao excluir cliente:', error);
+      alert('Erro ao excluir cliente');
+    } finally {
+      setDeleting(false);
+    }
+  };
+
+  const cancelDeleteCustomer = () => {
+    setShowDeleteModal(false);
+    setCustomerToDelete(null);
+  };
+
+
+  if (error) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+            <AlertCircle className="w-8 h-8 text-red-600" />
+          </div>
+          <h3 className="text-lg font-medium text-gray-900 mb-2">Erro ao carregar clientes</h3>
+          <p className="text-gray-600 mb-4">{error}</p>
+          <Button onClick={fetchCustomers}>Tentar novamente</Button>
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">Clientes</h1>
-          <p className="text-gray-600">{total} clientes cadastrados</p>
+    <div className="min-h-screen bg-gray-50">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Header com botão de adicionar */}
+        <div className="mb-8 flex justify-between items-center">
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900">Clientes</h1>
+            <p className="mt-2 text-gray-600">
+              Gerencie todos os seus clientes em um só lugar
+            </p>
+          </div>
+          
+          <Button
+            onClick={() => setShowCreateModal(true)}
+            className="flex items-center space-x-2"
+          >
+            <Plus className="w-4 h-4" />
+            <span>Novo Cliente</span>
+          </Button>
         </div>
-        <Button onClick={onAdd} className="flex items-center space-x-2">
-          <Plus className="w-4 h-4" />
-          <span>Novo Cliente</span>
-        </Button>
-      </div>
 
-      {/* Search */}
-      <div className="relative max-w-md">
-        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-        <Input
-          placeholder="Buscar por nome, email ou CPF..."
-          value={searchTerm}
-          onChange={(e) => handleSearch(e.target.value)}
-          className="pl-10"
+        {/* Lista de Clientes */}
+        <CustomerListView
+          customers={customers}
+          loading={loading}
+          onRefresh={fetchCustomers}
+          onDelete={handleDeleteCustomer}
         />
-      </div>
 
-      {/* Loading */}
-      {loading && (
-        <div className="flex justify-center items-center py-12">
-          <LoadingSpinner size="lg" />
-        </div>
-      )}
+        {/* Modal de Criação */}
+        <Modal
+          isOpen={showCreateModal}
+          onClose={() => setShowCreateModal(false)}
+          title="Novo Cliente"
+          size="lg"
+        >
+          <CustomerForm
+            onSubmit={handleCreateCustomer}
+            onCancel={() => setShowCreateModal(false)}
+            loading={loading}
+          />
+        </Modal>
 
-      {/* Customer Cards */}
-      {!loading && customers.length > 0 && (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {customers.map((customer) => (
-            <div key={customer.id} className="card">
-              <div className="card-content">
-                <div className="flex justify-between items-start mb-4">
-                  <div>
-                    <h3 className="font-semibold text-lg text-gray-900">{customer.name}</h3>
-                    <p className="text-sm text-gray-500">CPF: {formatCPF(customer.cpf)}</p>
-                  </div>
-                  <div className="flex space-x-2">
-                    <button
-                      onClick={() => onEdit(customer)}
-                      className="text-gray-400 hover:text-tellus-primary transition-colors"
-                    >
-                      <Edit className="w-4 h-4" />
-                    </button>
-                    <button
-                      onClick={() => setDeleteConfirm(customer.id!)}
-                      className="text-gray-400 hover:text-red-600 transition-colors"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </button>
-                  </div>
-                </div>
-
-                <div className="space-y-2">
-                  <div className="flex items-center space-x-2 text-sm text-gray-600">
-                    <Mail className="w-4 h-4" />
-                    <span className="truncate">{customer.email}</span>
-                  </div>
-                  
-                  <div className="flex items-center space-x-2 text-sm text-gray-600">
-                    <Phone className="w-4 h-4" />
-                    <span>{formatPhone(customer.phone)}</span>
-                  </div>
-                  
-                  <div className="flex items-center space-x-2 text-sm text-gray-600">
-                    <MapPin className="w-4 h-4" />
-                    <span className="truncate">
-                      {customer.address.city}, {customer.address.state}
-                    </span>
-                  </div>
-                  
-                  <div className="flex items-center space-x-2 text-sm text-gray-600">
-                    <Calendar className="w-4 h-4" />
-                    <span>Nasc: {formatDate(customer.birthDate)}</span>
-                  </div>
-
-                  <div className="flex items-center space-x-2 text-sm text-gray-600">
-                    <Shield className="w-4 h-4" />
-                    <span>Senha gov cadastrada</span>
-                  </div>
-                </div>
-
-                {customer.notes && (
-                  <div className="mt-3 pt-3 border-t">
-                    <p className="text-sm text-gray-600 line-clamp-2">{customer.notes}</p>
-                  </div>
-                )}
-
-                <div className="mt-3 pt-3 border-t">
-                  <p className="text-xs text-gray-400">
-                    Criado em {formatDate(customer.createdAt!)}
-                  </p>
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
-      )}
-
-      {/* Empty State */}
-      {!loading && customers.length === 0 && (
-        <div className="text-center py-12">
-          <div className="w-16 h-16 mx-auto bg-gray-100 rounded-full flex items-center justify-center mb-4">
-            <Users className="w-8 h-8 text-gray-400" />
-          </div>
-          <h3 className="text-lg font-medium text-gray-900 mb-2">
-            {searchTerm ? 'Nenhum cliente encontrado' : 'Nenhum cliente cadastrado'}
-          </h3>
-          <p className="text-gray-500 mb-6">
-            {searchTerm 
-              ? 'Tente ajustar os filtros de busca'
-              : 'Comece adicionando seu primeiro cliente'
-            }
-          </p>
-          {!searchTerm && (
-            <Button onClick={onAdd}>
-              Adicionar Cliente
-            </Button>
+        {/* Modal de Edição */}
+        <Modal
+          isOpen={!!editingCustomer}
+          onClose={() => setEditingCustomer(null)}
+          title="Editar Cliente"
+          size="lg"
+        >
+          {editingCustomer && (
+            <CustomerForm
+              customer={editingCustomer}
+              onSubmit={handleUpdateCustomer}
+              onCancel={() => setEditingCustomer(null)}
+              loading={loading}
+            />
           )}
-        </div>
-      )}
+        </Modal>
 
-      {/* Pagination */}
-      {!loading && customers.length > 0 && totalPages > 1 && (
-        <div className="flex justify-center items-center space-x-2">
-          <Button
-            variant="secondary"
-            size="sm"
-            onClick={() => onPageChange(page - 1)}
-            disabled={page <= 1}
-          >
-            Anterior
-          </Button>
-          
-          <span className="text-sm text-gray-600">
-            Página {page} de {totalPages}
-          </span>
-          
-          <Button
-            variant="secondary"
-            size="sm"
-            onClick={() => onPageChange(page + 1)}
-            disabled={page >= totalPages}
-          >
-            Próxima
-          </Button>
-        </div>
-      )}
-
-      {/* Delete Confirmation Modal */}
-      {deleteConfirm && (
-        <div className="fixed inset-0 z-50 overflow-y-auto">
-          <div className="flex min-h-screen items-center justify-center p-4">
-            <div className="fixed inset-0 bg-black bg-opacity-25" onClick={() => setDeleteConfirm(null)} />
-            
-            <div className="relative bg-white rounded-xl shadow-xl max-w-md w-full p-6">
-              <h3 className="text-lg font-medium text-gray-900 mb-2">Confirmar exclusão</h3>
-              <p className="text-gray-600 mb-6">
-                Tem certeza que deseja excluir este cliente? Esta ação não pode ser desfeita.
-              </p>
-              
-              <div className="flex justify-end space-x-3">
-                <Button
-                  variant="secondary"
-                  onClick={() => setDeleteConfirm(null)}
-                >
-                  Cancelar
-                </Button>
-                <Button
-                  variant="danger"
-                  onClick={() => handleDelete(deleteConfirm)}
-                >
-                  Excluir
-                </Button>
+        {/* Modal de Confirmação de Exclusão */}
+        <Modal
+          isOpen={showDeleteModal}
+          onClose={cancelDeleteCustomer}
+          title="Confirmar Exclusão"
+          size="md"
+        >
+          <div className="space-y-4">
+            <div className="flex items-start space-x-3">
+              <div className="w-10 h-10 bg-red-100 rounded-full flex items-center justify-center flex-shrink-0">
+                <Trash2 className="w-5 h-5 text-red-600" />
+              </div>
+              <div className="flex-1">
+                <h3 className="text-lg font-medium text-gray-900">
+                  Excluir cliente
+                </h3>
+                <p className="text-sm text-gray-600 mt-1">
+                  Tem certeza que deseja excluir o cliente{' '}
+                  <span className="font-medium text-gray-900">
+                    "{customerToDelete?.name}"
+                  </span>?
+                </p>
+                <p className="text-xs text-red-600 mt-2">
+                  ⚠️ Esta ação não pode ser desfeita. Todos os dados do cliente, incluindo documentos, serão removidos permanentemente.
+                </p>
               </div>
             </div>
+
+            <div className="flex justify-end space-x-3 pt-4 border-t">
+              <Button
+                variant="outline"
+                onClick={cancelDeleteCustomer}
+                disabled={deleting}
+              >
+                Cancelar
+              </Button>
+              <Button
+                variant="destructive"
+                onClick={confirmDeleteCustomer}
+                disabled={deleting}
+                className="flex items-center space-x-2"
+              >
+                {deleting ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    <span>Excluindo...</span>
+                  </>
+                ) : (
+                  <>
+                    <Trash2 className="w-4 h-4" />
+                    <span>Excluir</span>
+                  </>
+                )}
+              </Button>
+            </div>
           </div>
-        </div>
-      )}
+        </Modal>
+      </div>
     </div>
   );
 }

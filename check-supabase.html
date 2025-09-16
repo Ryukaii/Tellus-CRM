@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Verificar Configuração Supabase</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        body { font-family: monospace; padding: 20px; background: #1a1a1a; color: #00ff00; }
+        .container { max-width: 800px; margin: 0 auto; }
+        .section { margin: 20px 0; padding: 15px; border: 1px solid #333; background: #0a0a0a; }
+        .error { color: #ff4444; }
+        .success { color: #44ff44; }
+        .warning { color: #ffaa44; }
+        input { background: #333; color: #fff; border: 1px solid #666; padding: 8px; margin: 5px; width: 300px; }
+        button { background: #0066cc; color: white; border: none; padding: 10px 20px; margin: 5px; cursor: pointer; }
+        pre { background: #222; padding: 10px; overflow-x: auto; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔍 Verificar Configuração Supabase</h1>
+        
+        <div class="section">
+            <h3>📝 Configuração</h3>
+            <input type="text" id="supabaseUrl" placeholder="URL do Supabase" />
+            <input type="text" id="supabaseKey" placeholder="Chave Anônima" />
+            <button onclick="checkConfig()">🔍 Verificar</button>
+        </div>
+
+        <div class="section">
+            <h3>📊 Resultados</h3>
+            <pre id="results">Aguardando verificação...</pre>
+        </div>
+
+        <div class="section">
+            <h3>🛠️ Comandos SQL para Corrigir</h3>
+            <pre id="sqlCommands">-- Execute estes comandos no SQL Editor do Supabase:
+
+-- 1. Verificar se o bucket existe
+SELECT * FROM storage.buckets WHERE name = 'pre-registration-documents';
+
+-- 2. Criar bucket (se não existir)
+INSERT INTO storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
+VALUES (
+    'pre-registration-documents',
+    'pre-registration-documents',
+    true,
+    10485760,
+    ARRAY['application/pdf', 'image/jpeg', 'image/png', 'image/webp']
+);
+
+-- 3. Criar política permissiva
+CREATE POLICY "Allow all operations on pre-registration-documents"
+ON storage.objects
+FOR ALL
+USING (bucket_id = 'pre-registration-documents')
+WITH CHECK (bucket_id = 'pre-registration-documents');
+
+-- 4. Verificar políticas criadas
+SELECT policyname, cmd FROM pg_policies 
+WHERE tablename = 'objects' AND schemaname = 'storage';</pre>
+        </div>
+    </div>
+
+    <script>
+        let supabase = null;
+
+        function log(message, type = 'info') {
+            const results = document.getElementById('results');
+            const timestamp = new Date().toLocaleTimeString();
+            const color = type === 'error' ? '#ff4444' : type === 'success' ? '#44ff44' : '#ffaa44';
+            results.innerHTML += `<span style="color: ${color}">[${timestamp}] ${message}</span>\n`;
+        }
+
+        async function checkConfig() {
+            const url = document.getElementById('supabaseUrl').value.trim();
+            const key = document.getElementById('supabaseKey').value.trim();
+
+            if (!url || !key) {
+                log('❌ Preencha URL e Chave do Supabase', 'error');
+                return;
+            }
+
+            document.getElementById('results').innerHTML = '';
+            log('🔍 Iniciando verificação...', 'info');
+
+            try {
+                // Conectar ao Supabase
+                supabase = window.supabase.createClient(url, key);
+                log('✅ Conectado ao Supabase', 'success');
+
+                // Verificar se consegue listar buckets
+                log('📁 Verificando buckets...', 'info');
+                const { data: buckets, error: bucketsError } = await supabase.storage.listBuckets();
+                
+                if (bucketsError) {
+                    log(`❌ Erro ao listar buckets: ${bucketsError.message}`, 'error');
+                    return;
+                }
+
+                const targetBucket = buckets.find(b => b.name === 'pre-registration-documents');
+                if (targetBucket) {
+                    log('✅ Bucket "pre-registration-documents" encontrado', 'success');
+                    log(`   - Público: ${targetBucket.public ? 'Sim' : 'Não'}`, targetBucket.public ? 'success' : 'warning');
+                    log(`   - Tamanho máximo: ${targetBucket.file_size_limit || 'Não definido'}`, 'info');
+                } else {
+                    log('❌ Bucket "pre-registration-documents" NÃO encontrado', 'error');
+                    log('   Execute o comando SQL para criar o bucket', 'warning');
+                }
+
+                // Testar upload simples
+                log('📤 Testando upload...', 'info');
+                const testFile = new File(['test content'], 'test.txt', { type: 'text/plain' });
+                const testPath = `test/${Date.now()}_test.txt`;
+
+                const { data: uploadData, error: uploadError } = await supabase.storage
+                    .from('pre-registration-documents')
+                    .upload(testPath, testFile);
+
+                if (uploadError) {
+                    log(`❌ Erro no teste de upload: ${uploadError.message}`, 'error');
+                    
+                    if (uploadError.message.includes('row-level security policy')) {
+                        log('💡 SOLUÇÃO: Execute as políticas SQL mostradas abaixo', 'warning');
+                    }
+                    if (uploadError.message.includes('not found')) {
+                        log('💡 SOLUÇÃO: Crie o bucket usando o comando SQL', 'warning');
+                    }
+                } else {
+                    log('✅ Upload de teste bem-sucedido!', 'success');
+                    log(`   - Caminho: ${uploadData.path}`, 'info');
+
+                    // Limpar arquivo de teste
+                    await supabase.storage
+                        .from('pre-registration-documents')
+                        .remove([testPath]);
+                    log('🧹 Arquivo de teste removido', 'info');
+                }
+
+                // Testar URL pública
+                if (uploadData) {
+                    log('🌐 Testando URL pública...', 'info');
+                    const { data: urlData } = supabase.storage
+                        .from('pre-registration-documents')
+                        .getPublicUrl('test/sample.txt');
+                    
+                    log(`✅ URL pública gerada: ${urlData.publicUrl}`, 'success');
+                }
+
+                log('🎉 Verificação concluída!', 'success');
+
+            } catch (error) {
+                log(`❌ Erro geral: ${error.message}`, 'error');
+            }
+        }
+
+        // Carregar configurações do localStorage se existirem
+        document.getElementById('supabaseUrl').value = localStorage.getItem('supabase_url') || '';
+        document.getElementById('supabaseKey').value = localStorage.getItem('supabase_key') || '';
+
+        // Salvar configurações
+        document.getElementById('supabaseUrl').addEventListener('change', (e) => {
+            localStorage.setItem('supabase_url', e.target.value);
+        });
+        document.getElementById('supabaseKey').addEventListener('change', (e) => {
+            localStorage.setItem('supabase_key', e.target.value);
+        });
+    </script>
+</body>
+</html>

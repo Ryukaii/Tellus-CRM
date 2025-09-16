@@ -1,0 +1,633 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teste de Upload - Tellus CRM</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #2c3e50 0%, #3498db 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2rem;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            opacity: 0.9;
+            font-size: 1.1rem;
+        }
+
+        .content {
+            padding: 40px;
+        }
+
+        .config-section {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 30px;
+            border-left: 4px solid #3498db;
+        }
+
+        .config-section h3 {
+            color: #2c3e50;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .config-section input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e1e8ed;
+            border-radius: 6px;
+            font-size: 14px;
+            margin-bottom: 10px;
+            transition: border-color 0.2s;
+        }
+
+        .config-section input:focus {
+            outline: none;
+            border-color: #3498db;
+        }
+
+        .upload-section {
+            border: 2px dashed #cbd5e0;
+            border-radius: 8px;
+            padding: 40px;
+            text-align: center;
+            background: #f7fafc;
+            margin-bottom: 20px;
+            transition: all 0.2s;
+            cursor: pointer;
+        }
+
+        .upload-section:hover {
+            border-color: #3498db;
+            background: #ebf8ff;
+        }
+
+        .upload-section.dragging {
+            border-color: #3498db;
+            background: #ebf8ff;
+            transform: scale(1.02);
+        }
+
+        .upload-icon {
+            width: 48px;
+            height: 48px;
+            margin: 0 auto 15px;
+            opacity: 0.6;
+        }
+
+        .file-input {
+            display: none;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(52, 152, 219, 0.3);
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .progress-container {
+            margin: 20px 0;
+            display: none;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: #e1e8ed;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #3498db, #2ecc71);
+            width: 0%;
+            transition: width 0.3s;
+        }
+
+        .file-list {
+            margin-top: 20px;
+        }
+
+        .file-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 15px;
+            background: white;
+            border: 1px solid #e1e8ed;
+            border-radius: 6px;
+            margin-bottom: 10px;
+        }
+
+        .file-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .file-icon {
+            width: 32px;
+            height: 32px;
+            background: #3498db;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+        }
+
+        .status {
+            padding: 20px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+            display: none;
+        }
+
+        .status.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .status.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .status.info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+
+        .logs {
+            background: #2c3e50;
+            color: #ecf0f1;
+            padding: 20px;
+            border-radius: 6px;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            max-height: 300px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+        }
+
+        .session-info {
+            background: #e8f4f8;
+            padding: 15px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+            border-left: 4px solid #3498db;
+        }
+
+        .session-info strong {
+            color: #2c3e50;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🚀 Teste de Upload</h1>
+            <p>Sistema de Upload de Documentos - Tellus CRM</p>
+        </div>
+
+        <div class="content">
+            <!-- Configuração do Supabase -->
+            <div class="config-section">
+                <h3>⚙️ Configuração do Supabase</h3>
+                <p style="margin-bottom: 15px; color: #666; font-size: 14px;">
+                    🔄 As configurações são carregadas automaticamente do arquivo .env (se existir)
+                </p>
+                <input type="text" id="supabaseUrl" placeholder="URL do Supabase (ex: https://seu-projeto.supabase.co)" />
+                <input type="text" id="supabaseKey" placeholder="Chave Anônima do Supabase" />
+                <button class="btn" onclick="initSupabase()">
+                    🔗 Conectar ao Supabase
+                </button>
+                <button class="btn" onclick="loadEnvConfig()" style="background: #27ae60; margin-left: 10px;">
+                    🔄 Recarregar .env
+                </button>
+            </div>
+
+            <!-- Informações da Sessão -->
+            <div class="session-info">
+                <strong>ID da Sessão:</strong> <span id="sessionId">Gerando...</span>
+            </div>
+
+            <!-- Status -->
+            <div id="status" class="status"></div>
+
+            <!-- Upload Area -->
+            <div class="upload-section" id="uploadArea">
+                <div class="upload-icon">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 48 48">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-4l4 4m-24-8h.01M28 8v4a4 4 0 004 4h4"/>
+                    </svg>
+                </div>
+                <h3>Clique ou arraste arquivos aqui</h3>
+                <p>PDF, JPG, PNG, WEBP (máx. 10MB cada)</p>
+                <input type="file" id="fileInput" class="file-input" multiple accept=".pdf,.jpg,.jpeg,.png,.webp">
+            </div>
+
+            <!-- Progress -->
+            <div class="progress-container" id="progressContainer">
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progressFill"></div>
+                </div>
+                <p id="progressText">Preparando upload...</p>
+            </div>
+
+            <!-- Botões -->
+            <div style="text-align: center; margin: 20px 0;">
+                <button class="btn" onclick="testUpload()" id="testBtn">
+                    📤 Testar Upload
+                </button>
+                <button class="btn" onclick="clearFiles()" style="background: #e74c3c;">
+                    🗑️ Limpar Arquivos
+                </button>
+            </div>
+
+            <!-- Lista de Arquivos -->
+            <div id="fileList" class="file-list"></div>
+
+            <!-- Logs -->
+            <h3>📋 Logs do Sistema</h3>
+            <div id="logs" class="logs">Aguardando ações...\n</div>
+        </div>
+    </div>
+
+    <script>
+        let supabase = null;
+        let selectedFiles = [];
+        let sessionId = generateSessionId();
+        
+        // Atualizar UI com session ID
+        document.getElementById('sessionId').textContent = sessionId;
+        
+        // Carregar configurações do .env automaticamente
+        loadEnvConfig();
+
+        function generateSessionId() {
+            return `test_session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+        }
+
+        async function loadEnvConfig() {
+            try {
+                const response = await fetch('/api/config');
+                const config = await response.json();
+                
+                if (config.hasConfig) {
+                    // Preencher automaticamente os campos
+                    document.getElementById('supabaseUrl').value = config.supabaseUrl;
+                    document.getElementById('supabaseKey').value = config.supabaseKey;
+                    
+                    // Conectar automaticamente
+                    initSupabase();
+                    
+                    showStatus('✅ Configurações carregadas do arquivo .env!', 'success');
+                    log('Configurações carregadas automaticamente do .env');
+                    log(`URL: ${config.supabaseUrl}`);
+                } else {
+                    showStatus('⚠️ Arquivo .env não encontrado. Configure manualmente.', 'info');
+                    log('Arquivo .env não encontrado. Configure as credenciais manualmente.');
+                }
+            } catch (error) {
+                log(`Erro ao carregar configurações: ${error.message}`);
+                showStatus('⚠️ Erro ao carregar .env. Configure manualmente.', 'info');
+            }
+        }
+
+        function log(message) {
+            const logs = document.getElementById('logs');
+            const timestamp = new Date().toLocaleTimeString();
+            logs.textContent += `[${timestamp}] ${message}\n`;
+            logs.scrollTop = logs.scrollHeight;
+        }
+
+        function showStatus(message, type = 'info') {
+            const status = document.getElementById('status');
+            status.textContent = message;
+            status.className = `status ${type}`;
+            status.style.display = 'block';
+            
+            if (type !== 'error') {
+                setTimeout(() => {
+                    status.style.display = 'none';
+                }, 5000);
+            }
+        }
+
+        function initSupabase() {
+            const url = document.getElementById('supabaseUrl').value.trim();
+            const key = document.getElementById('supabaseKey').value.trim();
+
+            if (!url || !key) {
+                showStatus('Por favor, preencha URL e Chave do Supabase', 'error');
+                return;
+            }
+
+            try {
+                supabase = window.supabase.createClient(url, key);
+                showStatus('✅ Conectado ao Supabase com sucesso!', 'success');
+                log('Supabase inicializado com sucesso');
+                log(`URL: ${url}`);
+                log(`Bucket: user-documents`);
+            } catch (error) {
+                showStatus(`Erro ao conectar: ${error.message}`, 'error');
+                log(`ERRO: ${error.message}`);
+            }
+        }
+
+        // Setup drag and drop
+        const uploadArea = document.getElementById('uploadArea');
+        const fileInput = document.getElementById('fileInput');
+
+        uploadArea.addEventListener('click', () => fileInput.click());
+        uploadArea.addEventListener('dragover', handleDragOver);
+        uploadArea.addEventListener('dragleave', handleDragLeave);
+        uploadArea.addEventListener('drop', handleDrop);
+        fileInput.addEventListener('change', handleFileSelect);
+
+        function handleDragOver(e) {
+            e.preventDefault();
+            uploadArea.classList.add('dragging');
+        }
+
+        function handleDragLeave(e) {
+            e.preventDefault();
+            uploadArea.classList.remove('dragging');
+        }
+
+        function handleDrop(e) {
+            e.preventDefault();
+            uploadArea.classList.remove('dragging');
+            const files = Array.from(e.dataTransfer.files);
+            addFiles(files);
+        }
+
+        function handleFileSelect(e) {
+            const files = Array.from(e.target.files);
+            addFiles(files);
+        }
+
+        function addFiles(files) {
+            files.forEach(file => {
+                if (validateFile(file)) {
+                    selectedFiles.push(file);
+                    log(`Arquivo adicionado: ${file.name} (${formatFileSize(file.size)})`);
+                }
+            });
+            updateFileList();
+        }
+
+        function validateFile(file) {
+            const allowedTypes = ['application/pdf', 'image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
+            const maxSize = 10 * 1024 * 1024; // 10MB
+
+            if (!allowedTypes.includes(file.type)) {
+                showStatus(`Tipo de arquivo não suportado: ${file.name}`, 'error');
+                log(`ERRO: Tipo não suportado - ${file.name} (${file.type})`);
+                return false;
+            }
+
+            if (file.size > maxSize) {
+                showStatus(`Arquivo muito grande: ${file.name}`, 'error');
+                log(`ERRO: Arquivo muito grande - ${file.name} (${formatFileSize(file.size)})`);
+                return false;
+            }
+
+            return true;
+        }
+
+        function updateFileList() {
+            const fileList = document.getElementById('fileList');
+            fileList.innerHTML = '';
+
+            selectedFiles.forEach((file, index) => {
+                const fileItem = document.createElement('div');
+                fileItem.className = 'file-item';
+                fileItem.innerHTML = `
+                    <div class="file-info">
+                        <div class="file-icon">${getFileIcon(file.type)}</div>
+                        <div>
+                            <div><strong>${file.name}</strong></div>
+                            <div style="color: #666; font-size: 14px;">${formatFileSize(file.size)} • ${file.type}</div>
+                        </div>
+                    </div>
+                    <button class="btn" onclick="removeFile(${index})" style="background: #e74c3c; padding: 8px 12px;">
+                        ❌
+                    </button>
+                `;
+                fileList.appendChild(fileItem);
+            });
+        }
+
+        function removeFile(index) {
+            const file = selectedFiles[index];
+            selectedFiles.splice(index, 1);
+            log(`Arquivo removido: ${file.name}`);
+            updateFileList();
+        }
+
+        function clearFiles() {
+            selectedFiles = [];
+            log('Todos os arquivos foram removidos');
+            updateFileList();
+        }
+
+        function getFileIcon(type) {
+            if (type.includes('pdf')) return 'PDF';
+            if (type.includes('image')) return '🖼️';
+            return '📄';
+        }
+
+        function formatFileSize(bytes) {
+            if (bytes === 0) return '0 Bytes';
+            const k = 1024;
+            const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+        }
+
+        function generateFileName(sessionId, originalName, documentType) {
+            const timestamp = Date.now();
+            const extension = originalName.split('.').pop();
+            const cleanName = originalName.replace(/[^a-zA-Z0-9.-]/g, '_');
+            return `${sessionId}/${documentType}/${timestamp}_${cleanName}`;
+        }
+
+        async function testUpload() {
+            if (!supabase) {
+                showStatus('Por favor, configure o Supabase primeiro', 'error');
+                return;
+            }
+
+            if (selectedFiles.length === 0) {
+                showStatus('Por favor, selecione arquivos para upload', 'error');
+                return;
+            }
+
+            const testBtn = document.getElementById('testBtn');
+            const progressContainer = document.getElementById('progressContainer');
+            const progressFill = document.getElementById('progressFill');
+            const progressText = document.getElementById('progressText');
+
+            testBtn.disabled = true;
+            progressContainer.style.display = 'block';
+            
+            log(`Iniciando upload de ${selectedFiles.length} arquivo(s)...`);
+
+            try {
+                const uploadedDocuments = [];
+
+                for (let i = 0; i < selectedFiles.length; i++) {
+                    const file = selectedFiles[i];
+                    const progress = ((i + 1) / selectedFiles.length) * 100;
+                    
+                    progressFill.style.width = `${progress}%`;
+                    progressText.textContent = `Uploading ${file.name}... (${i + 1}/${selectedFiles.length})`;
+                    
+                    log(`Fazendo upload: ${file.name}`);
+
+                    // Gerar nome do arquivo
+                    const fileName = generateFileName(sessionId, file.name, 'test');
+                    
+                    // Upload para Supabase
+                    const { data, error } = await supabase.storage
+                        .from('user-documents')
+                        .upload(fileName, file, {
+                            cacheControl: '3600',
+                            upsert: false
+                        });
+
+                    if (error) {
+                        throw new Error(`Erro no upload de ${file.name}: ${error.message}`);
+                    }
+
+                    // Obter URL pública
+                    const { data: publicUrlData } = supabase.storage
+                        .from('user-documents')
+                        .getPublicUrl(fileName);
+
+                    const uploadedDoc = {
+                        id: data.path,
+                        fileName: file.name,
+                        fileSize: file.size,
+                        fileType: file.type,
+                        documentType: 'test',
+                        uploadedAt: new Date().toISOString(),
+                        url: publicUrlData.publicUrl
+                    };
+
+                    uploadedDocuments.push(uploadedDoc);
+                    log(`✅ Upload concluído: ${file.name}`);
+                    log(`   URL: ${publicUrlData.publicUrl}`);
+                }
+
+                progressText.textContent = 'Upload concluído!';
+                showStatus(`✅ ${selectedFiles.length} arquivo(s) enviado(s) com sucesso!`, 'success');
+                log(`\n=== RESUMO DO UPLOAD ===`);
+                log(`Total de arquivos: ${uploadedDocuments.length}`);
+                log(`Session ID: ${sessionId}`);
+                log(`Bucket: user-documents`);
+                log(`\nDocumentos upados:`);
+                uploadedDocuments.forEach(doc => {
+                    log(`- ${doc.fileName} (${formatFileSize(doc.fileSize)})`);
+                });
+
+                // Simular salvamento no backend
+                log(`\nSimulando salvamento no MongoDB...`);
+                try {
+                    const response = await fetch('/api/pre-registration/session/' + sessionId + '/documents', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({ documents: uploadedDocuments })
+                    });
+
+                    if (response.ok) {
+                        log(`✅ Documentos salvos no MongoDB com sucesso!`);
+                    } else {
+                        log(`⚠️  Backend não disponível (isso é normal para este teste)`);
+                    }
+                } catch (error) {
+                    log(`⚠️  Backend não disponível: ${error.message}`);
+                }
+
+            } catch (error) {
+                progressText.textContent = 'Erro no upload';
+                showStatus(`Erro: ${error.message}`, 'error');
+                log(`ERRO: ${error.message}`);
+            } finally {
+                testBtn.disabled = false;
+                setTimeout(() => {
+                    progressContainer.style.display = 'none';
+                }, 3000);
+            }
+        }
+
+        // Log inicial
+        log('Sistema de teste inicializado');
+        log(`Session ID gerado: ${sessionId}`);
+        log('Configure o Supabase e selecione arquivos para começar');
+    </script>
+</body>
+</html>

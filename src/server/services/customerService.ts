@@ -7,7 +7,9 @@ interface MongoCustomer {
   email: string;
   phone: string;
   cpf: string;
-  birthDate: string;
+  rg?: string;
+  birthDate?: string;
+  maritalStatus?: string;
   address: {
     street: string;
     number: string;
@@ -17,8 +19,26 @@ interface MongoCustomer {
     state: string;
     zipCode: string;
   };
-  govPassword: string;
+  profession?: string;
+  employmentType?: string;
+  monthlyIncome?: number;
+  companyName?: string;
+  propertyValue?: number;
+  propertyType?: string;
+  propertyCity?: string;
+  propertyState?: string;
+  uploadedDocuments?: Array<{
+    id: string;
+    fileName: string;
+    fileType: string;
+    documentType: string;
+    uploadedAt: string;
+    url: string;
+  }>;
   notes?: string;
+  status?: string;
+  source?: string;
+  govPassword?: string;
   createdAt?: Date;
   updatedAt?: Date;
 }
@@ -31,10 +51,23 @@ class CustomerService {
       email: mongoCustomer.email,
       phone: mongoCustomer.phone,
       cpf: mongoCustomer.cpf,
+      rg: mongoCustomer.rg,
       birthDate: mongoCustomer.birthDate,
+      maritalStatus: mongoCustomer.maritalStatus,
       address: mongoCustomer.address,
-      govPassword: mongoCustomer.govPassword,
+      profession: mongoCustomer.profession,
+      employmentType: mongoCustomer.employmentType,
+      monthlyIncome: mongoCustomer.monthlyIncome,
+      companyName: mongoCustomer.companyName,
+      propertyValue: mongoCustomer.propertyValue,
+      propertyType: mongoCustomer.propertyType,
+      propertyCity: mongoCustomer.propertyCity,
+      propertyState: mongoCustomer.propertyState,
+      uploadedDocuments: mongoCustomer.uploadedDocuments,
       notes: mongoCustomer.notes,
+      status: mongoCustomer.status || 'ativo',
+      source: mongoCustomer.source,
+      govPassword: mongoCustomer.govPassword,
       createdAt: mongoCustomer.createdAt?.toISOString(),
       updatedAt: mongoCustomer.updatedAt?.toISOString()
     };
@@ -46,10 +79,23 @@ class CustomerService {
       email: customerData.email,
       phone: customerData.phone,
       cpf: customerData.cpf,
+      rg: customerData.rg,
       birthDate: customerData.birthDate,
+      maritalStatus: customerData.maritalStatus,
       address: customerData.address,
-      govPassword: customerData.govPassword,
-      notes: customerData.notes
+      profession: customerData.profession,
+      employmentType: customerData.employmentType,
+      monthlyIncome: customerData.monthlyIncome,
+      companyName: customerData.companyName,
+      propertyValue: customerData.propertyValue,
+      propertyType: customerData.propertyType,
+      propertyCity: customerData.propertyCity,
+      propertyState: customerData.propertyState,
+      uploadedDocuments: customerData.uploadedDocuments,
+      notes: customerData.notes,
+      status: customerData.status,
+      source: customerData.source,
+      govPassword: customerData.govPassword
     };
   }
 
@@ -136,7 +182,20 @@ class CustomerService {
       if (customerData.email) updateData.email = customerData.email;
       if (customerData.phone) updateData.phone = customerData.phone;
       if (customerData.cpf) updateData.cpf = customerData.cpf;
+      if (customerData.rg !== undefined) updateData.rg = customerData.rg;
       if (customerData.birthDate) updateData.birthDate = customerData.birthDate;
+      if (customerData.maritalStatus !== undefined) updateData.maritalStatus = customerData.maritalStatus;
+      if (customerData.profession !== undefined) updateData.profession = customerData.profession;
+      if (customerData.employmentType !== undefined) updateData.employmentType = customerData.employmentType;
+      if (customerData.monthlyIncome !== undefined) updateData.monthlyIncome = customerData.monthlyIncome;
+      if (customerData.companyName !== undefined) updateData.companyName = customerData.companyName;
+      if (customerData.propertyValue !== undefined) updateData.propertyValue = customerData.propertyValue;
+      if (customerData.propertyType !== undefined) updateData.propertyType = customerData.propertyType;
+      if (customerData.propertyCity !== undefined) updateData.propertyCity = customerData.propertyCity;
+      if (customerData.propertyState !== undefined) updateData.propertyState = customerData.propertyState;
+      if (customerData.uploadedDocuments !== undefined) updateData.uploadedDocuments = customerData.uploadedDocuments;
+      if (customerData.status !== undefined) updateData.status = customerData.status;
+      if (customerData.source !== undefined) updateData.source = customerData.source;
       if (customerData.govPassword) updateData.govPassword = customerData.govPassword;
       if (customerData.notes !== undefined) updateData.notes = customerData.notes;
 
@@ -172,6 +231,29 @@ class CustomerService {
       return await database.deleteCustomer(id);
     } catch (error) {
       return false;
+    }
+  }
+
+  async updateCustomerDocuments(id: string, documents: Array<{
+    id: string;
+    fileName: string;
+    fileType: string;
+    documentType: string;
+    uploadedAt: string;
+    url: string;
+  }>): Promise<Customer | null> {
+    try {
+      const existing = await this.getCustomerById(id);
+      if (!existing) return null;
+
+      const updateData = {
+        uploadedDocuments: documents
+      };
+
+      const result = await database.updateCustomer(id, updateData);
+      return result ? this.mapMongoToCustomer(result) : null;
+    } catch (error) {
+      throw error;
     }
   }
 }

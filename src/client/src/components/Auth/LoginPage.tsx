@@ -40,20 +40,20 @@ export function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-tellus-primary via-tellus-secondary to-tellus-accent flex items-center justify-center p-4">
+    <div className="min-h-screen bg-gradient-to-br from-tellus-primary via-tellus-secondary to-tellus-accent flex items-center justify-center p-2 sm:p-4">
       <div className="w-full max-w-md">
         {/* Logo e Header */}
-        <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-16 h-16 bg-white rounded-2xl shadow-lg mb-4">
-            <Activity className="w-8 h-8 text-tellus-primary" />
+        <div className="text-center mb-6 sm:mb-8">
+          <div className="inline-flex items-center justify-center w-12 h-12 sm:w-16 sm:h-16 bg-white rounded-xl sm:rounded-2xl shadow-lg mb-3 sm:mb-4">
+            <Activity className="w-6 h-6 sm:w-8 sm:h-8 text-tellus-primary" />
           </div>
-          <h1 className="text-3xl font-bold text-white mb-2">Tellus CRM</h1>
-          <p className="text-blue-100">Faça login para acessar o sistema</p>
+          <h1 className="text-2xl sm:text-3xl font-bold text-white mb-2">Tellus CRM</h1>
+          <p className="text-blue-100 text-sm sm:text-base">Faça login para acessar o sistema</p>
         </div>
 
         {/* Formulário de Login */}
-        <div className="bg-white rounded-2xl shadow-2xl p-8">
-          <form onSubmit={handleSubmit} className="space-y-6">
+        <div className="bg-white rounded-xl sm:rounded-2xl shadow-2xl p-4 sm:p-6 lg:p-8">
+          <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6">
             {/* Campo Email */}
             <div className="space-y-2">
               <label className="text-sm font-medium text-gray-700 flex items-center space-x-2">
@@ -64,7 +64,7 @@ export function LoginPage() {
                 type="email"
                 value={credentials.email}
                 onChange={(e) => handleChange('email', e.target.value)}
-                className="w-full h-12 px-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-tellus-primary focus:border-transparent transition-all duration-200"
+                className="w-full h-10 sm:h-12 px-3 sm:px-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-tellus-primary focus:border-transparent transition-all duration-200 text-sm sm:text-base"
                 placeholder="admin@tellus.com"
                 required
               />
@@ -81,7 +81,7 @@ export function LoginPage() {
                   type={showPassword ? 'text' : 'password'}
                   value={credentials.password}
                   onChange={(e) => handleChange('password', e.target.value)}
-                  className="w-full h-12 px-4 pr-12 border border-gray-300 rounded-lg focus:ring-2 focus:ring-tellus-primary focus:border-transparent transition-all duration-200"
+                  className="w-full h-10 sm:h-12 px-3 sm:px-4 pr-10 sm:pr-12 border border-gray-300 rounded-lg focus:ring-2 focus:ring-tellus-primary focus:border-transparent transition-all duration-200 text-sm sm:text-base"
                   placeholder="Digite sua senha"
                   required
                 />
@@ -90,7 +90,7 @@ export function LoginPage() {
                   onClick={() => setShowPassword(!showPassword)}
                   className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
                 >
-                  {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                  {showPassword ? <EyeOff className="w-4 h-4 sm:w-5 sm:h-5" /> : <Eye className="w-4 h-4 sm:w-5 sm:h-5" />}
                 </button>
               </div>
             </div>
@@ -107,7 +107,7 @@ export function LoginPage() {
             <Button
               type="submit"
               disabled={loading || !credentials.email || !credentials.password}
-              className="w-full h-12 text-base font-medium"
+              className="w-full h-10 sm:h-12 text-sm sm:text-base font-medium"
             >
               {loading ? (
                 <div className="flex items-center justify-center space-x-2">
@@ -123,8 +123,8 @@ export function LoginPage() {
         </div>
 
         {/* Footer */}
-        <div className="text-center mt-8">
-          <p className="text-blue-100 text-sm">
+        <div className="text-center mt-6 sm:mt-8">
+          <p className="text-blue-100 text-xs sm:text-sm">
             © 2024 Tellus CRM. Sistema de gerenciamento de clientes.
           </p>
         </div>

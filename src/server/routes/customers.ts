@@ -196,4 +196,45 @@ router.delete('/:id', async (req, res) => {
   }
 });
 
+// PUT /api/customers/:id/documents - Atualizar documentos do cliente
+router.put('/:id/documents', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { documents } = req.body;
+    
+    if (!Array.isArray(documents)) {
+      const response: ApiResponse = {
+        success: false,
+        error: 'Documentos devem ser um array'
+      };
+      return res.status(400).json(response);
+    }
+    
+    const customer = await customerService.updateCustomerDocuments(id, documents);
+    
+    if (!customer) {
+      const response: ApiResponse = {
+        success: false,
+        error: 'Cliente não encontrado'
+      };
+      return res.status(404).json(response);
+    }
+    
+    const response: ApiResponse = {
+      success: true,
+      data: customer,
+      message: 'Documentos atualizados com sucesso'
+    };
+    
+    res.json(response);
+  } catch (error) {
+    console.error('Error updating customer documents:', error);
+    const response: ApiResponse = {
+      success: false,
+      error: 'Erro ao atualizar documentos'
+    };
+    res.status(500).json(response);
+  }
+});
+
 export default router;

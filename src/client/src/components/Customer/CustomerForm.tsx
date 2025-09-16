@@ -3,6 +3,8 @@ import { Customer } from '../../../../shared/types/customer';
 import { Button } from '../UI/Button';
 import { Input } from '../UI/Input';
 import { LoadingSpinner } from '../UI/LoadingSpinner';
+import { StateSelect } from '../UI/StateSelect';
+import { Eye, EyeOff } from 'lucide-react';
 
 interface CustomerFormProps {
   customer?: Customer;
@@ -17,7 +19,9 @@ export function CustomerForm({ customer, onSubmit, onCancel, loading = false }: 
     email: customer?.email || '',
     phone: customer?.phone || '',
     cpf: customer?.cpf || '',
+    rg: customer?.rg || '',
     birthDate: customer?.birthDate || '',
+    maritalStatus: customer?.maritalStatus || '',
     address: {
       street: customer?.address?.street || '',
       number: customer?.address?.number || '',
@@ -27,13 +31,24 @@ export function CustomerForm({ customer, onSubmit, onCancel, loading = false }: 
       state: customer?.address?.state || '',
       zipCode: customer?.address?.zipCode || ''
     },
+    profession: customer?.profession || '',
+    employmentType: customer?.employmentType || '',
+    monthlyIncome: customer?.monthlyIncome || 0,
+    companyName: customer?.companyName || '',
+    propertyValue: customer?.propertyValue || 0,
+    propertyType: customer?.propertyType || '',
+    propertyCity: customer?.propertyCity || '',
+    propertyState: customer?.propertyState || '',
+    status: customer?.status || 'ativo',
+    source: customer?.source || '',
     govPassword: customer?.govPassword || '',
     notes: customer?.notes || ''
   });
 
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [showGovPassword, setShowGovPassword] = useState(false);
 
-  const handleChange = (field: string, value: string) => {
+  const handleChange = (field: string, value: string | number) => {
     if (field.startsWith('address.')) {
       const addressField = field.split('.')[1];
       setFormData(prev => ({
@@ -70,7 +85,6 @@ export function CustomerForm({ customer, onSubmit, onCancel, loading = false }: 
     if (!formData.address.city.trim()) newErrors['address.city'] = 'Cidade é obrigatória';
     if (!formData.address.state.trim()) newErrors['address.state'] = 'Estado é obrigatório';
     if (!formData.address.zipCode.trim()) newErrors['address.zipCode'] = 'CEP é obrigatório';
-    if (!formData.govPassword.trim()) newErrors.govPassword = 'Senha gov é obrigatória';
 
     // Email validation
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -86,6 +100,11 @@ export function CustomerForm({ customer, onSubmit, onCancel, loading = false }: 
     // CEP validation
     if (formData.address.zipCode && !/^\d{8}$/.test(formData.address.zipCode.replace(/\D/g, ''))) {
       newErrors['address.zipCode'] = 'CEP deve ter 8 dígitos';
+    }
+
+    // RG validation (basic)
+    if (formData.rg && formData.rg.length < 5) {
+      newErrors.rg = 'RG deve ter pelo menos 5 caracteres';
     }
 
     setErrors(newErrors);
@@ -104,7 +123,9 @@ export function CustomerForm({ customer, onSubmit, onCancel, loading = false }: 
       address: {
         ...formData.address,
         zipCode: formData.address.zipCode.replace(/\D/g, '')
-      }
+      },
+      monthlyIncome: formData.monthlyIncome || undefined,
+      propertyValue: formData.propertyValue || undefined
     };
 
     const success = await onSubmit(customerData);
@@ -131,10 +152,23 @@ export function CustomerForm({ customer, onSubmit, onCancel, loading = false }: 
     return numbers.replace(/(\d{5})(\d{3})/, '$1-$2');
   };
 
+  const formatCurrency = (value: number) => {
+    if (!value) return '';
+    return new Intl.NumberFormat('pt-BR', {
+      style: 'currency',
+      currency: 'BRL'
+    }).format(value);
+  };
+
+  const parseCurrency = (value: string) => {
+    const numbers = value.replace(/\D/g, '');
+    return numbers ? parseInt(numbers) : 0;
+  };
+
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div className="md:col-span-2">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
+        <div className="sm:col-span-2">
           <Input
             label="Nome completo *"
             value={formData.name}
@@ -176,12 +210,38 @@ export function CustomerForm({ customer, onSubmit, onCancel, loading = false }: 
           onChange={(e) => handleChange('birthDate', e.target.value)}
           error={errors.birthDate}
         />
+
+        <Input
+          label="RG"
+          value={formData.rg}
+          onChange={(e) => handleChange('rg', e.target.value)}
+          error={errors.rg}
+          placeholder="00.000.000-0"
+        />
+
+        <div>
+          <label className="text-sm font-medium text-gray-700 block mb-1">
+            Estado Civil
+          </label>
+          <select
+            value={formData.maritalStatus}
+            onChange={(e) => handleChange('maritalStatus', e.target.value)}
+            className="input"
+          >
+            <option value="">Selecione o estado civil</option>
+            <option value="solteiro">Solteiro(a)</option>
+            <option value="casado">Casado(a)</option>
+            <option value="divorciado">Divorciado(a)</option>
+            <option value="viuvo">Viúvo(a)</option>
+            <option value="uniao_estavel">União Estável</option>
+          </select>
+        </div>
       </div>
 
-      <div className="border-t pt-6">
-        <h3 className="text-lg font-medium text-gray-900 mb-4">Endereço</h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          <div className="md:col-span-2">
+      <div className="border-t pt-4 sm:pt-6">
+        <h3 className="text-base sm:text-lg font-medium text-gray-900 mb-4">Endereço</h3>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="sm:col-span-2">
             <Input
               label="Rua *"
               value={formData.address.street}
@@ -222,13 +282,12 @@ export function CustomerForm({ customer, onSubmit, onCancel, loading = false }: 
             placeholder="Nome da cidade"
           />
 
-          <Input
+          <StateSelect
             label="Estado *"
             value={formData.address.state}
-            onChange={(e) => handleChange('address.state', e.target.value.toUpperCase())}
+            onChange={(value) => handleChange('address.state', value)}
             error={errors['address.state']}
-            placeholder="SP"
-            maxLength={2}
+            required
           />
 
           <Input
@@ -241,22 +300,167 @@ export function CustomerForm({ customer, onSubmit, onCancel, loading = false }: 
         </div>
       </div>
 
-      <div className="border-t pt-6">
-        <Input
-          label="Senha gov *"
-          type="password"
-          value={formData.govPassword}
-          onChange={(e) => handleChange('govPassword', e.target.value)}
-          error={errors.govPassword}
-          placeholder="Digite a senha do gov.br"
-        />
+      <div className="border-t pt-4 sm:pt-6">
+        <h3 className="text-base sm:text-lg font-medium text-gray-900 mb-4">Dados Profissionais</h3>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <Input
+            label="Profissão"
+            value={formData.profession}
+            onChange={(e) => handleChange('profession', e.target.value)}
+            placeholder="Ex: Engenheiro, Médico, etc."
+          />
+
+          <div>
+            <label className="text-sm font-medium text-gray-700 block mb-1">
+              Tipo de Emprego
+            </label>
+            <select
+              value={formData.employmentType}
+              onChange={(e) => handleChange('employmentType', e.target.value)}
+              className="input"
+            >
+              <option value="">Selecione o tipo de emprego</option>
+              <option value="clt">CLT</option>
+              <option value="autonomo">Autônomo</option>
+              <option value="empresario">Empresário</option>
+              <option value="aposentado">Aposentado</option>
+              <option value="desempregado">Desempregado</option>
+            </select>
+          </div>
+
+          <Input
+            label="Renda Mensal"
+            type="text"
+            value={formatCurrency(formData.monthlyIncome)}
+            onChange={(e) => handleChange('monthlyIncome', parseCurrency(e.target.value))}
+            placeholder="R$ 0,00"
+          />
+
+          <Input
+            label="Empresa"
+            value={formData.companyName}
+            onChange={(e) => handleChange('companyName', e.target.value)}
+            placeholder="Nome da empresa"
+          />
+        </div>
+      </div>
+
+      <div className="border-t pt-4 sm:pt-6">
+        <h3 className="text-base sm:text-lg font-medium text-gray-900 mb-4">Dados do Imóvel</h3>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <Input
+            label="Valor do Imóvel"
+            type="text"
+            value={formatCurrency(formData.propertyValue)}
+            onChange={(e) => handleChange('propertyValue', parseCurrency(e.target.value))}
+            placeholder="R$ 0,00"
+          />
+
+          <div>
+            <label className="text-sm font-medium text-gray-700 block mb-1">
+              Tipo do Imóvel
+            </label>
+            <select
+              value={formData.propertyType}
+              onChange={(e) => handleChange('propertyType', e.target.value)}
+              className="input"
+            >
+              <option value="">Selecione o tipo do imóvel</option>
+              <option value="casa">Casa</option>
+              <option value="apartamento">Apartamento</option>
+              <option value="terreno">Terreno</option>
+              <option value="comercial">Comercial</option>
+              <option value="rural">Rural</option>
+            </select>
+          </div>
+
+          <Input
+            label="Cidade do Imóvel"
+            value={formData.propertyCity}
+            onChange={(e) => handleChange('propertyCity', e.target.value)}
+            placeholder="Cidade onde está o imóvel"
+          />
+
+          <StateSelect
+            label="Estado do Imóvel"
+            value={formData.propertyState}
+            onChange={(value) => handleChange('propertyState', value)}
+            placeholder="Selecione o estado do imóvel"
+          />
+        </div>
+      </div>
+
+      <div className="border-t pt-4 sm:pt-6">
+        <h3 className="text-base sm:text-lg font-medium text-gray-900 mb-4">Informações Adicionais</h3>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label className="text-sm font-medium text-gray-700 block mb-1">
+              Status
+            </label>
+            <select
+              value={formData.status}
+              onChange={(e) => handleChange('status', e.target.value)}
+              className="input"
+            >
+              <option value="ativo">Ativo</option>
+              <option value="inativo">Inativo</option>
+              <option value="pendente">Pendente</option>
+              <option value="suspenso">Suspenso</option>
+            </select>
+          </div>
+
+          <div>
+            <label className="text-sm font-medium text-gray-700 block mb-1">
+              Origem
+            </label>
+            <select
+              value={formData.source}
+              onChange={(e) => handleChange('source', e.target.value)}
+              className="input"
+            >
+              <option value="">Selecione a origem</option>
+              <option value="indicacao">Indicação</option>
+              <option value="site">Site</option>
+              <option value="redes_sociais">Redes Sociais</option>
+              <option value="anuncio">Anúncio</option>
+              <option value="outros">Outros</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <div className="border-t pt-4 sm:pt-6">
+        <div className="space-y-1">
+          <label className="text-sm font-medium text-gray-700">
+            Senha gov *
+          </label>
+          <div className="relative">
+            <input
+              type={showGovPassword ? 'text' : 'password'}
+              value={formData.govPassword}
+              onChange={(e) => handleChange('govPassword', e.target.value)}
+              className={`input pr-12 ${errors.govPassword ? 'border-red-500 focus-visible:ring-red-500' : ''}`}
+              placeholder="Digite a senha do gov.br"
+            />
+            <button
+              type="button"
+              onClick={() => setShowGovPassword(!showGovPassword)}
+              className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
+            >
+              {showGovPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+            </button>
+          </div>
+          {errors.govPassword && (
+            <p className="text-sm text-red-600">{errors.govPassword}</p>
+          )}
+        </div>
 
         <div className="mt-4">
           <label className="text-sm font-medium text-gray-700 block mb-1">
             Observações
           </label>
           <textarea
-            className="input min-h-[80px] resize-y"
+            className="input min-h-[80px] resize-y w-full"
             value={formData.notes}
             onChange={(e) => handleChange('notes', e.target.value)}
             placeholder="Observações adicionais sobre o cliente..."
@@ -265,22 +469,23 @@ export function CustomerForm({ customer, onSubmit, onCancel, loading = false }: 
         </div>
       </div>
 
-      <div className="flex justify-end space-x-3 pt-6 border-t">
+      <div className="flex flex-col sm:flex-row justify-end space-y-3 sm:space-y-0 sm:space-x-3 pt-4 sm:pt-6 border-t">
         <Button
           type="button"
           variant="secondary"
           onClick={onCancel}
           disabled={loading}
+          className="w-full sm:w-auto"
         >
           Cancelar
         </Button>
         <Button
           type="submit"
           disabled={loading}
-          className="min-w-[120px]"
+          className="w-full sm:w-auto min-w-[120px]"
         >
           {loading ? (
-            <div className="flex items-center space-x-2">
+            <div className="flex items-center justify-center space-x-2">
               <LoadingSpinner size="sm" />
               <span>Salvando...</span>
             </div>
