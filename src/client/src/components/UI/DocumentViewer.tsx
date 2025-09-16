@@ -84,16 +84,24 @@ export const DocumentViewer: React.FC<DocumentViewerProps> = ({
   };
 
   const handleView = async () => {
+    console.log('🔍 DEBUG: handleView chamado para:', filePath);
+    console.log('🔍 DEBUG: URL atual:', signedUrl?.signedUrl);
+    
     // Sempre gerar nova URL quando clicar
     try {
+      console.log('🔍 DEBUG: Chamando DocumentService.getFreshUrl...');
       const newUrl = await DocumentService.getFreshUrl(filePath);
+      console.log('🔍 DEBUG: Nova URL recebida:', newUrl);
+      
       setSignedUrl({
         signedUrl: newUrl,
         expiresAt: new Date(Date.now() + 3600000) // 1 hora
       });
+      
+      console.log('🔍 DEBUG: Abrindo nova URL...');
       window.open(newUrl, '_blank');
     } catch (error) {
-      console.log('Erro ao gerar URL, tentando método alternativo:', error);
+      console.log('❌ DEBUG: Erro ao gerar URL, tentando método alternativo:', error);
       generateSignedUrl();
     }
   };
