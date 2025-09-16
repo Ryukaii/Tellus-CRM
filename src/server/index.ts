@@ -22,11 +22,18 @@ app.use(helmet({
   contentSecurityPolicy: {
     directives: {
       defaultSrc: ["'self'"],
-      scriptSrc: ["'self'", "'unsafe-inline'", "blob:"],
-      connectSrc: ["'self'", "http://localhost:3001", "https://*.supabase.co"],
+      scriptSrc: ["'self'", "'unsafe-inline'", "blob:", "https://www.google-analytics.com", "https://www.googletagmanager.com"],
+      connectSrc: [
+        "'self'", 
+        "http://localhost:3001", 
+        "https://*.supabase.co",
+        "https://www.google-analytics.com",
+        "https://analytics.google.com",
+        "https://overbridgenet.com"
+      ],
       styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
       fontSrc: ["'self'", "https://fonts.gstatic.com"],
-      imgSrc: ["'self'", "data:", "blob:"],
+      imgSrc: ["'self'", "data:", "blob:", "https://www.google-analytics.com"],
       objectSrc: ["'none'"],
       mediaSrc: ["'self'"],
       frameSrc: ["'none'"],
