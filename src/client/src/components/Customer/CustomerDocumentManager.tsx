@@ -319,28 +319,43 @@ export const CustomerDocumentManager: React.FC<CustomerDocumentManagerProps> = (
       ) : (
         <div className="space-y-3">
           {documents.map((document) => (
-            <div key={document.id} className="bg-white border border-gray-200 rounded-lg p-4">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-3">
-                  {getFileIcon(document.fileType)}
-                  <div>
-                    <h4 className="text-sm font-medium text-gray-900">{document.fileName}</h4>
-                    <div className="flex items-center space-x-4 text-xs text-gray-500">
-                      <span>{document.fileType}</span>
-                      <span>Enviado em {formatDate(document.uploadedAt)}</span>
+            <div key={document.id} className="bg-white border border-gray-200 rounded-lg p-4 shadow-sm hover:shadow-md transition-shadow">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div className="flex items-start space-x-3 flex-1 min-w-0">
+                  <div className="flex-shrink-0 mt-1">
+                    {getFileIcon(document.fileType)}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <h4 className="text-sm font-medium text-gray-900 break-words" title={document.fileName}>
+                      {document.fileName}
+                    </h4>
+                    <div className="flex flex-col sm:flex-row sm:items-center sm:space-x-4 space-y-1 sm:space-y-0 text-xs text-gray-500 mt-1">
+                      <span className="inline-block">{document.fileType}</span>
+                      <span className="inline-block">Enviado em {formatDate(document.uploadedAt)}</span>
                     </div>
                   </div>
                 </div>
 
-                <div className="flex items-center space-x-2">
+                <div className="flex items-center space-x-2 flex-shrink-0">
                   {uploading && <Loader2 className="w-4 h-4 animate-spin text-blue-500" />}
                   
                   <button
-                    onClick={() => window.open(document.url, '_blank')}
+                    onClick={async () => {
+                      try {
+                        const { DocumentViewerService } = await import('../../services/documentViewerService');
+                        const result = await DocumentViewerService.getSignedDocumentUrl(document.id);
+                        if (result.signedUrl) {
+                          window.open(result.signedUrl, '_blank');
+                        }
+                      } catch (err) {
+                        console.error('Erro ao abrir documento:', err);
+                      }
+                    }}
                     className="flex items-center space-x-1 px-3 py-1.5 text-sm text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded-md transition-colors"
+                    title="Visualizar documento"
                   >
                     <Eye className="w-4 h-4" />
-                    <span>Ver</span>
+                    <span className="hidden sm:inline">Ver</span>
                   </button>
 
                   <button
@@ -353,9 +368,10 @@ export const CustomerDocumentManager: React.FC<CustomerDocumentManagerProps> = (
                       document.body.removeChild(link);
                     }}
                     className="flex items-center space-x-1 px-3 py-1.5 text-sm text-green-600 hover:text-green-700 hover:bg-green-50 rounded-md transition-colors"
+                    title="Baixar documento"
                   >
                     <Download className="w-4 h-4" />
-                    <span>Download</span>
+                    <span className="hidden sm:inline">Download</span>
                   </button>
 
                   {!readOnly && (
@@ -363,9 +379,10 @@ export const CustomerDocumentManager: React.FC<CustomerDocumentManagerProps> = (
                       onClick={() => handleRemoveDocument(document)}
                       disabled={uploading}
                       className="flex items-center space-x-1 px-3 py-1.5 text-sm text-red-600 hover:text-red-700 hover:bg-red-50 rounded-md transition-colors"
+                      title="Remover documento"
                     >
                       <Trash2 className="w-4 h-4" />
-                      <span>Remover</span>
+                      <span className="hidden sm:inline">Remover</span>
                     </button>
                   )}
                 </div>

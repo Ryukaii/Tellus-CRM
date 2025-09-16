@@ -1,3 +1,4 @@
+import 'dotenv/config';
 import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
@@ -8,6 +9,7 @@ import authRouter from './routes/auth.js';
 import leadsRouter from './routes/leads.js';
 import preRegistrationRouter from './routes/preRegistration.js';
 import sharingRouter from './routes/sharing.js';
+import { database } from './database/database.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -100,8 +102,29 @@ app.use((err: any, _req: express.Request, res: express.Response, _next: express.
   });
 });
 
-app.listen(PORT, () => {
-  console.log(`🚀 Tellus CRM Server running on port ${PORT}`);
-  console.log(`📊 API available at http://localhost:${PORT}/api`);
-  console.log(`🏥 Health check at http://localhost:${PORT}/api/health`);
-});
+// Função para iniciar o servidor após conectar ao MongoDB
+async function startServer() {
+  try {
+    console.log('🔄 Conectando ao MongoDB...');
+    
+    // Aguarda a conexão com o MongoDB
+    await database.waitForConnection();
+    
+    console.log('✅ MongoDB conectado com sucesso!');
+    
+    // Inicia o servidor
+    app.listen(PORT, () => {
+      console.log(`🚀 Tellus CRM Server running on port ${PORT}`);
+      console.log(`📊 API available at http://localhost:${PORT}/api`);
+      console.log(`🏥 Health check at http://localhost:${PORT}/api/health`);
+    });
+    
+  } catch (error) {
+    console.error('❌ Erro ao conectar com MongoDB:', error);
+    console.error('🛑 Servidor não foi iniciado devido a falha na conexão com o banco de dados');
+    process.exit(1);
+  }
+}
+
+// Inicia o servidor
+startServer();

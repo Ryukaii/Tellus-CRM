@@ -5,10 +5,11 @@ class MongoDatabase {
   private client: MongoClient;
   private db: Db | null = null;
   private isConnected = false;
+  private connectionPromise: Promise<void>;
 
   constructor() {
     this.client = new MongoClient(DATABASE_CONFIG.mongodb.uri);
-    this.init();
+    this.connectionPromise = this.init();
   }
 
   private async init() {
@@ -55,6 +56,11 @@ class MongoDatabase {
     if (!this.isConnected || !this.db) {
       throw new Error('Database not connected');
     }
+  }
+
+  // Método público para aguardar a conexão
+  async waitForConnection(): Promise<void> {
+    await this.connectionPromise;
   }
 
   getCollection(name: string): Collection {

@@ -1,4 +1,4 @@
-import { supabase, STORAGE_BUCKET } from '../lib/supabase';
+// Removido import do Supabase - agora usa backend para assinar URLs
 
 export interface SignedUrlResult {
   signedUrl: string;
@@ -37,21 +37,28 @@ export interface ShareableLink {
 }
 
 export class DocumentViewerService {
-  // Gerar URL assinada para um documento
+  // Gerar URL assinada para um documento via backend
   static async getSignedDocumentUrl(filePath: string, expiresInSeconds?: number): Promise<SignedUrlResult> {
     try {
       // Se não especificado, usar 1 hora como padrão
       const expiresIn = expiresInSeconds || 3600;
       
-      const { data, error } = await supabase.storage
-        .from(STORAGE_BUCKET)
-        .createSignedUrl(filePath, expiresIn);
+      const response = await fetch('/api/sharing/document/signed-url', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('tellus_token')}`
+        },
+        body: JSON.stringify({ filePath, expiresIn })
+      });
 
-      if (error) {
+      const data = await response.json();
+
+      if (!data.success) {
         return {
           signedUrl: '',
           expiresAt: new Date(),
-          error: `Erro ao gerar URL: ${error.message}`
+          error: data.error || 'Erro ao gerar URL assinada'
         };
       }
 
@@ -59,7 +66,7 @@ export class DocumentViewerService {
       expiresAt.setSeconds(expiresAt.getSeconds() + expiresIn);
 
       return {
-        signedUrl: data.signedUrl,
+        signedUrl: data.data.signedUrl,
         expiresAt,
       };
     } catch (error) {
@@ -71,38 +78,14 @@ export class DocumentViewerService {
     }
   }
 
-  // Gerar múltiplas URLs assinadas
+  // Gerar múltiplas URLs assinadas via backend
   static async getSignedDocumentUrls(filePaths: string[], expiresInSeconds: number = 3600): Promise<Record<string, SignedUrlResult>> {
     const results: Record<string, SignedUrlResult> = {};
 
+    // Gerar URLs uma por uma via backend
     for (const filePath of filePaths) {
-      try {
-        const { data, error } = await supabase.storage
-          .from(STORAGE_BUCKET)
-          .createSignedUrl(filePath, expiresInSeconds);
-
-        const expiresAt = new Date();
-        expiresAt.setSeconds(expiresAt.getSeconds() + expiresInSeconds);
-
-        if (error) {
-          results[filePath] = {
-            signedUrl: '',
-            expiresAt,
-            error: error.message
-          };
-        } else {
-          results[filePath] = {
-            signedUrl: data.signedUrl,
-            expiresAt
-          };
-        }
-      } catch (error) {
-        results[filePath] = {
-          signedUrl: '',
-          expiresAt: new Date(),
-          error: error instanceof Error ? error.message : 'Erro desconhecido'
-        };
-      }
+      const result = await this.getSignedDocumentUrl(filePath, expiresInSeconds);
+      results[filePath] = result;
     }
 
     return results;
