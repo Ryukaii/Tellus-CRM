@@ -27,6 +27,7 @@ app.use(helmet({
         "'self'", 
         "http://localhost:3001", 
         "https://*.supabase.co",
+        "https://consulta.fontesderenda.blog"
       ],
       styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
       fontSrc: ["'self'", "https://fonts.gstatic.com"],
