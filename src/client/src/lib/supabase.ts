@@ -2,14 +2,12 @@ import { createClient } from '@supabase/supabase-js'
 
 const supabaseUrl = (import.meta as any).env.VITE_SUPABASE_URL || 'https://your-project.supabase.co'
 const supabaseAnonKey = (import.meta as any).env.VITE_SUPABASE_ANON_KEY || 'your-anon-key'
-const supabaseServiceKey = (import.meta as any).env.VITE_SUPABASE_SERVICE_KEY || ''
 
 export const supabase = createClient(supabaseUrl, supabaseAnonKey)
 
-// Cliente com service key para operações que precisam ignorar RLS
-export const supabaseAdmin = supabaseServiceKey 
-  ? createClient(supabaseUrl, supabaseServiceKey)
-  : null
+// ⚠️ ATENÇÃO: Service key NUNCA deve estar no frontend!
+// Use apenas no backend para operações administrativas
+export const supabaseAdmin = null
 
 // Configurações do Storage
 export const STORAGE_BUCKET = 'user-documents'
@@ -52,11 +50,10 @@ export const validateFileSize = (file: File): boolean => {
 // Função para verificar se o bucket existe
 export const checkBucketExists = async (): Promise<{ exists: boolean; error?: string }> => {
   try {
-    // Tentar com service key primeiro (tem mais permissões)
-    const client = supabaseAdmin || supabase
-    console.log('Verificando bucket com:', supabaseAdmin ? 'service key' : 'anon key')
+    // Usar apenas chave anônima (segura para frontend)
+    console.log('Verificando bucket com chave anônima...')
     
-    const { data, error } = await client.storage.listBuckets()
+    const { data, error } = await supabase.storage.listBuckets()
     
     console.log('Resultado listBuckets:', { data, error })
     
@@ -92,92 +89,19 @@ export const testPublicUrl = async (url: string): Promise<{ accessible: boolean;
   }
 }
 
-// Função para criar URL assinada (recomendado para buckets privados)
+// Função para criar URL assinada (apenas no backend)
 export const createSignedUrl = async (filePath: string, expiresIn: number = 3600): Promise<{ url: string; error?: string }> => {
-  try {
-    if (!supabaseAdmin) {
-      return { 
-        url: '', 
-        error: 'Service key não disponível' 
-      }
-    }
-    
-    console.log('Criando URL assinada para:', filePath, 'expira em:', expiresIn, 'segundos')
-    
-    // Criar URL assinada usando service key
-    const { data, error } = await supabaseAdmin.storage
-      .from(STORAGE_BUCKET)
-      .createSignedUrl(filePath, expiresIn)
-    
-    if (error) {
-      console.log('Erro ao criar URL assinada:', error)
-      return { 
-        url: '', 
-        error: error.message 
-      }
-    }
-    
-    if (!data?.signedUrl) {
-      return { 
-        url: '', 
-        error: 'URL assinada não gerada' 
-      }
-    }
-    
-    console.log('URL assinada criada:', data.signedUrl)
-    return { url: data.signedUrl }
-  } catch (error) {
-    console.log('Erro na criação da URL assinada:', error)
-    return { 
-      url: '', 
-      error: error instanceof Error ? error.message : 'Erro desconhecido' 
-    }
+  return { 
+    url: '', 
+    error: 'URLs assinadas devem ser criadas no backend por segurança' 
   }
 }
 
-// Função para baixar arquivo usando service key e criar URL local (fallback)
+// Função para baixar arquivo (apenas no backend)
 export const downloadFileWithServiceKey = async (filePath: string): Promise<{ url: string; error?: string }> => {
-  try {
-    if (!supabaseAdmin) {
-      return { 
-        url: '', 
-        error: 'Service key não disponível' 
-      }
-    }
-    
-    console.log('Baixando arquivo com service key:', filePath)
-    
-    // Baixar arquivo usando service key (ignora RLS)
-    const { data, error } = await supabaseAdmin.storage
-      .from(STORAGE_BUCKET)
-      .download(filePath)
-    
-    if (error) {
-      console.log('Erro ao baixar arquivo:', error)
-      return { 
-        url: '', 
-        error: error.message 
-      }
-    }
-    
-    if (!data) {
-      return { 
-        url: '', 
-        error: 'Arquivo não encontrado' 
-      }
-    }
-    
-    // Criar URL local temporária
-    const localUrl = URL.createObjectURL(data)
-    console.log('URL local criada:', localUrl)
-    
-    return { url: localUrl }
-  } catch (error) {
-    console.log('Erro no download:', error)
-    return { 
-      url: '', 
-      error: error instanceof Error ? error.message : 'Erro desconhecido' 
-    }
+  return { 
+    url: '', 
+    error: 'Downloads com service key devem ser feitos no backend por segurança' 
   }
 }
 
@@ -185,10 +109,9 @@ export const downloadFileWithServiceKey = async (filePath: string): Promise<{ ur
 export const checkBucketExistsByOperation = async (): Promise<{ exists: boolean; error?: string }> => {
   try {
     // Tentar listar arquivos do bucket (operação mais simples)
-    const client = supabaseAdmin || supabase
     console.log('Testando bucket com operação de listagem...')
     
-    const { data, error } = await client.storage
+    const { data, error } = await supabase.storage
       .from(STORAGE_BUCKET)
       .list('', { limit: 1 })
     
@@ -232,9 +155,8 @@ export const testUpload = async (): Promise<{ success: boolean; error?: string; 
       return { success: false, error: error.message }
     }
     
-    // Obter URL pública usando service key (ignora RLS)
-    const client = supabaseAdmin || supabase
-    const { data: publicUrlData } = client.storage
+    // Obter URL pública usando chave anônima
+    const { data: publicUrlData } = supabase.storage
       .from(STORAGE_BUCKET)
       .getPublicUrl(filePath)
     

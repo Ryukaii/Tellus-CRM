@@ -4,7 +4,6 @@ import { checkBucketExists, checkBucketExistsByOperation, testPublicUrl, testUpl
 export const EnvDebug: React.FC = () => {
   const supabaseUrl = (import.meta as any).env.VITE_SUPABASE_URL;
   const supabaseKey = (import.meta as any).env.VITE_SUPABASE_ANON_KEY;
-  const supabaseServiceKey = (import.meta as any).env.VITE_SUPABASE_SERVICE_KEY;
   const [bucketStatus, setBucketStatus] = useState<{ exists: boolean; error?: string } | null>(null);
   const [bucketStatusByOp, setBucketStatusByOp] = useState<{ exists: boolean; error?: string } | null>(null);
   const [loading, setLoading] = useState(false);
@@ -109,10 +108,10 @@ export const EnvDebug: React.FC = () => {
             {supabaseKey ? `${supabaseKey.substring(0, 20)}...` : 'NÃO DEFINIDA'}
           </span>
         </div>
-        <div>
-          <strong>VITE_SUPABASE_SERVICE_KEY:</strong> 
-          <span className="ml-2 font-mono text-xs break-all">
-            {supabaseServiceKey ? `${supabaseServiceKey.substring(0, 20)}...` : 'NÃO DEFINIDA'}
+        <div className="text-yellow-600">
+          <strong>⚠️ VITE_SUPABASE_SERVICE_KEY:</strong> 
+          <span className="ml-2 font-mono text-xs break-all text-yellow-600">
+            Removida por segurança - nunca deve estar no frontend!
           </span>
         </div>
         <div>
