@@ -36,7 +36,7 @@ app.use('/api/sharing', sharingRouter);
 app.get('/api/health', (_req, res) => {
   res.json({ 
     success: true, 
-    message: 'Tellus CRM API is running',
+    message: 'Tellures CRM API is running',
     timestamp: new Date().toISOString()
   });
 });
@@ -114,7 +114,7 @@ async function startServer() {
     
     // Inicia o servidor
     app.listen(PORT, () => {
-      console.log(`🚀 Tellus CRM Server running on port ${PORT}`);
+      console.log(`🚀 Tellures CRM Server running on port ${PORT}`);
       console.log(`📊 API available at http://localhost:${PORT}/api`);
       console.log(`🏥 Health check at http://localhost:${PORT}/api/health`);
     });

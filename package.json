@@ -1,7 +1,7 @@
 {
   "name": "tellus-crm",
   "version": "1.0.0",
-  "description": "CRM personalizado para a marca Tellus",
+  "description": "CRM personalizado para a marca Tellures",
   "type": "module",
   "scripts": {
     "dev": "concurrently \"npm run dev:server\" \"npm run dev:client\"",
@@ -62,6 +62,6 @@
     "react",
     "vite"
   ],
-  "author": "Tellus Team",
+  "author": "Tellures Team",
   "license": "MIT"
 }

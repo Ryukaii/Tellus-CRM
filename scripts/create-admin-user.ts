@@ -27,7 +27,7 @@ async function createAdminUser() {
     
     // Criar usuário admin
     const adminUser = {
-      name: 'Administrador Tellus',
+      name: 'Administrador Tellures',
       email: 'admin@tellus.com',
       password: hashedPassword,
       role: 'admin',

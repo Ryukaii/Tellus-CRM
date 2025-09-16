@@ -9,7 +9,7 @@ const isPublicRoute = window.location.pathname.startsWith('/cadastro') || window
 
 // Atualizar título da página para rota pública
 if (isPublicRoute) {
-  document.title = 'Tellus CRM - Pré-Cadastro Crédito Imobiliário';
+  document.title = 'Tellures CRM - Pré-Cadastro Crédito Imobiliário';
 }
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
