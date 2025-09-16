@@ -39,30 +39,40 @@ export interface ShareableLink {
 export class DocumentViewerService {
   // Gerar URL assinada para um documento
   static async getSignedDocumentUrl(filePath: string, expiresInSeconds?: number): Promise<SignedUrlResult> {
+    console.log('🔍 DEBUG: DocumentViewerService.getSignedDocumentUrl chamado para:', filePath);
+    
     try {
-      // Se não especificado, usar 1 hora como padrão
-      const expiresIn = expiresInSeconds || 3600;
+      // Para buckets privados no frontend, usar download + URL local
+      console.log('🔍 DEBUG: Tentando download do arquivo...');
       
       const { data, error } = await supabase.storage
         .from(STORAGE_BUCKET)
-        .createSignedUrl(filePath, expiresIn);
+        .download(filePath);
+
+      console.log('🔍 DEBUG: Resultado do download:', { data: !!data, error });
 
       if (error) {
+        console.log('❌ DEBUG: Erro ao baixar arquivo:', error);
         return {
           signedUrl: '',
           expiresAt: new Date(),
-          error: `Erro ao gerar URL: ${error.message}`
+          error: `Erro ao baixar arquivo: ${error.message}`
         };
       }
 
+      // Criar URL local temporária
+      const localUrl = URL.createObjectURL(data);
+      console.log('✅ DEBUG: URL local criada:', localUrl);
+
       const expiresAt = new Date();
-      expiresAt.setSeconds(expiresAt.getSeconds() + expiresIn);
+      expiresAt.setSeconds(expiresAt.getSeconds() + (expiresInSeconds || 3600));
 
       return {
-        signedUrl: data.signedUrl,
+        signedUrl: localUrl,
         expiresAt,
       };
     } catch (error) {
+      console.log('❌ DEBUG: Erro geral:', error);
       return {
         signedUrl: '',
         expiresAt: new Date(),

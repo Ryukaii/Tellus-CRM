@@ -22,6 +22,8 @@ export const DocumentViewer: React.FC<DocumentViewerProps> = ({
   showExternalLink = true,
   shareExpiresAt
 }) => {
+  console.log('🔍 DEBUG: DocumentViewer renderizado com:', { filePath, fileName, fileType });
+  
   const [signedUrl, setSignedUrl] = useState<SignedUrlResult | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -172,7 +174,10 @@ export const DocumentViewer: React.FC<DocumentViewerProps> = ({
           {loading && <Loader2 className="w-4 h-4 animate-spin text-blue-500" />}
 
           <button
-            onClick={handleView}
+            onClick={() => {
+              console.log('🔍 DEBUG: Botão Ver clicado!');
+              handleView();
+            }}
             disabled={loading}
             className="flex items-center space-x-1 px-3 py-1.5 text-sm text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded-md transition-colors"
           >
