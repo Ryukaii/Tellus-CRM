@@ -252,23 +252,26 @@ export class DocumentService {
     return data.publicUrl
   }
 
-  // Gerar nova URL assinada (mais simples e confiável)
+  // Gerar nova URL para bucket privado (usando método autenticado)
   static async getFreshUrl(filePath: string): Promise<string> {
     try {
-      // Gerar URL assinada com 1 hora de validade
+      // Para buckets privados, usar URL autenticada
       const { data, error } = await supabase.storage
         .from(STORAGE_BUCKET)
-        .createSignedUrl(filePath, 3600) // 1 hora
+        .download(filePath)
 
       if (error) {
-        console.log('Erro ao criar URL assinada:', error)
+        console.log('Erro ao baixar arquivo:', error)
         // Fallback para URL pública
         return this.getDownloadUrl(filePath)
       }
 
-      return data.signedUrl
+      // Criar URL local temporária
+      const localUrl = URL.createObjectURL(data)
+      console.log('URL local criada:', localUrl)
+      return localUrl
     } catch (error) {
-      console.log('Erro ao gerar URL assinada:', error)
+      console.log('Erro ao gerar URL local:', error)
       // Fallback para URL pública
       return this.getDownloadUrl(filePath)
     }
