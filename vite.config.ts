@@ -18,7 +18,8 @@ export default defineConfig({
   resolve: {
     alias: {
       '@': resolve(__dirname, './src'),
-      '@client': resolve(__dirname, './src/client/src')
+      '@client': resolve(__dirname, './src/client/src'),
+      '@data': resolve(__dirname, './src/client/src/data')
     }
   },
   server: {

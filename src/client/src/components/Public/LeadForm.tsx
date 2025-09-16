@@ -10,7 +10,7 @@ import { DocumentService } from '../../services/documentService';
 import { CPFService } from '../../services/cpfService';
 import { CepService } from '../../services/cepService';
 import { StateSelect } from '../UI/StateSelect';
-import { ESTADOS_POR_SIGLA } from '@/client/src/data/estadosBrasileiros';
+import { ESTADOS_POR_SIGLA } from '@data/estadosBrasileiros';
 
 interface FormData {
   // Dados Pessoais
