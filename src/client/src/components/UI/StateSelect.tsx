@@ -1,5 +1,5 @@
 import React from 'react';
-import { ESTADOS_BRASILEIROS } from '../../data/estadosBrasileiros';
+import { ESTADOS_BRASILEIROS } from '@data/estadosBrasileiros';
 
 interface StateSelectProps {
   label: string;
