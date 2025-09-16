@@ -89,11 +89,34 @@ export const testPublicUrl = async (url: string): Promise<{ accessible: boolean;
   }
 }
 
-// Função para criar URL assinada (apenas no backend)
+// Função para criar URL assinada via backend (seguro)
 export const createSignedUrl = async (filePath: string, expiresIn: number = 3600): Promise<{ url: string; error?: string }> => {
-  return { 
-    url: '', 
-    error: 'URLs assinadas devem ser criadas no backend por segurança' 
+  try {
+    const response = await fetch('/api/sharing/document/signed-url', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${localStorage.getItem('token')}`
+      },
+      body: JSON.stringify({ filePath, expiresIn })
+    });
+
+    const data = await response.json();
+
+    if (!data.success) {
+      return { 
+        url: '', 
+        error: data.error || 'Erro ao gerar URL assinada' 
+      };
+    }
+
+    return { url: data.data.signedUrl };
+  } catch (error) {
+    console.error('Erro ao chamar backend para URL assinada:', error);
+    return { 
+      url: '', 
+      error: 'Erro de conexão com o servidor' 
+    };
   }
 }
 

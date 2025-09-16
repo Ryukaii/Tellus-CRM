@@ -2,6 +2,7 @@ import express from 'express';
 import { database } from '../database/database.js';
 import { authenticateToken } from '../middleware/auth.js';
 import { v4 as uuidv4 } from 'uuid';
+import { createMultipleSignedUrls } from '../services/supabaseService.js';
 
 const router = express.Router();
 
@@ -305,13 +306,13 @@ router.post('/:linkId/signed-urls', async (req, res) => {
     // Usar o tempo restante do compartilhamento, mas com um mínimo de 5 minutos
     const expiresInSeconds = Math.max(300, timeRemaining);
 
-    // Aqui você integraria com o Supabase para gerar URLs assinadas
-    // Por enquanto, retornamos URLs mock com o tempo correto
-    const signedUrls: Record<string, string> = {};
+    // Gerar URLs assinadas reais usando o Supabase
+    const filePaths = allowedDocuments.map((doc: any) => doc.id);
+    const { urls: signedUrls, errors } = await createMultipleSignedUrls(filePaths, expiresInSeconds);
     
-    for (const doc of allowedDocuments) {
-      // Em produção, usar: supabase.storage.from('user-documents').createSignedUrl(doc.id, expiresInSeconds)
-      signedUrls[doc.id] = `https://mock-signed-url.com/${doc.id}?expires=${Date.now() + (expiresInSeconds * 1000)}&remaining=${timeRemaining}`;
+    // Se houver erros, logar mas continuar com as URLs que funcionaram
+    if (Object.keys(errors).length > 0) {
+      console.warn('Alguns arquivos não puderam gerar URLs assinadas:', errors);
     }
 
     res.json({
@@ -322,6 +323,48 @@ router.post('/:linkId/signed-urls', async (req, res) => {
     });
   } catch (error) {
     console.error('Error generating signed URLs:', error);
+    res.status(500).json({ 
+      success: false, 
+      error: error instanceof Error ? error.message : 'Erro interno do servidor' 
+    });
+  }
+});
+
+// Gerar URL assinada para um documento específico (para visualização)
+router.post('/document/signed-url', authenticateToken, async (req, res) => {
+  try {
+    const { filePath, expiresIn = 3600 } = req.body;
+    // const userId = (req as any).user.id; // Para futuras validações de permissão
+
+    if (!filePath) {
+      return res.status(400).json({ 
+        success: false, 
+        error: 'Caminho do arquivo é obrigatório' 
+      });
+    }
+
+    // Verificar se o usuário tem permissão para acessar este arquivo
+    // (implementar validação baseada no CPF do usuário ou outras regras)
+    
+    const { createSignedUrl } = await import('../services/supabaseService.js');
+    const result = await createSignedUrl(filePath, expiresIn);
+    
+    if (result.error) {
+      return res.status(500).json({ 
+        success: false, 
+        error: result.error 
+      });
+    }
+
+    res.json({
+      success: true,
+      data: {
+        signedUrl: result.url,
+        expiresIn
+      }
+    });
+  } catch (error) {
+    console.error('Error generating document signed URL:', error);
     res.status(500).json({ 
       success: false, 
       error: error instanceof Error ? error.message : 'Erro interno do servidor' 
