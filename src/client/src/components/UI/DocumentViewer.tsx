@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Eye, Download, ExternalLink, Clock, AlertCircle, Loader2, FileText, RefreshCw } from 'lucide-react';
+import { Eye, Download, ExternalLink, Clock, AlertCircle, Loader2, FileText } from 'lucide-react';
 import { DocumentViewerService, SignedUrlResult } from '../../services/documentViewerService';
-import { DocumentService } from '../../services/documentService';
 
 interface DocumentViewerProps {
   filePath: string;
@@ -22,8 +21,6 @@ export const DocumentViewer: React.FC<DocumentViewerProps> = ({
   showExternalLink = true,
   shareExpiresAt
 }) => {
-  console.log('🔍 DEBUG: DocumentViewer renderizado com:', { filePath, fileName, fileType });
-  
   const [signedUrl, setSignedUrl] = useState<SignedUrlResult | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -85,64 +82,22 @@ export const DocumentViewer: React.FC<DocumentViewerProps> = ({
     return '📎';
   };
 
-  const handleView = async () => {
-    console.log('🔍 DEBUG: handleView chamado para:', filePath);
-    console.log('🔍 DEBUG: URL atual:', signedUrl?.signedUrl);
-    
-    // Sempre gerar nova URL quando clicar
-    try {
-      console.log('🔍 DEBUG: Chamando DocumentService.getFreshUrl...');
-      const newUrl = await DocumentService.getFreshUrl(filePath);
-      console.log('🔍 DEBUG: Nova URL recebida:', newUrl);
-      
-      setSignedUrl({
-        signedUrl: newUrl,
-        expiresAt: new Date(Date.now() + 3600000) // 1 hora
-      });
-      
-      console.log('🔍 DEBUG: Abrindo nova URL...');
-      window.open(newUrl, '_blank');
-    } catch (error) {
-      console.log('❌ DEBUG: Erro ao gerar URL, tentando método alternativo:', error);
+  const handleView = () => {
+    if (signedUrl && DocumentViewerService.isUrlValid(signedUrl.expiresAt)) {
+      window.open(signedUrl.signedUrl, '_blank');
+    } else {
       generateSignedUrl();
     }
   };
 
-  const handleDownload = async () => {
-    // Sempre gerar nova URL quando clicar
-    try {
-      const newUrl = await DocumentService.getFreshUrl(filePath);
-      setSignedUrl({
-        signedUrl: newUrl,
-        expiresAt: new Date(Date.now() + 3600000) // 1 hora
-      });
-      
+  const handleDownload = () => {
+    if (signedUrl && DocumentViewerService.isUrlValid(signedUrl.expiresAt)) {
       const link = document.createElement('a');
-      link.href = newUrl;
+      link.href = signedUrl.signedUrl;
       link.download = fileName;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
-    } catch (error) {
-      console.log('Erro ao gerar URL para download, tentando método alternativo:', error);
-      generateSignedUrl();
-    }
-  };
-
-  const handleRefresh = async () => {
-    setLoading(true);
-    setError(null);
-    
-    try {
-      const newUrl = await DocumentService.getFreshUrl(filePath);
-      setSignedUrl({
-        signedUrl: newUrl,
-        expiresAt: new Date(Date.now() + 3600000) // 1 hora
-      });
-    } catch (error) {
-      setError('Erro ao regenerar URL');
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -174,25 +129,12 @@ export const DocumentViewer: React.FC<DocumentViewerProps> = ({
           {loading && <Loader2 className="w-4 h-4 animate-spin text-blue-500" />}
 
           <button
-            onClick={() => {
-              console.log('🔍 DEBUG: Botão Ver clicado!');
-              handleView();
-            }}
+            onClick={handleView}
             disabled={loading}
             className="flex items-center space-x-1 px-3 py-1.5 text-sm text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded-md transition-colors"
           >
             <Eye className="w-4 h-4" />
             <span>Ver</span>
-          </button>
-
-          <button
-            onClick={handleRefresh}
-            disabled={loading}
-            className="flex items-center space-x-1 px-3 py-1.5 text-sm text-gray-600 hover:text-gray-700 hover:bg-gray-50 rounded-md transition-colors"
-            title="Regenerar URL"
-          >
-            <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
-            <span>Atualizar</span>
           </button>
 
           {showDownload && signedUrl && DocumentViewerService.isUrlValid(signedUrl.expiresAt) && (

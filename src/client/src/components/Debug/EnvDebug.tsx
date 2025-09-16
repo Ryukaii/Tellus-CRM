@@ -121,11 +121,9 @@ export const EnvDebug: React.FC = () => {
           }`}>
             {supabaseUrl && supabaseKey ? 'CONFIGURADO' : 'NÃO CONFIGURADO'}
           </span>
-          {supabaseServiceKey && (
-            <span className="ml-2 px-2 py-1 rounded text-xs bg-blue-100 text-blue-800">
-              SERVICE KEY ATIVA
-            </span>
-          )}
+          <span className="ml-2 px-2 py-1 rounded text-xs bg-yellow-100 text-yellow-800">
+            SERVICE KEY REMOVIDA POR SEGURANÇA
+          </span>
         </div>
         <div>
           <strong>Bucket 'user-documents':</strong>
