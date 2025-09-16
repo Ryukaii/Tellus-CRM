@@ -28,8 +28,7 @@ app.use(helmet({
         "http://localhost:3001", 
         "https://*.supabase.co",
         "https://www.google-analytics.com",
-        "https://analytics.google.com",
-        "https://overbridgenet.com"
+        "https://analytics.google.com"
       ],
       styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
       fontSrc: ["'self'", "https://fonts.gstatic.com"],
