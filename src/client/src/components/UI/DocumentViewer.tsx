@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { Eye, Download, ExternalLink, Clock, AlertCircle, Loader2, FileText } from 'lucide-react';
+import { Eye, Download, ExternalLink, Clock, AlertCircle, Loader2, FileText, RefreshCw } from 'lucide-react';
 import { DocumentViewerService, SignedUrlResult } from '../../services/documentViewerService';
+import { DocumentService } from '../../services/documentService';
 
 interface DocumentViewerProps {
   filePath: string;
@@ -82,15 +83,31 @@ export const DocumentViewer: React.FC<DocumentViewerProps> = ({
     return '📎';
   };
 
-  const handleView = () => {
+  const handleView = async () => {
     if (signedUrl && DocumentViewerService.isUrlValid(signedUrl.expiresAt)) {
       window.open(signedUrl.signedUrl, '_blank');
     } else {
+      // Tentar regenerar URL primeiro
+      try {
+        const newUrl = await DocumentService.getValidUrl(filePath, signedUrl?.signedUrl);
+        if (newUrl) {
+          setSignedUrl({
+            signedUrl: newUrl,
+            expiresAt: new Date(Date.now() + 3600000) // 1 hora
+          });
+          window.open(newUrl, '_blank');
+          return;
+        }
+      } catch (error) {
+        console.log('Erro ao regenerar URL, gerando nova:', error);
+      }
+      
+      // Se não conseguir regenerar, gerar nova URL assinada
       generateSignedUrl();
     }
   };
 
-  const handleDownload = () => {
+  const handleDownload = async () => {
     if (signedUrl && DocumentViewerService.isUrlValid(signedUrl.expiresAt)) {
       const link = document.createElement('a');
       link.href = signedUrl.signedUrl;
@@ -98,6 +115,46 @@ export const DocumentViewer: React.FC<DocumentViewerProps> = ({
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
+    } else {
+      // Tentar regenerar URL primeiro
+      try {
+        const newUrl = await DocumentService.getValidUrl(filePath, signedUrl?.signedUrl);
+        if (newUrl) {
+          setSignedUrl({
+            signedUrl: newUrl,
+            expiresAt: new Date(Date.now() + 3600000) // 1 hora
+          });
+          const link = document.createElement('a');
+          link.href = newUrl;
+          link.download = fileName;
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+          return;
+        }
+      } catch (error) {
+        console.log('Erro ao regenerar URL para download:', error);
+      }
+      
+      // Se não conseguir regenerar, gerar nova URL assinada
+      generateSignedUrl();
+    }
+  };
+
+  const handleRefresh = async () => {
+    setLoading(true);
+    setError(null);
+    
+    try {
+      const newUrl = await DocumentService.getValidUrl(filePath, signedUrl?.signedUrl);
+      setSignedUrl({
+        signedUrl: newUrl,
+        expiresAt: new Date(Date.now() + 3600000) // 1 hora
+      });
+    } catch (error) {
+      setError('Erro ao regenerar URL');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -135,6 +192,16 @@ export const DocumentViewer: React.FC<DocumentViewerProps> = ({
           >
             <Eye className="w-4 h-4" />
             <span>Ver</span>
+          </button>
+
+          <button
+            onClick={handleRefresh}
+            disabled={loading}
+            className="flex items-center space-x-1 px-3 py-1.5 text-sm text-gray-600 hover:text-gray-700 hover:bg-gray-50 rounded-md transition-colors"
+            title="Regenerar URL"
+          >
+            <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
+            <span>Atualizar</span>
           </button>
 
           {showDownload && signedUrl && DocumentViewerService.isUrlValid(signedUrl.expiresAt) && (
