@@ -84,59 +84,37 @@ export const DocumentViewer: React.FC<DocumentViewerProps> = ({
   };
 
   const handleView = async () => {
-    if (signedUrl && DocumentViewerService.isUrlValid(signedUrl.expiresAt)) {
-      window.open(signedUrl.signedUrl, '_blank');
-    } else {
-      // Tentar regenerar URL primeiro
-      try {
-        const newUrl = await DocumentService.getValidUrl(filePath, signedUrl?.signedUrl);
-        if (newUrl) {
-          setSignedUrl({
-            signedUrl: newUrl,
-            expiresAt: new Date(Date.now() + 3600000) // 1 hora
-          });
-          window.open(newUrl, '_blank');
-          return;
-        }
-      } catch (error) {
-        console.log('Erro ao regenerar URL, gerando nova:', error);
-      }
-      
-      // Se não conseguir regenerar, gerar nova URL assinada
+    // Sempre gerar nova URL quando clicar
+    try {
+      const newUrl = await DocumentService.getFreshUrl(filePath);
+      setSignedUrl({
+        signedUrl: newUrl,
+        expiresAt: new Date(Date.now() + 3600000) // 1 hora
+      });
+      window.open(newUrl, '_blank');
+    } catch (error) {
+      console.log('Erro ao gerar URL, tentando método alternativo:', error);
       generateSignedUrl();
     }
   };
 
   const handleDownload = async () => {
-    if (signedUrl && DocumentViewerService.isUrlValid(signedUrl.expiresAt)) {
+    // Sempre gerar nova URL quando clicar
+    try {
+      const newUrl = await DocumentService.getFreshUrl(filePath);
+      setSignedUrl({
+        signedUrl: newUrl,
+        expiresAt: new Date(Date.now() + 3600000) // 1 hora
+      });
+      
       const link = document.createElement('a');
-      link.href = signedUrl.signedUrl;
+      link.href = newUrl;
       link.download = fileName;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
-    } else {
-      // Tentar regenerar URL primeiro
-      try {
-        const newUrl = await DocumentService.getValidUrl(filePath, signedUrl?.signedUrl);
-        if (newUrl) {
-          setSignedUrl({
-            signedUrl: newUrl,
-            expiresAt: new Date(Date.now() + 3600000) // 1 hora
-          });
-          const link = document.createElement('a');
-          link.href = newUrl;
-          link.download = fileName;
-          document.body.appendChild(link);
-          link.click();
-          document.body.removeChild(link);
-          return;
-        }
-      } catch (error) {
-        console.log('Erro ao regenerar URL para download:', error);
-      }
-      
-      // Se não conseguir regenerar, gerar nova URL assinada
+    } catch (error) {
+      console.log('Erro ao gerar URL para download, tentando método alternativo:', error);
       generateSignedUrl();
     }
   };
@@ -146,7 +124,7 @@ export const DocumentViewer: React.FC<DocumentViewerProps> = ({
     setError(null);
     
     try {
-      const newUrl = await DocumentService.getValidUrl(filePath, signedUrl?.signedUrl);
+      const newUrl = await DocumentService.getFreshUrl(filePath);
       setSignedUrl({
         signedUrl: newUrl,
         expiresAt: new Date(Date.now() + 3600000) // 1 hora

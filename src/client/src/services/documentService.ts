@@ -252,42 +252,15 @@ export class DocumentService {
     return data.publicUrl
   }
 
-  // Verificar se uma URL expirou e regenerar se necessário
-  static async getValidUrl(filePath: string, currentUrl?: string): Promise<string> {
-    try {
-      // Se não temos URL atual, gerar uma nova
-      if (!currentUrl) {
-        return this.getDownloadUrl(filePath)
-      }
-
-      // Verificar se a URL atual ainda é válida
-      const response = await fetch(currentUrl, { method: 'HEAD' })
-      
-      if (response.ok) {
-        // URL ainda válida
-        return currentUrl
-      }
-
-      // Se retornou 400 com erro de JWT, a URL expirou
-      if (response.status === 400) {
-        console.log('URL expirada, gerando nova URL para:', filePath)
-        return this.getDownloadUrl(filePath)
-      }
-
-      // Outros erros, tentar gerar nova URL mesmo assim
-      console.log('Erro ao verificar URL, gerando nova:', response.status)
-      return this.getDownloadUrl(filePath)
-
-    } catch (error) {
-      console.log('Erro ao verificar URL, gerando nova:', error)
-      return this.getDownloadUrl(filePath)
-    }
+  // Gerar nova URL sempre (mais simples e confiável)
+  static async getFreshUrl(filePath: string): Promise<string> {
+    return this.getDownloadUrl(filePath)
   }
 
   // Regenerar URL de um documento existente
   static async regenerateDocumentUrl(document: DocumentUpload): Promise<DocumentUpload> {
     try {
-      const newUrl = await this.getValidUrl(document.id, document.url)
+      const newUrl = await this.getFreshUrl(document.id)
       
       return {
         ...document,
