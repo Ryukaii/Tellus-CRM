@@ -1026,7 +1026,7 @@ export function LeadFormConsultoria() {
                 </div>
                 <div>
                   <h1 className="text-lg font-bold text-white">Tellures CRM</h1>
-                  <p className="text-xs text-blue-100">Crédito Imobiliário</p>
+                  <p className="text-xs text-blue-100">Consultoria Financeira</p>
                 </div>
               </div>
               {sessionId && (
@@ -1154,7 +1154,7 @@ export function LeadFormConsultoria() {
               </div>
               <div>
                 <h1 className="text-xl font-bold text-gray-900">Tellures CRM</h1>
-                <p className="text-xs text-gray-500 font-medium">Crédito Imobiliário</p>
+                <p className="text-xs text-gray-500 font-medium">Consultoria Financeira</p>
               </div>
             </div>
             {sessionId && (
@@ -1174,7 +1174,7 @@ export function LeadFormConsultoria() {
             {/* Header Compacto */}
             <div className="flex items-center justify-between mb-4">
               <div className="flex-1 min-w-0">
-                <h2 className="text-lg font-bold text-gray-900 truncate">Pré-Cadastro para Crédito Imobiliário</h2>
+                <h2 className="text-lg font-bold text-gray-900 truncate">Pré-Cadastro para Consultoria Financeira</h2>
                 <p className="text-sm text-gray-600">Etapa {currentStep} de {totalSteps}</p>
                   </div>
               <div className="flex items-center space-x-2 ml-3">
