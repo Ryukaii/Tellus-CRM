@@ -833,7 +833,7 @@ export function LeadFormCredito() {
             </div>
             <h2 className="text-2xl font-bold text-white mb-4">Bem-vindo ao Pré-Cadastro</h2>
             <p className="text-blue-100 text-lg leading-relaxed mb-8">
-              Processo rápido e seguro para análise de crédito imobiliário
+              Processo rápido e seguro para análise de crédito pessoal
             </p>
             
             {sessionId && (
