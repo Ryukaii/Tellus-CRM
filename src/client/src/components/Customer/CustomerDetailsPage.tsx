@@ -203,6 +203,24 @@ export const CustomerDetailsPage: React.FC = () => {
     return new Date(dateString).toLocaleString('pt-BR');
   };
 
+  const getSourceDisplayName = (source?: string) => {
+    const sourceMap: Record<string, string> = {
+      'lead_agro': 'Formulário Agro',
+      'lead_credito': 'Formulário Crédito',
+      'lead_consultoria': 'Formulário Consultoria',
+      'lead_credito_imobiliario': 'Formulário Crédito Imobiliário',
+      'lead_geral': 'Formulário Geral',
+      'lead_aprovado': 'Lead Aprovado',
+      'indicacao': 'Indicação',
+      'site': 'Site',
+      'redes_sociais': 'Redes Sociais',
+      'anuncio': 'Anúncio',
+      'outros': 'Outros'
+    };
+    
+    return sourceMap[source || ''] || source || 'Não informado';
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">

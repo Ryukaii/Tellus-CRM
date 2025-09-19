@@ -358,7 +358,7 @@ router.post('/:leadId/approve', authenticateToken, async (req, res) => {
       uploadedDocuments: lead.uploadedDocuments || [],
       notes: lead.notes || '',
       status: 'ativo',
-      source: 'lead_aprovado'
+      source: lead.source || 'lead_aprovado' // Manter a origem original do formulário
     };
 
     // Criar o cliente
