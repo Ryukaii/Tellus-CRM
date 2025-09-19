@@ -12,7 +12,8 @@ import {
   CheckCircle,
   XCircle,
   Clock,
-  Heart
+  Heart,
+  Eye
 } from 'lucide-react';
 import { Lead } from '../../../../shared/types/lead';
 import { Modal } from '../UI/Modal';
@@ -367,56 +368,57 @@ export function PreRegistrationDetailsModal({
           </div>
         )}
 
-        {/* Documentos */}
-        <div>
-          <h3 className="text-lg font-medium text-gray-900 mb-3 flex items-center">
-            <FileText className="w-5 h-5 mr-2" />
-            Documentos
-          </h3>
-          <div className="bg-white border border-gray-200 rounded-lg p-4">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <h4 className="font-medium text-gray-700">Documentos Pessoais</h4>
-                <div className="space-y-1 text-sm">
-                  <div className="flex items-center">
-                    <span className={`w-2 h-2 rounded-full mr-2 ${preRegistration.hasRG ? 'bg-green-500' : 'bg-gray-300'}`}></span>
-                    RG: {preRegistration.hasRG ? 'Disponível' : 'Não disponível'}
+        {/* Documentos Anexados */}
+        {preRegistration.uploadedDocuments && preRegistration.uploadedDocuments.length > 0 && (
+          <div>
+            <h3 className="text-lg font-medium text-gray-900 mb-3 flex items-center">
+              <FileText className="w-5 h-5 mr-2" />
+              Documentos Anexados
+            </h3>
+            <div className="bg-white border border-gray-200 rounded-lg p-4">
+              <div className="space-y-3">
+                {preRegistration.uploadedDocuments.map((doc, index) => (
+                  <div key={doc.id || index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                    <div className="flex items-center space-x-3">
+                      <div className="flex-shrink-0">
+                        <div className="w-8 h-8 bg-tellus-primary rounded-full flex items-center justify-center">
+                          <FileText className="w-4 h-4 text-white" />
+                        </div>
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium text-gray-900 truncate">
+                          {doc.fileName}
+                        </p>
+                        <p className="text-xs text-gray-500">
+                          {doc.documentType} • {new Date(doc.uploadedAt).toLocaleDateString('pt-BR')}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <a
+                        href={doc.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center px-3 py-1.5 border border-gray-300 shadow-sm text-xs font-medium rounded text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-tellus-primary"
+                      >
+                        <Eye className="w-3 h-3 mr-1" />
+                        Visualizar
+                      </a>
+                      <a
+                        href={doc.url}
+                        download={doc.fileName}
+                        className="inline-flex items-center px-3 py-1.5 border border-gray-300 shadow-sm text-xs font-medium rounded text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-tellus-primary"
+                      >
+                        <FileText className="w-3 h-3 mr-1" />
+                        Baixar
+                      </a>
+                    </div>
                   </div>
-                  <div className="flex items-center">
-                    <span className={`w-2 h-2 rounded-full mr-2 ${preRegistration.hasCPF ? 'bg-green-500' : 'bg-gray-300'}`}></span>
-                    CPF: {preRegistration.hasCPF ? 'Disponível' : 'Não disponível'}
-                  </div>
-                  <div className="flex items-center">
-                    <span className={`w-2 h-2 rounded-full mr-2 ${preRegistration.hasAddressProof ? 'bg-green-500' : 'bg-gray-300'}`}></span>
-                    Comprovante de Endereço: {preRegistration.hasAddressProof ? 'Disponível' : 'Não disponível'}
-                  </div>
-                  <div className="flex items-center">
-                    <span className={`w-2 h-2 rounded-full mr-2 ${preRegistration.hasMaritalStatusProof ? 'bg-green-500' : 'bg-gray-300'}`}></span>
-                    Comprovante de Estado Civil: {preRegistration.hasMaritalStatusProof ? 'Disponível' : 'Não disponível'}
-                  </div>
-                </div>
-              </div>
-              
-              <div className="space-y-2">
-                <h4 className="font-medium text-gray-700">Comprovação de Renda</h4>
-                <div className="space-y-1 text-sm">
-                  <div className="flex items-center">
-                    <span className={`w-2 h-2 rounded-full mr-2 ${preRegistration.hasIncomeProof ? 'bg-green-500' : 'bg-gray-300'}`}></span>
-                    Comprovante de Renda: {preRegistration.hasIncomeProof ? 'Disponível' : 'Não disponível'}
-                  </div>
-                  <div className="flex items-center">
-                    <span className={`w-2 h-2 rounded-full mr-2 ${preRegistration.hasTaxReturn ? 'bg-green-500' : 'bg-gray-300'}`}></span>
-                    Imposto de Renda: {preRegistration.hasTaxReturn ? 'Disponível' : 'Não disponível'}
-                  </div>
-                  <div className="flex items-center">
-                    <span className={`w-2 h-2 rounded-full mr-2 ${preRegistration.hasBankStatements ? 'bg-green-500' : 'bg-gray-300'}`}></span>
-                    Extrato Bancário: {preRegistration.hasBankStatements ? 'Disponível' : 'Não disponível'}
-                  </div>
-                </div>
+                ))}
               </div>
             </div>
           </div>
-        </div>
+        )}
 
         {/* Observações */}
         {preRegistration.notes && (
