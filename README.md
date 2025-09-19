@@ -40,7 +40,7 @@ Um sistema de CRM personalizado desenvolvido para a marca Tellures, com interfac
 
 1. **Clone o repositório:**
    ```bash
-   git clone <repository-url>
+   git clone https://github.com/Ryukaii/Tellus-CRM
    cd TelluresCrm
    ```
 
