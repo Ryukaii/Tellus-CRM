@@ -238,77 +238,137 @@ export const CustomerDetailsPage: React.FC = () => {
       {/* Header */}
       <div className="bg-white shadow-sm border-b">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between py-6">
-            <div className="flex items-center space-x-4">
-              <Button
-                variant="outline"
-                onClick={handleGoBack}
-                className="flex items-center space-x-2"
-              >
-                <ArrowLeft className="w-4 h-4" />
-                <span>Voltar</span>
-              </Button>
+          <div className="py-4 sm:py-6">
+            {/* Mobile Layout */}
+            <div className="block sm:hidden space-y-4">
+              <div className="flex items-center justify-between">
+                <Button
+                  variant="outline"
+                  onClick={handleGoBack}
+                  className="flex items-center space-x-2"
+                >
+                  <ArrowLeft className="w-4 h-4" />
+                  <span>Voltar</span>
+                </Button>
+                
+                <span className={`px-3 py-1 text-sm font-medium rounded-full border ${getStatusColor(customer.status)}`}>
+                  {customer.status}
+                </span>
+              </div>
               
               <div>
-                <h1 className="text-2xl font-bold text-gray-900">
+                <h1 className="text-xl font-bold text-gray-900">
                   {customer.name}
                 </h1>
-                <p className="text-gray-600">
+                <p className="text-sm text-gray-600">
                   Cliente desde {formatDate(customer.createdAt)}
                 </p>
               </div>
-            </div>
 
-            <div className="flex items-center space-x-3">
-              <span className={`px-3 py-1 text-sm font-medium rounded-full border ${getStatusColor(customer.status)}`}>
-                {customer.status}
-              </span>
-              
-              <Button
-                variant="outline"
-                onClick={() => setShowShareModal(true)}
-                className="flex items-center space-x-2"
-              >
-                <Share2 className="w-4 h-4" />
-                <span>Compartilhar</span>
-              </Button>
+              {/* Mobile Actions */}
+              <div className="grid grid-cols-2 gap-2">
+                <Button
+                  variant="outline"
+                  onClick={() => setShowShareModal(true)}
+                  className="flex items-center justify-center space-x-2 text-sm"
+                >
+                  <Share2 className="w-4 h-4" />
+                  <span>Compartilhar</span>
+                </Button>
 
-              <Button
-                variant="outline"
-                onClick={handleEdit}
-                className="flex items-center space-x-2"
-              >
-                <Edit className="w-4 h-4" />
-                <span>Editar</span>
-              </Button>
+                <Button
+                  variant="outline"
+                  onClick={handleEdit}
+                  className="flex items-center justify-center space-x-2 text-sm"
+                >
+                  <Edit className="w-4 h-4" />
+                  <span>Editar</span>
+                </Button>
+              </div>
 
               <Button
                 variant="outline"
                 onClick={handleDelete}
-                className="flex items-center space-x-2 text-red-600 hover:text-red-700"
+                className="w-full flex items-center justify-center space-x-2 text-red-600 hover:text-red-700"
               >
                 <Trash2 className="w-4 h-4" />
                 <span>Excluir</span>
               </Button>
             </div>
+
+            {/* Desktop Layout */}
+            <div className="hidden sm:flex items-center justify-between">
+              <div className="flex items-center space-x-4">
+                <Button
+                  variant="outline"
+                  onClick={handleGoBack}
+                  className="flex items-center space-x-2"
+                >
+                  <ArrowLeft className="w-4 h-4" />
+                  <span>Voltar</span>
+                </Button>
+                
+                <div>
+                  <h1 className="text-2xl font-bold text-gray-900">
+                    {customer.name}
+                  </h1>
+                  <p className="text-gray-600">
+                    Cliente desde {formatDate(customer.createdAt)}
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-center space-x-3">
+                <span className={`px-3 py-1 text-sm font-medium rounded-full border ${getStatusColor(customer.status)}`}>
+                  {customer.status}
+                </span>
+                
+                <Button
+                  variant="outline"
+                  onClick={() => setShowShareModal(true)}
+                  className="flex items-center space-x-2"
+                >
+                  <Share2 className="w-4 h-4" />
+                  <span>Compartilhar</span>
+                </Button>
+
+                <Button
+                  variant="outline"
+                  onClick={handleEdit}
+                  className="flex items-center space-x-2"
+                >
+                  <Edit className="w-4 h-4" />
+                  <span>Editar</span>
+                </Button>
+
+                <Button
+                  variant="outline"
+                  onClick={handleDelete}
+                  className="flex items-center space-x-2 text-red-600 hover:text-red-700"
+                >
+                  <Trash2 className="w-4 h-4" />
+                  <span>Excluir</span>
+                </Button>
+              </div>
+            </div>
           </div>
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-8">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-8">
           {/* Coluna Principal */}
-          <div className="lg:col-span-2 space-y-8">
+          <div className="lg:col-span-2 space-y-4 sm:space-y-8">
             {/* Dados Pessoais */}
             <div className="bg-white rounded-lg shadow-sm border">
-              <div className="px-6 py-4 border-b">
-                <h2 className="text-lg font-semibold text-gray-900 flex items-center">
-                  <User className="w-5 h-5 mr-2 text-blue-500" />
+              <div className="px-4 sm:px-6 py-3 sm:py-4 border-b">
+                <h2 className="text-base sm:text-lg font-semibold text-gray-900 flex items-center">
+                  <User className="w-4 h-4 sm:w-5 sm:h-5 mr-2 text-blue-500" />
                   Dados Pessoais
                 </h2>
               </div>
-              <div className="p-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="p-4 sm:p-6">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">Nome Completo</label>
                     <p className="text-gray-900">{customer.name}</p>
@@ -378,15 +438,15 @@ export const CustomerDetailsPage: React.FC = () => {
             {/* Endereço */}
             {customer.address && (
               <div className="bg-white rounded-lg shadow-sm border">
-                <div className="px-6 py-4 border-b">
-                  <h2 className="text-lg font-semibold text-gray-900 flex items-center">
-                    <MapPin className="w-5 h-5 mr-2 text-green-500" />
+                <div className="px-4 sm:px-6 py-3 sm:py-4 border-b">
+                  <h2 className="text-base sm:text-lg font-semibold text-gray-900 flex items-center">
+                    <MapPin className="w-4 h-4 sm:w-5 sm:h-5 mr-2 text-green-500" />
                     Endereço
                   </h2>
                 </div>
-                <div className="p-6">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div className="md:col-span-2">
+                <div className="p-4 sm:p-6">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
+                    <div className="sm:col-span-2">
                       <label className="block text-sm font-medium text-gray-700 mb-1">Logradouro</label>
                       <p className="text-gray-900">
                         {customer.address.street}, {customer.address.number}
@@ -420,14 +480,14 @@ export const CustomerDetailsPage: React.FC = () => {
 
             {/* Dados Profissionais */}
             <div className="bg-white rounded-lg shadow-sm border">
-              <div className="px-6 py-4 border-b">
-                <h2 className="text-lg font-semibold text-gray-900 flex items-center">
-                  <Building className="w-5 h-5 mr-2 text-purple-500" />
+              <div className="px-4 sm:px-6 py-3 sm:py-4 border-b">
+                <h2 className="text-base sm:text-lg font-semibold text-gray-900 flex items-center">
+                  <Building className="w-4 h-4 sm:w-5 sm:h-5 mr-2 text-purple-500" />
                   Dados Profissionais
                 </h2>
               </div>
-              <div className="p-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="p-4 sm:p-6">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
                   {customer.profession && (
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">Profissão</label>
@@ -485,7 +545,7 @@ export const CustomerDetailsPage: React.FC = () => {
 
             {/* Documentos */}
             <div className="bg-white rounded-lg shadow-sm border">
-              <div className="p-6">
+              <div className="p-4 sm:p-6">
                 <CustomerDocumentManager
                   customerId={customerId || ''}
                   customerCpf={customer.cpf}
@@ -499,12 +559,12 @@ export const CustomerDetailsPage: React.FC = () => {
             {/* Observações */}
             {customer.notes && (
               <div className="bg-white rounded-lg shadow-sm border">
-                <div className="px-6 py-4 border-b">
-                  <h2 className="text-lg font-semibold text-gray-900">Observações</h2>
+                <div className="px-4 sm:px-6 py-3 sm:py-4 border-b">
+                  <h2 className="text-base sm:text-lg font-semibold text-gray-900">Observações</h2>
                 </div>
-                <div className="p-6">
+                <div className="p-4 sm:p-6">
                   <div className="prose prose-sm max-w-none">
-                    <p className="text-gray-700 whitespace-pre-wrap">{customer.notes}</p>
+                    <p className="text-gray-700 whitespace-pre-wrap text-sm sm:text-base">{customer.notes}</p>
                   </div>
                 </div>
               </div>
@@ -512,10 +572,10 @@ export const CustomerDetailsPage: React.FC = () => {
           </div>
 
           {/* Sidebar */}
-          <div className="space-y-6">
+          <div className="space-y-4 sm:space-y-6">
             {/* Informações Rápidas */}
-            <div className="bg-white rounded-lg shadow-sm border p-6">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">Informações Rápidas</h3>
+            <div className="bg-white rounded-lg shadow-sm border p-4 sm:p-6">
+              <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-3 sm:mb-4">Informações Rápidas</h3>
               
               <div className="space-y-4">
                 <div className="flex justify-between items-center">
@@ -565,13 +625,13 @@ export const CustomerDetailsPage: React.FC = () => {
             </div>
 
             {/* Ações Rápidas */}
-            <div className="bg-white rounded-lg shadow-sm border p-6">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">Ações Rápidas</h3>
+            <div className="bg-white rounded-lg shadow-sm border p-4 sm:p-6">
+              <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-3 sm:mb-4">Ações Rápidas</h3>
               
-              <div className="space-y-3">
+              <div className="space-y-2 sm:space-y-3">
                 <Button
                   onClick={() => setShowShareModal(true)}
-                  className="w-full flex items-center justify-center space-x-2"
+                  className="w-full flex items-center justify-center space-x-2 text-sm sm:text-base"
                 >
                   <Share2 className="w-4 h-4" />
                   <span>Compartilhar Cliente</span>
@@ -580,7 +640,7 @@ export const CustomerDetailsPage: React.FC = () => {
                 <Button
                   variant="outline"
                   onClick={handleEdit}
-                  className="w-full flex items-center justify-center space-x-2"
+                  className="w-full flex items-center justify-center space-x-2 text-sm sm:text-base"
                 >
                   <Edit className="w-4 h-4" />
                   <span>Editar Dados</span>
@@ -589,7 +649,7 @@ export const CustomerDetailsPage: React.FC = () => {
                 <Button
                   variant="outline"
                   onClick={() => window.print()}
-                  className="w-full flex items-center justify-center space-x-2"
+                  className="w-full flex items-center justify-center space-x-2 text-sm sm:text-base"
                 >
                   <Download className="w-4 h-4" />
                   <span>Imprimir/Exportar</span>

@@ -132,17 +132,18 @@ export const CustomerListView: React.FC<CustomerListViewProps> = ({
   return (
     <div className="space-y-6">
       {/* Header com Filtros */}
-      <div className="bg-white rounded-lg border p-6">
-        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between space-y-4 lg:space-y-0">
+      <div className="bg-white rounded-lg border p-4 sm:p-6">
+        <div className="space-y-4">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">Clientes</h1>
-            <p className="text-gray-600">
+            <h1 className="text-xl sm:text-2xl font-bold text-gray-900">Clientes</h1>
+            <p className="text-sm sm:text-base text-gray-600">
               {filteredCustomers.length} cliente{filteredCustomers.length !== 1 ? 's' : ''} encontrado{filteredCustomers.length !== 1 ? 's' : ''}
             </p>
           </div>
           
-          <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-4">
-            {/* Busca */}
+          {/* Filtros - Mobile First */}
+          <div className="space-y-3">
+            {/* Busca - Full width on mobile */}
             <div className="relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
               <Input
@@ -150,40 +151,43 @@ export const CustomerListView: React.FC<CustomerListViewProps> = ({
                 placeholder="Buscar clientes..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10 w-64"
+                className="pl-10 w-full sm:w-64"
               />
             </div>
 
-            {/* Filtro de Status */}
-            <select
-              value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value)}
-              className="px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-            >
-              <option value="all">Todos os status</option>
-              <option value="ativo">Ativo</option>
-              <option value="inativo">Inativo</option>
-              <option value="pendente">Pendente</option>
-              <option value="suspenso">Suspenso</option>
-            </select>
+            {/* Filtros em linha no mobile */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+              {/* Filtro de Status */}
+              <select
+                value={statusFilter}
+                onChange={(e) => setStatusFilter(e.target.value)}
+                className="px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
+              >
+                <option value="all">Todos os status</option>
+                <option value="ativo">Ativo</option>
+                <option value="inativo">Inativo</option>
+                <option value="pendente">Pendente</option>
+                <option value="suspenso">Suspenso</option>
+              </select>
 
-            {/* Ordenação */}
-            <select
-              value={sortBy}
-              onChange={(e) => setSortBy(e.target.value)}
-              className="px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-            >
-              <option value="name">Nome</option>
-              <option value="createdAt">Data de cadastro</option>
-              <option value="status">Status</option>
-            </select>
+              {/* Ordenação */}
+              <select
+                value={sortBy}
+                onChange={(e) => setSortBy(e.target.value)}
+                className="px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
+              >
+                <option value="name">Nome</option>
+                <option value="createdAt">Data de cadastro</option>
+                <option value="status">Status</option>
+              </select>
 
-            {/* Botão Atualizar */}
-            {onRefresh && (
-              <Button onClick={onRefresh} variant="outline">
-                Atualizar
-              </Button>
-            )}
+              {/* Botão Atualizar */}
+              {onRefresh && (
+                <Button onClick={onRefresh} variant="outline" className="w-full sm:w-auto">
+                  Atualizar
+                </Button>
+              )}
+            </div>
           </div>
         </div>
       </div>
@@ -210,111 +214,183 @@ export const CustomerListView: React.FC<CustomerListViewProps> = ({
               onClick={() => handleCustomerClick(customer.id)}
               className="bg-white rounded-lg border hover:border-blue-300 hover:shadow-md transition-all duration-200 cursor-pointer"
             >
-              <div className="p-6">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center space-x-4 flex-1">
+              <div className="p-4 sm:p-6">
+                {/* Mobile Layout */}
+                <div className="block sm:hidden">
+                  <div className="flex items-start space-x-3 mb-3">
                     {/* Avatar */}
-                    <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
-                      <User className="w-6 h-6 text-blue-600" />
+                    <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0">
+                      <User className="w-5 h-5 text-blue-600" />
                     </div>
 
-                    {/* Informações Principais */}
+                    {/* Nome e Status */}
                     <div className="flex-1 min-w-0">
-                      <div className="flex items-center space-x-3 mb-2">
-                        <h3 className="text-lg font-semibold text-gray-900 truncate">
+                      <div className="flex items-center justify-between mb-1">
+                        <h3 className="text-base font-semibold text-gray-900 truncate">
                           {customer.name}
                         </h3>
                         <span className={`px-2 py-1 text-xs font-medium rounded-full ${getStatusColor(customer.status)}`}>
                           {customer.status}
                         </span>
                       </div>
-
-                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 text-sm text-gray-600">
-                        {/* Contato */}
+                      
+                      {/* Informações principais no mobile */}
+                      <div className="space-y-1 text-sm text-gray-600">
                         <div className="flex items-center space-x-2">
-                          <Mail className="w-4 h-4 text-gray-400" />
+                          <Mail className="w-3 h-3 text-gray-400" />
                           <span className="truncate">{customer.email}</span>
                         </div>
-
                         <div className="flex items-center space-x-2">
-                          <Phone className="w-4 h-4 text-gray-400" />
+                          <Phone className="w-3 h-3 text-gray-400" />
                           <span>{customer.phone}</span>
                         </div>
-
-                        {/* CPF */}
-                        <div className="flex items-center space-x-2">
-                          <User className="w-4 h-4 text-gray-400" />
-                          <span>{customer.cpf}</span>
-                        </div>
-
-                        {/* Localização */}
                         {customer.address && (
                           <div className="flex items-center space-x-2">
-                            <MapPin className="w-4 h-4 text-gray-400" />
+                            <MapPin className="w-3 h-3 text-gray-400" />
                             <span className="truncate">
                               {customer.address.city} - {customer.address.state}
                             </span>
                           </div>
                         )}
-
-                        {/* Profissão */}
-                        {customer.profession && (
-                          <div className="flex items-center space-x-2">
-                            <Building className="w-4 h-4 text-gray-400" />
-                            <span className="truncate">{customer.profession}</span>
-                          </div>
-                        )}
-
-                        {/* Renda */}
-                        {customer.monthlyIncome && (
-                          <div className="flex items-center space-x-2">
-                            <DollarSign className="w-4 h-4 text-gray-400" />
-                            <span>{formatCurrency(customer.monthlyIncome)}</span>
-                          </div>
-                        )}
-
-                        {/* Estado Civil */}
-                        {customer.maritalStatus && (
-                          <div className="flex items-center space-x-2">
-                            <Heart className="w-4 h-4 text-gray-400" />
-                            <span className="capitalize">{customer.maritalStatus}</span>
-                          </div>
-                        )}
-
-                        {/* Data de Cadastro */}
-                        <div className="flex items-center space-x-2">
-                          <Calendar className="w-4 h-4 text-gray-400" />
-                          <span>Cadastro: {formatDate(customer.createdAt)}</span>
-                        </div>
                       </div>
+                    </div>
 
-                      {/* Documentos */}
-                      {customer.uploadedDocuments && customer.uploadedDocuments.length > 0 && (
-                        <div className="mt-3 flex items-center space-x-2">
-                          <FileText className="w-4 h-4 text-green-500" />
-                          <span className="text-sm text-green-600 font-medium">
-                            {customer.uploadedDocuments.length} documento{customer.uploadedDocuments.length !== 1 ? 's' : ''} anexado{customer.uploadedDocuments.length !== 1 ? 's' : ''}
-                          </span>
-                        </div>
+                    {/* Ações Mobile */}
+                    <div className="flex items-center space-x-1">
+                      {onDelete && (
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onDelete(customer);
+                          }}
+                          className="p-1.5 text-red-500 hover:text-red-700 hover:bg-red-50 rounded-md transition-colors"
+                          title="Excluir cliente"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
                       )}
+                      <ChevronRight className="w-4 h-4 text-gray-400" />
                     </div>
                   </div>
 
-                  {/* Ações */}
-                  <div className="flex items-center space-x-2 ml-4">
-                    {onDelete && (
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          onDelete(customer);
-                        }}
-                        className="p-2 text-red-500 hover:text-red-700 hover:bg-red-50 rounded-md transition-colors"
-                        title="Excluir cliente"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
-                    )}
-                    <ChevronRight className="w-5 h-5 text-gray-400" />
+                  {/* Documentos Mobile */}
+                  {customer.uploadedDocuments && customer.uploadedDocuments.length > 0 && (
+                    <div className="flex items-center space-x-2 text-sm">
+                      <FileText className="w-4 h-4 text-green-500" />
+                      <span className="text-green-600 font-medium">
+                        {customer.uploadedDocuments.length} documento{customer.uploadedDocuments.length !== 1 ? 's' : ''}
+                      </span>
+                    </div>
+                  )}
+                </div>
+
+                {/* Desktop Layout */}
+                <div className="hidden sm:block">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-4 flex-1">
+                      {/* Avatar */}
+                      <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
+                        <User className="w-6 h-6 text-blue-600" />
+                      </div>
+
+                      {/* Informações Principais */}
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center space-x-3 mb-2">
+                          <h3 className="text-lg font-semibold text-gray-900 truncate">
+                            {customer.name}
+                          </h3>
+                          <span className={`px-2 py-1 text-xs font-medium rounded-full ${getStatusColor(customer.status)}`}>
+                            {customer.status}
+                          </span>
+                        </div>
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 text-sm text-gray-600">
+                          {/* Contato */}
+                          <div className="flex items-center space-x-2">
+                            <Mail className="w-4 h-4 text-gray-400" />
+                            <span className="truncate">{customer.email}</span>
+                          </div>
+
+                          <div className="flex items-center space-x-2">
+                            <Phone className="w-4 h-4 text-gray-400" />
+                            <span>{customer.phone}</span>
+                          </div>
+
+                          {/* CPF */}
+                          <div className="flex items-center space-x-2">
+                            <User className="w-4 h-4 text-gray-400" />
+                            <span>{customer.cpf}</span>
+                          </div>
+
+                          {/* Localização */}
+                          {customer.address && (
+                            <div className="flex items-center space-x-2">
+                              <MapPin className="w-4 h-4 text-gray-400" />
+                              <span className="truncate">
+                                {customer.address.city} - {customer.address.state}
+                              </span>
+                            </div>
+                          )}
+
+                          {/* Profissão */}
+                          {customer.profession && (
+                            <div className="flex items-center space-x-2">
+                              <Building className="w-4 h-4 text-gray-400" />
+                              <span className="truncate">{customer.profession}</span>
+                            </div>
+                          )}
+
+                          {/* Renda */}
+                          {customer.monthlyIncome && (
+                            <div className="flex items-center space-x-2">
+                              <DollarSign className="w-4 h-4 text-gray-400" />
+                              <span>{formatCurrency(customer.monthlyIncome)}</span>
+                            </div>
+                          )}
+
+                          {/* Estado Civil */}
+                          {customer.maritalStatus && (
+                            <div className="flex items-center space-x-2">
+                              <Heart className="w-4 h-4 text-gray-400" />
+                              <span className="capitalize">{customer.maritalStatus}</span>
+                            </div>
+                          )}
+
+                          {/* Data de Cadastro */}
+                          <div className="flex items-center space-x-2">
+                            <Calendar className="w-4 h-4 text-gray-400" />
+                            <span>Cadastro: {formatDate(customer.createdAt)}</span>
+                          </div>
+                        </div>
+
+                        {/* Documentos */}
+                        {customer.uploadedDocuments && customer.uploadedDocuments.length > 0 && (
+                          <div className="mt-3 flex items-center space-x-2">
+                            <FileText className="w-4 h-4 text-green-500" />
+                            <span className="text-sm text-green-600 font-medium">
+                              {customer.uploadedDocuments.length} documento{customer.uploadedDocuments.length !== 1 ? 's' : ''} anexado{customer.uploadedDocuments.length !== 1 ? 's' : ''}
+                            </span>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Ações */}
+                    <div className="flex items-center space-x-2 ml-4">
+                      {onDelete && (
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onDelete(customer);
+                          }}
+                          className="p-2 text-red-500 hover:text-red-700 hover:bg-red-50 rounded-md transition-colors"
+                          title="Excluir cliente"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      )}
+                      <ChevronRight className="w-5 h-5 text-gray-400" />
+                    </div>
                   </div>
                 </div>
               </div>
@@ -325,38 +401,38 @@ export const CustomerListView: React.FC<CustomerListViewProps> = ({
 
       {/* Estatísticas */}
       {filteredCustomers.length > 0 && (
-        <div className="bg-white rounded-lg border p-6">
-          <h3 className="text-lg font-medium text-gray-900 mb-4">Estatísticas</h3>
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            <div className="text-center">
-              <div className="text-2xl font-bold text-blue-600">
+        <div className="bg-white rounded-lg border p-4 sm:p-6">
+          <h3 className="text-base sm:text-lg font-medium text-gray-900 mb-4">Estatísticas</h3>
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+            <div className="text-center p-3 bg-blue-50 rounded-lg">
+              <div className="text-xl sm:text-2xl font-bold text-blue-600">
                 {filteredCustomers.length}
               </div>
-              <div className="text-sm text-gray-600">Total de Clientes</div>
+              <div className="text-xs sm:text-sm text-gray-600">Total</div>
             </div>
             
-            <div className="text-center">
-              <div className="text-2xl font-bold text-green-600">
+            <div className="text-center p-3 bg-green-50 rounded-lg">
+              <div className="text-xl sm:text-2xl font-bold text-green-600">
                 {filteredCustomers.filter(c => c.status === 'ativo').length}
               </div>
-              <div className="text-sm text-gray-600">Ativos</div>
+              <div className="text-xs sm:text-sm text-gray-600">Ativos</div>
             </div>
             
-            <div className="text-center">
-              <div className="text-2xl font-bold text-purple-600">
+            <div className="text-center p-3 bg-purple-50 rounded-lg">
+              <div className="text-xl sm:text-2xl font-bold text-purple-600">
                 {filteredCustomers.reduce((acc, c) => acc + (c.uploadedDocuments?.length || 0), 0)}
               </div>
-              <div className="text-sm text-gray-600">Documentos</div>
+              <div className="text-xs sm:text-sm text-gray-600">Documentos</div>
             </div>
 
-            <div className="text-center">
-              <div className="text-2xl font-bold text-yellow-600">
+            <div className="text-center p-3 bg-yellow-50 rounded-lg">
+              <div className="text-lg sm:text-2xl font-bold text-yellow-600">
                 {formatCurrency(
                   filteredCustomers.reduce((acc, c) => acc + (c.monthlyIncome || 0), 0) / 
                   filteredCustomers.filter(c => c.monthlyIncome).length || 0
                 )}
               </div>
-              <div className="text-sm text-gray-600">Renda Média</div>
+              <div className="text-xs sm:text-sm text-gray-600">Renda Média</div>
             </div>
           </div>
         </div>
