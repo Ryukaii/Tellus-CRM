@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { 
   ArrowLeft, User, Mail, Phone, MapPin, Building, DollarSign, 
   Calendar, Heart, FileText, Share2, Edit, Trash2, Eye,
-  AlertCircle, CheckCircle, Clock, Download
+  AlertCircle, CheckCircle, Clock, Download, Loader2
 } from 'lucide-react';
 import { Button } from '../UI/Button';
 import { LoadingSpinner } from '../UI/LoadingSpinner';
