@@ -40,6 +40,15 @@ interface MongoLead {
   hasCompanyDocs?: boolean;
   hasTaxReturn?: boolean;
   hasBankStatements?: boolean;
+  uploadedDocuments?: Array<{
+    id: string;
+    fileName: string;
+    fileSize: number;
+    fileType: string;
+    documentType: string;
+    uploadedAt: string;
+    url: string;
+  }>;
   notes?: string;
   status: string;
   rejectionReason?: string;
@@ -82,6 +91,7 @@ class LeadService {
       hasCompanyDocs: mongoLead.hasCompanyDocs,
       hasTaxReturn: mongoLead.hasTaxReturn,
       hasBankStatements: mongoLead.hasBankStatements,
+      uploadedDocuments: mongoLead.uploadedDocuments,
       notes: mongoLead.notes,
       status: mongoLead.status as any,
       rejectionReason: mongoLead.rejectionReason,
@@ -123,6 +133,7 @@ class LeadService {
       hasCompanyDocs: leadData.hasCompanyDocs,
       hasTaxReturn: leadData.hasTaxReturn,
       hasBankStatements: leadData.hasBankStatements,
+      uploadedDocuments: leadData.uploadedDocuments,
       notes: leadData.notes,
       status: leadData.status,
       source: leadData.source
