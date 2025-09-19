@@ -205,19 +205,29 @@ router.post('/session/new', async (_req, res) => {
 // Buscar todos os leads finalizados (para admin)
 router.get('/', authenticateToken, async (req, res) => {
   try {
-    const { page = 1, limit = 20, status, search } = req.query;
+    const { page = 1, limit = 20, status, search, type } = req.query;
     
+    // Mapear tipos para sources
+    const typeToSourceMap: Record<string, string[]> = {
+      'credito': ['lead_credito'],
+      'consultoria': ['lead_consultoria'],
+      'agro': ['lead_agro'],
+      'geral': ['lead_geral'],
+      'credito_imobiliario': ['lead_credito_imobiliario'],
+      'all': [
+        'formulario_publico',
+        'lead_credito',
+        'lead_consultoria', 
+        'lead_agro',
+        'lead_geral',
+        'lead_credito_imobiliario'
+      ]
+    };
+
     // Construir filtros para buscar apenas leads que vieram do formulário público
     const filters: any = {
       source: { 
-        $in: [
-          'formulario_publico',
-          'lead_credito',
-          'lead_consultoria', 
-          'lead_agro',
-          'lead_geral',
-          'lead_credito_imobiliario'
-        ]
+        $in: typeToSourceMap[type as string] || typeToSourceMap['all']
       }
     };
     

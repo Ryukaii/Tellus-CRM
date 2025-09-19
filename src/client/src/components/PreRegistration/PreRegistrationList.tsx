@@ -28,6 +28,7 @@ interface PreRegistrationListProps {
   onViewDetails: (lead: Lead) => void;
   onSearch: (search: string) => void;
   onFilterChange: (status: 'all' | 'approved' | 'pending') => void;
+  onTypeChange: (type: 'all' | 'credito' | 'consultoria' | 'agro' | 'geral' | 'credito_imobiliario') => void;
   total: number;
   page: number;
   limit: number;
@@ -43,6 +44,7 @@ export function PreRegistrationList({
   onViewDetails,
   onSearch,
   onFilterChange,
+  onTypeChange,
   total,
   page,
   limit,
@@ -50,6 +52,7 @@ export function PreRegistrationList({
 }: PreRegistrationListProps) {
   const [searchTerm, setSearchTerm] = useState('');
   const [filter, setFilter] = useState<'all' | 'approved' | 'pending'>('all');
+  const [typeFilter, setTypeFilter] = useState<'all' | 'credito' | 'consultoria' | 'agro' | 'geral' | 'credito_imobiliario'>('all');
   const [processingActions, setProcessingActions] = useState<Set<string>>(new Set());
 
   const handleSearch = (value: string) => {
@@ -60,6 +63,11 @@ export function PreRegistrationList({
   const handleFilterChange = (newFilter: 'all' | 'approved' | 'pending') => {
     setFilter(newFilter);
     onFilterChange(newFilter);
+  };
+
+  const handleTypeChange = (newType: 'all' | 'credito' | 'consultoria' | 'agro' | 'geral' | 'credito_imobiliario') => {
+    setTypeFilter(newType);
+    onTypeChange(newType);
   };
 
   const handleAction = async (
@@ -154,7 +162,7 @@ export function PreRegistrationList({
             />
           </div>
 
-          {/* Filtro */}
+          {/* Filtro de Status */}
           <div className="relative">
             <Filter className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
             <select
@@ -162,9 +170,26 @@ export function PreRegistrationList({
               onChange={(e) => handleFilterChange(e.target.value as 'all' | 'approved' | 'pending')}
               className="pl-10 pr-8 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-tellus-primary focus:border-transparent appearance-none bg-white"
             >
-              <option value="all">Todos</option>
+              <option value="all">Todos os Status</option>
               <option value="approved">Aprovados</option>
               <option value="pending">Pendentes</option>
+            </select>
+          </div>
+
+          {/* Filtro de Tipo */}
+          <div className="relative">
+            <Filter className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+            <select
+              value={typeFilter}
+              onChange={(e) => handleTypeChange(e.target.value as 'all' | 'credito' | 'consultoria' | 'agro' | 'geral' | 'credito_imobiliario')}
+              className="pl-10 pr-8 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-tellus-primary focus:border-transparent appearance-none bg-white"
+            >
+              <option value="all">Todos os Tipos</option>
+              <option value="credito">Crédito Pessoal</option>
+              <option value="consultoria">Consultoria Financeira</option>
+              <option value="agro">Crédito Rural</option>
+              <option value="geral">Crédito Geral</option>
+              <option value="credito_imobiliario">Crédito Imobiliário</option>
             </select>
           </div>
         </div>

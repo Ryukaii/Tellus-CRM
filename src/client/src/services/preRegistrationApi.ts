@@ -206,6 +206,7 @@ export class AdminPreRegistrationApi {
     limit?: number;
     status?: 'approved' | 'pending';
     search?: string;
+    type?: 'all' | 'credito' | 'consultoria' | 'agro' | 'geral' | 'credito_imobiliario';
   } = {}): Promise<{
     preRegistrations: Lead[];
     total: number;
@@ -220,6 +221,7 @@ export class AdminPreRegistrationApi {
       if (params.limit) queryParams.append('limit', params.limit.toString());
       if (params.status) queryParams.append('status', params.status);
       if (params.search) queryParams.append('search', params.search);
+      if (params.type && params.type !== 'all') queryParams.append('type', params.type);
 
       const response = await fetch(`${this.API_BASE_URL}/pre-registration?${queryParams}`, {
         method: 'GET',

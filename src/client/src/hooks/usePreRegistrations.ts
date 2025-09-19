@@ -8,6 +8,7 @@ interface UsePreRegistrationsParams {
   limit?: number;
   status?: 'approved' | 'pending';
   search?: string;
+  type?: 'all' | 'credito' | 'consultoria' | 'agro' | 'geral' | 'credito_imobiliario';
 }
 
 interface UsePreRegistrationsReturn {
@@ -42,7 +43,8 @@ export function usePreRegistrations(params: UsePreRegistrationsParams = {}): Use
         page: params.page || 1,
         limit: params.limit || 20,
         status: params.status,
-        search: params.search
+        search: params.search,
+        type: params.type
       });
 
       setPreRegistrations(result.preRegistrations);
@@ -57,7 +59,7 @@ export function usePreRegistrations(params: UsePreRegistrationsParams = {}): Use
     } finally {
       setLoading(false);
     }
-  }, [params.page, params.limit, params.status, params.search]);
+  }, [params.page, params.limit, params.status, params.search, params.type]);
 
   const approvePreRegistration = useCallback(async (leadId: string): Promise<boolean> => {
     try {

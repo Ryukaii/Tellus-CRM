@@ -13,7 +13,8 @@ export function PreRegistrationManager({ className = '' }: PreRegistrationManage
     page: 1,
     limit: 20,
     status: undefined as 'completed' | 'pending' | undefined,
-    search: undefined as string | undefined
+    search: undefined as string | undefined,
+    type: 'all' as 'all' | 'credito' | 'consultoria' | 'agro' | 'geral' | 'credito_imobiliario'
   });
 
   const [selectedPreRegistration, setSelectedPreRegistration] = useState<PreRegistration | null>(null);
@@ -45,6 +46,14 @@ export function PreRegistrationManager({ className = '' }: PreRegistrationManage
     setFilters(prev => ({
       ...prev,
       status: status === 'all' ? undefined : status,
+      page: 1
+    }));
+  };
+
+  const handleTypeChange = (type: 'all' | 'credito' | 'consultoria' | 'agro' | 'geral' | 'credito_imobiliario') => {
+    setFilters(prev => ({
+      ...prev,
+      type,
       page: 1
     }));
   };
@@ -113,6 +122,7 @@ export function PreRegistrationManager({ className = '' }: PreRegistrationManage
         onViewDetails={handleViewDetails}
         onSearch={handleSearch}
         onFilterChange={handleFilterChange}
+        onTypeChange={handleTypeChange}
         total={total}
         page={page}
         limit={limit}
