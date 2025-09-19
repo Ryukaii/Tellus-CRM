@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   X, 
   User, 
@@ -18,6 +18,7 @@ import {
 import { Lead } from '../../../../shared/types/lead';
 import { Modal } from '../UI/Modal';
 import { Button } from '../UI/Button';
+import { DocumentViewerService } from '../../services/documentViewerService';
 
 interface PreRegistrationDetailsModalProps {
   preRegistration: Lead | null;
@@ -39,6 +40,37 @@ export function PreRegistrationDetailsModal({
   const [showRejectForm, setShowRejectForm] = useState(false);
   const [rejectReason, setRejectReason] = useState('');
   const [processing, setProcessing] = useState(false);
+  const [signedUrls, setSignedUrls] = useState<Record<string, string>>({});
+
+  // Gerar URLs assinadas quando o modal abrir e houver documentos
+  useEffect(() => {
+    const generateSignedUrls = async () => {
+      if (preRegistration?.uploadedDocuments && preRegistration.uploadedDocuments.length > 0) {
+        const urls: Record<string, string> = {};
+        
+        for (const doc of preRegistration.uploadedDocuments) {
+          try {
+            // Extrair o caminho do arquivo da URL
+            const urlParts = doc.url.split('/');
+            const filePath = urlParts.slice(-2).join('/'); // Pega os últimos 2 segmentos (bucket/path)
+            
+            const result = await DocumentViewerService.getSignedDocumentUrl(filePath);
+            if (result.signedUrl) {
+              urls[doc.id] = result.signedUrl;
+            }
+          } catch (error) {
+            console.error('Erro ao gerar URL assinada para documento:', doc.fileName, error);
+          }
+        }
+        
+        setSignedUrls(urls);
+      }
+    };
+
+    if (isOpen) {
+      generateSignedUrls();
+    }
+  }, [isOpen, preRegistration?.uploadedDocuments]);
 
   if (!preRegistration) return null;
 
@@ -396,7 +428,7 @@ export function PreRegistrationDetailsModal({
                     </div>
                     <div className="flex items-center space-x-2">
                       <a
-                        href={doc.url}
+                        href={signedUrls[doc.id] || doc.url}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="inline-flex items-center px-3 py-1.5 border border-gray-300 shadow-sm text-xs font-medium rounded text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-tellus-primary"
@@ -405,7 +437,7 @@ export function PreRegistrationDetailsModal({
                         Visualizar
                       </a>
                       <a
-                        href={doc.url}
+                        href={signedUrls[doc.id] || doc.url}
                         download={doc.fileName}
                         className="inline-flex items-center px-3 py-1.5 border border-gray-300 shadow-sm text-xs font-medium rounded text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-tellus-primary"
                       >
