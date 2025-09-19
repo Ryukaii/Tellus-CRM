@@ -209,7 +209,16 @@ router.get('/', authenticateToken, async (req, res) => {
     
     // Construir filtros para buscar apenas leads que vieram do formulário público
     const filters: any = {
-      source: 'formulario_publico' // Apenas leads que vieram do pré-cadastro
+      source: { 
+        $in: [
+          'formulario_publico',
+          'lead_credito',
+          'lead_consultoria', 
+          'lead_agro',
+          'lead_geral',
+          'lead_credito_imobiliario'
+        ]
+      }
     };
     
     if (status === 'approved') {
@@ -237,8 +246,16 @@ router.get('/', authenticateToken, async (req, res) => {
     
     const result = await leadService.getLeads(leadFilters);
     
-    // Filtrar apenas leads do formulário público
-    const filteredLeads = result.leads.filter(lead => lead.source === 'formulario_publico');
+    // Filtrar apenas leads do formulário público (todas as sources de lead)
+    const leadSources = [
+      'formulario_publico',
+      'lead_credito',
+      'lead_consultoria', 
+      'lead_agro',
+      'lead_geral',
+      'lead_credito_imobiliario'
+    ];
+    const filteredLeads = result.leads.filter(lead => leadSources.includes(lead.source));
     
     res.json({
       success: true,
