@@ -50,13 +50,25 @@ export function PreRegistrationDetailsModal({
         
         for (const doc of preRegistration.uploadedDocuments) {
           try {
-            // Extrair o caminho do arquivo da URL
+            // Extrair o caminho do arquivo da URL do Supabase
+            // URL format: https://xxx.supabase.co/storage/v1/object/public/user-documents/path/file.pdf
             const urlParts = doc.url.split('/');
-            const filePath = urlParts.slice(-2).join('/'); // Pega os últimos 2 segmentos (bucket/path)
+            const bucketIndex = urlParts.findIndex(part => part === 'user-documents');
             
-            const result = await DocumentViewerService.getSignedDocumentUrl(filePath);
-            if (result.signedUrl) {
-              urls[doc.id] = result.signedUrl;
+            if (bucketIndex !== -1 && bucketIndex < urlParts.length - 1) {
+              // Pega tudo após 'user-documents'
+              const filePath = urlParts.slice(bucketIndex + 1).join('/');
+              console.log('Gerando URL assinada para:', filePath);
+              
+              const result = await DocumentViewerService.getSignedDocumentUrl(filePath);
+              if (result.signedUrl) {
+                urls[doc.id] = result.signedUrl;
+                console.log('URL assinada gerada:', result.signedUrl);
+              } else {
+                console.error('Falha ao gerar URL assinada:', result.error);
+              }
+            } else {
+              console.error('Não foi possível extrair o caminho do arquivo da URL:', doc.url);
             }
           } catch (error) {
             console.error('Erro ao gerar URL assinada para documento:', doc.fileName, error);

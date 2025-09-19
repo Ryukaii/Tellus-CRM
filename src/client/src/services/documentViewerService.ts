@@ -43,6 +43,9 @@ export class DocumentViewerService {
       // Se não especificado, usar 1 hora como padrão
       const expiresIn = expiresInSeconds || 3600;
       
+      console.log('DocumentViewerService - Gerando URL assinada para:', filePath);
+      console.log('DocumentViewerService - Expires in:', expiresIn, 'segundos');
+      
       const response = await fetch('/api/sharing/document/signed-url', {
         method: 'POST',
         headers: {
@@ -52,9 +55,13 @@ export class DocumentViewerService {
         body: JSON.stringify({ filePath, expiresIn })
       });
 
+      console.log('DocumentViewerService - Response status:', response.status);
+      
       const data = await response.json();
+      console.log('DocumentViewerService - Response data:', data);
 
       if (!data.success) {
+        console.error('DocumentViewerService - Erro na resposta:', data.error);
         return {
           signedUrl: '',
           expiresAt: new Date(),
@@ -65,11 +72,13 @@ export class DocumentViewerService {
       const expiresAt = new Date();
       expiresAt.setSeconds(expiresAt.getSeconds() + expiresIn);
 
+      console.log('DocumentViewerService - URL assinada gerada com sucesso');
       return {
         signedUrl: data.data.signedUrl,
         expiresAt,
       };
     } catch (error) {
+      console.error('DocumentViewerService - Erro na requisição:', error);
       return {
         signedUrl: '',
         expiresAt: new Date(),
