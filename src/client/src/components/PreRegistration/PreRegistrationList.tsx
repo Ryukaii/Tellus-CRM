@@ -97,6 +97,30 @@ export function PreRegistrationList({
     });
   };
 
+  const getLeadType = (source: string) => {
+    const typeMap: Record<string, string> = {
+      'lead_credito': 'Crédito Pessoal',
+      'lead_consultoria': 'Consultoria Financeira',
+      'lead_agro': 'Crédito Rural',
+      'lead_geral': 'Crédito Geral',
+      'lead_credito_imobiliario': 'Crédito Imobiliário',
+      'formulario_publico': 'Formulário Público'
+    };
+    return typeMap[source] || 'Tipo não identificado';
+  };
+
+  const getLeadTypeColor = (source: string) => {
+    const colorMap: Record<string, string> = {
+      'lead_credito': 'bg-blue-100 text-blue-800',
+      'lead_consultoria': 'bg-purple-100 text-purple-800',
+      'lead_agro': 'bg-green-100 text-green-800',
+      'lead_geral': 'bg-gray-100 text-gray-800',
+      'lead_credito_imobiliario': 'bg-indigo-100 text-indigo-800',
+      'formulario_publico': 'bg-orange-100 text-orange-800'
+    };
+    return colorMap[source] || 'bg-gray-100 text-gray-800';
+  };
+
   const getStatusBadge = (lead: Lead) => {
     if (lead.status === 'aprovado' || lead.status === 'convertido') {
       return (
@@ -224,11 +248,14 @@ export function PreRegistrationList({
                         </div>
                         
                         <div className="flex-1 min-w-0">
-                          <div className="flex items-center space-x-2">
+                          <div className="flex items-center space-x-2 flex-wrap">
                             <p className="text-sm font-medium text-gray-900 truncate">
                               {lead.name || 'Nome não informado'}
                             </p>
                             {getStatusBadge(lead)}
+                            <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${getLeadTypeColor(lead.source)}`}>
+                              {getLeadType(lead.source)}
+                            </span>
                           </div>
                           
                           <div className="mt-1 flex flex-col sm:flex-row sm:items-center sm:space-x-4 space-y-1 sm:space-y-0">
