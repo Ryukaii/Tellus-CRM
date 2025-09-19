@@ -355,6 +355,7 @@ router.post('/:leadId/approve', authenticateToken, async (req, res) => {
       hasSpouse: lead.hasSpouse || false,
       spouseName: lead.spouseName || '',
       spouseCpf: lead.spouseCpf || '',
+      uploadedDocuments: lead.uploadedDocuments || [],
       notes: lead.notes || '',
       status: 'ativo',
       source: 'lead_aprovado'
