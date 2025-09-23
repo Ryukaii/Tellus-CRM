@@ -110,7 +110,7 @@ export const CustomerDetailsPage: React.FC = () => {
   };
 
   const handleGoBack = () => {
-    navigate('/dashboard/customers');
+    navigate('/customers');
   };
 
   const handleDocumentsChange = (newDocuments: Array<{
@@ -133,7 +133,7 @@ export const CustomerDetailsPage: React.FC = () => {
   };
 
   const handleEdit = () => {
-    navigate(`/dashboard/customers/${customerId}/edit`);
+    navigate(`/customers/${customerId}/edit`);
   };
 
   const handleDelete = () => {
@@ -157,7 +157,7 @@ export const CustomerDetailsPage: React.FC = () => {
 
       if (response.ok) {
         alert('Cliente excluído com sucesso!');
-        navigate('/dashboard/customers');
+        navigate('/customers');
       } else {
         throw new Error('Erro ao excluir cliente');
       }

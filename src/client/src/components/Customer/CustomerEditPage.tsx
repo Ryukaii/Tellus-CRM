@@ -67,7 +67,7 @@ export const CustomerEditPage: React.FC = () => {
   };
 
   const handleCancel = () => {
-    navigate(`/dashboard/customers/${customerId}`);
+    navigate(`/customers/${customerId}`);
   };
 
   const handleDocumentsChange = (newDocuments: Array<{
@@ -82,7 +82,7 @@ export const CustomerEditPage: React.FC = () => {
   };
 
   const handleGoBack = () => {
-    navigate('/dashboard/customers');
+    navigate('/customers');
   };
 
   if (loading) {

@@ -107,7 +107,7 @@ export const CustomerListView: React.FC<CustomerListViewProps> = ({
   };
 
   const handleCustomerClick = (customerId: string) => {
-    navigate(`/dashboard/customers/${customerId}`);
+    navigate(`/customers/${customerId}`);
   };
 
   if (loading) {
