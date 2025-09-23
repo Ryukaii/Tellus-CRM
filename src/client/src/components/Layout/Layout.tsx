@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Sidebar } from './Sidebar';
+import { usePageInfo } from '../../hooks/usePageInfo';
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -7,6 +8,7 @@ interface LayoutProps {
 
 export function Layout({ children }: LayoutProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const { title, breadcrumb } = usePageInfo();
 
   return (
     <div className="min-h-screen bg-gray-50 flex">
@@ -29,9 +31,37 @@ export function Layout({ children }: LayoutProps) {
                 </svg>
               </button>
               
-              {/* Page title */}
-              <div className="flex-1 lg:flex-none">
-                <h1 className="text-lg font-semibold text-gray-900">Dashboard</h1>
+              {/* Breadcrumb and page info */}
+              <div className="flex-1 flex items-center space-x-4">
+                <div className="flex items-center space-x-2 text-sm text-gray-500">
+                  {breadcrumb.map((item, index) => (
+                    <React.Fragment key={index}>
+                      {index > 0 && (
+                        <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                          <path fillRule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clipRule="evenodd" />
+                        </svg>
+                      )}
+                      <span className={index === breadcrumb.length - 1 ? 'text-gray-900 font-medium' : ''}>
+                        {item}
+                      </span>
+                    </React.Fragment>
+                  ))}
+                </div>
+              </div>
+              
+              {/* Right side actions */}
+              <div className="flex items-center space-x-4">
+                {/* Notifications or other actions can go here */}
+                <div className="hidden sm:block">
+                  <span className="text-sm text-gray-500">
+                    {new Date().toLocaleDateString('pt-BR', { 
+                      weekday: 'long', 
+                      year: 'numeric', 
+                      month: 'long', 
+                      day: 'numeric' 
+                    })}
+                  </span>
+                </div>
               </div>
             </div>
           </div>
