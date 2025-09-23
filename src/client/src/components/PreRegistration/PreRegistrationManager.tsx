@@ -76,26 +76,38 @@ export function PreRegistrationManager({ className = '' }: PreRegistrationManage
   };
 
   const handleApprove = async (sessionId: string) => {
-    const success = await approvePreRegistration(sessionId);
-    if (success) {
-      // Mostrar notificação de sucesso
-      console.log('Pré-cadastro aprovado com sucesso!');
+    try {
+      const success = await approvePreRegistration(sessionId);
+      if (success) {
+        // Mostrar notificação de sucesso
+        console.log('Pré-cadastro aprovado com sucesso!');
+      }
+    } catch (error) {
+      console.error('Erro ao aprovar pré-cadastro:', error);
     }
   };
 
   const handleReject = async (sessionId: string, reason?: string) => {
-    const success = await rejectPreRegistration(sessionId, reason);
-    if (success) {
-      // Mostrar notificação de sucesso
-      console.log('Pré-cadastro rejeitado com sucesso!');
+    try {
+      const success = await rejectPreRegistration(sessionId, reason);
+      if (success) {
+        // Mostrar notificação de sucesso
+        console.log('Pré-cadastro rejeitado com sucesso!');
+      }
+    } catch (error) {
+      console.error('Erro ao rejeitar pré-cadastro:', error);
     }
   };
 
   const handleDelete = async (sessionId: string) => {
-    const success = await deletePreRegistration(sessionId);
-    if (success) {
-      // Mostrar notificação de sucesso
-      console.log('Pré-cadastro excluído com sucesso!');
+    try {
+      const success = await deletePreRegistration(sessionId);
+      if (success) {
+        // Mostrar notificação de sucesso
+        console.log('Pré-cadastro excluído com sucesso!');
+      }
+    } catch (error) {
+      console.error('Erro ao excluir pré-cadastro:', error);
     }
   };
 

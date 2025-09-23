@@ -80,7 +80,9 @@ export function PreRegistrationDetailsModal({
     };
 
     if (isOpen) {
-      generateSignedUrls();
+      generateSignedUrls().catch(error => {
+        console.error('Erro ao gerar URLs assinadas:', error);
+      });
     }
   }, [isOpen, preRegistration?.uploadedDocuments]);
 
