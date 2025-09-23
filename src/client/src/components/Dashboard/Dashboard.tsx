@@ -1,82 +1,77 @@
 import React from 'react';
-import { Users, FileText, TrendingUp, Calendar, DollarSign, CheckCircle, Clock, AlertCircle } from 'lucide-react';
-import { useCustomers } from '../../hooks/useCustomers';
-import { usePreRegistrations } from '../../hooks/usePreRegistrations';
+import { useNavigate } from 'react-router-dom';
+import { Users, FileText, TrendingUp, Calendar, DollarSign, CheckCircle, Clock, AlertCircle, XCircle, Plus } from 'lucide-react';
+import { useDashboardStats } from '../../hooks/useDashboardStats';
 
 export function Dashboard() {
-  const { customers, loading: customersLoading } = useCustomers();
-  const { preRegistrations, loading: preRegistrationsLoading } = usePreRegistrations();
+  const navigate = useNavigate();
+  const { stats, recentActivities, loading } = useDashboardStats();
 
-  // Calcular estatísticas
-  const totalCustomers = customers?.total || 0;
-  const totalPreRegistrations = preRegistrations?.length || 0;
-  const approvedPreRegistrations = preRegistrations?.filter(p => p.status === 'aprovado').length || 0;
-  const pendingPreRegistrations = preRegistrations?.filter(p => p.status === 'novo' || p.status === 'em_analise').length || 0;
-
-  const stats = [
+  const statsCards = [
     {
       name: 'Total de Clientes',
-      value: totalCustomers,
+      value: stats.totalCustomers,
       icon: Users,
       color: 'bg-blue-500',
-      change: '+12%',
+      change: `+${stats.customerGrowth}%`,
       changeType: 'positive'
     },
     {
       name: 'Pré-Cadastros',
-      value: totalPreRegistrations,
+      value: stats.totalPreRegistrations,
       icon: FileText,
       color: 'bg-green-500',
-      change: '+8%',
+      change: `+${stats.preRegistrationGrowth}%`,
       changeType: 'positive'
     },
     {
       name: 'Aprovados',
-      value: approvedPreRegistrations,
+      value: stats.approvedPreRegistrations,
       icon: CheckCircle,
       color: 'bg-emerald-500',
-      change: '+15%',
-      changeType: 'positive'
+      change: `${stats.conversionRate}%`,
+      changeType: 'neutral'
     },
     {
       name: 'Pendentes',
-      value: pendingPreRegistrations,
+      value: stats.pendingPreRegistrations,
       icon: Clock,
       color: 'bg-yellow-500',
-      change: '-5%',
-      changeType: 'negative'
+      change: stats.rejectedPreRegistrations > 0 ? `-${stats.rejectedPreRegistrations}` : '0',
+      changeType: stats.rejectedPreRegistrations > 0 ? 'negative' : 'neutral'
     }
   ];
 
-  const recentActivities = [
-    {
-      id: 1,
-      type: 'customer',
-      title: 'Novo cliente cadastrado',
-      description: 'João Silva foi adicionado ao sistema',
-      time: '2 horas atrás',
-      icon: Users,
-      color: 'text-blue-500'
-    },
-    {
-      id: 2,
-      type: 'pre-registration',
-      title: 'Pré-cadastro aprovado',
-      description: 'Maria Santos foi aprovada para crédito',
-      time: '4 horas atrás',
-      icon: CheckCircle,
-      color: 'text-green-500'
-    },
-    {
-      id: 3,
-      type: 'pre-registration',
-      title: 'Novo pré-cadastro',
-      description: 'Pedro Costa preencheu formulário de crédito',
-      time: '6 horas atrás',
-      icon: FileText,
-      color: 'text-yellow-500'
+  const handleQuickAction = (action: string) => {
+    switch (action) {
+      case 'new-customer':
+        // Aqui você pode abrir um modal ou navegar para uma página de criação
+        console.log('Abrir modal de novo cliente');
+        break;
+      case 'pre-registrations':
+        navigate('/pre-registrations');
+        break;
+      case 'customers':
+        navigate('/customers');
+        break;
+      case 'reports':
+        console.log('Abrir relatórios');
+        break;
     }
-  ];
+  };
+
+  const getIconComponent = (iconName: string) => {
+    switch (iconName) {
+      case 'CheckCircle':
+        return CheckCircle;
+      case 'XCircle':
+        return XCircle;
+      case 'FileText':
+        return FileText;
+      default:
+        return FileText;
+    }
+  };
 
   return (
     <div className="space-y-6">
@@ -90,7 +85,7 @@ export function Dashboard() {
 
       {/* Stats Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        {stats.map((stat) => (
+        {statsCards.map((stat) => (
           <div key={stat.name} className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
             <div className="flex items-center">
               <div className={`${stat.color} rounded-lg p-3`}>
@@ -98,16 +93,21 @@ export function Dashboard() {
               </div>
               <div className="ml-4">
                 <p className="text-sm font-medium text-gray-600">{stat.name}</p>
-                <p className="text-2xl font-semibold text-gray-900">{stat.value}</p>
+                <p className="text-2xl font-semibold text-gray-900">
+                  {loading ? '...' : stat.value}
+                </p>
               </div>
             </div>
             <div className="mt-4 flex items-center">
               <span className={`text-sm font-medium ${
-                stat.changeType === 'positive' ? 'text-green-600' : 'text-red-600'
+                stat.changeType === 'positive' ? 'text-green-600' : 
+                stat.changeType === 'negative' ? 'text-red-600' : 'text-gray-600'
               }`}>
                 {stat.change}
               </span>
-              <span className="text-sm text-gray-500 ml-2">vs mês anterior</span>
+              <span className="text-sm text-gray-500 ml-2">
+                {stat.changeType === 'neutral' ? 'taxa de conversão' : 'vs mês anterior'}
+              </span>
             </div>
           </div>
         ))}
@@ -121,20 +121,34 @@ export function Dashboard() {
             <h3 className="text-lg font-medium text-gray-900">Atividades Recentes</h3>
           </div>
           <div className="p-6">
-            <div className="space-y-4">
-              {recentActivities.map((activity) => (
-                <div key={activity.id} className="flex items-start space-x-3">
-                  <div className={`${activity.color} rounded-full p-2`}>
-                    <activity.icon className="w-4 h-4" />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-gray-900">{activity.title}</p>
-                    <p className="text-sm text-gray-500">{activity.description}</p>
-                    <p className="text-xs text-gray-400 mt-1">{activity.time}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
+            {loading ? (
+              <div className="flex items-center justify-center py-8">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-tellus-primary"></div>
+              </div>
+            ) : recentActivities.length > 0 ? (
+              <div className="space-y-4">
+                {recentActivities.map((activity) => {
+                  const IconComponent = getIconComponent(activity.icon);
+                  return (
+                    <div key={activity.id} className="flex items-start space-x-3">
+                      <div className={`${activity.color} rounded-full p-2`}>
+                        <IconComponent className="w-4 h-4" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium text-gray-900">{activity.title}</p>
+                        <p className="text-sm text-gray-500">{activity.description}</p>
+                        <p className="text-xs text-gray-400 mt-1">{activity.time}</p>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            ) : (
+              <div className="text-center py-8">
+                <FileText className="w-12 h-12 text-gray-300 mx-auto mb-4" />
+                <p className="text-gray-500">Nenhuma atividade recente</p>
+              </div>
+            )}
           </div>
         </div>
 
@@ -145,9 +159,12 @@ export function Dashboard() {
           </div>
           <div className="p-6">
             <div className="space-y-3">
-              <button className="w-full flex items-center space-x-3 p-3 text-left rounded-lg hover:bg-gray-50 transition-colors">
+              <button 
+                onClick={() => handleQuickAction('new-customer')}
+                className="w-full flex items-center space-x-3 p-3 text-left rounded-lg hover:bg-gray-50 transition-colors"
+              >
                 <div className="bg-blue-500 rounded-lg p-2">
-                  <Users className="w-5 h-5 text-white" />
+                  <Plus className="w-5 h-5 text-white" />
                 </div>
                 <div>
                   <p className="text-sm font-medium text-gray-900">Novo Cliente</p>
@@ -155,7 +172,23 @@ export function Dashboard() {
                 </div>
               </button>
               
-              <button className="w-full flex items-center space-x-3 p-3 text-left rounded-lg hover:bg-gray-50 transition-colors">
+              <button 
+                onClick={() => handleQuickAction('customers')}
+                className="w-full flex items-center space-x-3 p-3 text-left rounded-lg hover:bg-gray-50 transition-colors"
+              >
+                <div className="bg-blue-500 rounded-lg p-2">
+                  <Users className="w-5 h-5 text-white" />
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-gray-900">Ver Clientes</p>
+                  <p className="text-xs text-gray-500">Gerenciar todos os clientes</p>
+                </div>
+              </button>
+              
+              <button 
+                onClick={() => handleQuickAction('pre-registrations')}
+                className="w-full flex items-center space-x-3 p-3 text-left rounded-lg hover:bg-gray-50 transition-colors"
+              >
                 <div className="bg-green-500 rounded-lg p-2">
                   <FileText className="w-5 h-5 text-white" />
                 </div>
@@ -165,7 +198,10 @@ export function Dashboard() {
                 </div>
               </button>
               
-              <button className="w-full flex items-center space-x-3 p-3 text-left rounded-lg hover:bg-gray-50 transition-colors">
+              <button 
+                onClick={() => handleQuickAction('reports')}
+                className="w-full flex items-center space-x-3 p-3 text-left rounded-lg hover:bg-gray-50 transition-colors"
+              >
                 <div className="bg-purple-500 rounded-lg p-2">
                   <TrendingUp className="w-5 h-5 text-white" />
                 </div>
