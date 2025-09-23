@@ -81,7 +81,7 @@ export function CustomerList() {
 
   if (error) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="flex items-center justify-center min-h-96">
         <div className="text-center">
           <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
             <AlertCircle className="w-8 h-8 text-red-600" />
@@ -95,33 +95,32 @@ export function CustomerList() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Header com botão de adicionar */}
-        <div className="mb-8 flex justify-between items-center">
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900">Clientes</h1>
-            <p className="mt-2 text-gray-600">
-              Gerencie todos os seus clientes em um só lugar
-            </p>
-          </div>
-          
-          <Button
-            onClick={() => setShowCreateModal(true)}
-            className="flex items-center space-x-2"
-          >
-            <Plus className="w-4 h-4" />
-            <span>Novo Cliente</span>
-          </Button>
+    <div>
+      {/* Header com botão de adicionar */}
+      <div className="mb-8 flex justify-between items-center">
+        <div>
+          <h1 className="text-3xl font-bold text-gray-900">Clientes</h1>
+          <p className="mt-2 text-gray-600">
+            Gerencie todos os seus clientes em um só lugar
+          </p>
         </div>
+        
+        <Button
+          onClick={() => setShowCreateModal(true)}
+          className="flex items-center space-x-2"
+        >
+          <Plus className="w-4 h-4" />
+          <span>Novo Cliente</span>
+        </Button>
+      </div>
 
-        {/* Lista de Clientes */}
-        <CustomerListView
-          customers={customers}
-          loading={loading}
-          onRefresh={fetchCustomers}
-          onDelete={handleDeleteCustomer}
-        />
+      {/* Lista de Clientes */}
+      <CustomerListView
+        customers={customers}
+        loading={loading}
+        onRefresh={fetchCustomers}
+        onDelete={handleDeleteCustomer}
+      />
 
         {/* Modal de Criação */}
         <Modal
@@ -211,7 +210,6 @@ export function CustomerList() {
             </div>
           </div>
         </Modal>
-      </div>
     </div>
   );
 }
