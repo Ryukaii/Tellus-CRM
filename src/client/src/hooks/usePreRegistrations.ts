@@ -34,7 +34,7 @@ export function usePreRegistrations(params: UsePreRegistrationsParams = {}): Use
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchPreRegistrations = useCallback(async () => {
+  const fetchPreRegistrations = async () => {
     setLoading(true);
     setError(null);
     
@@ -59,7 +59,7 @@ export function usePreRegistrations(params: UsePreRegistrationsParams = {}): Use
     } finally {
       setLoading(false);
     }
-  }, [params.page, params.limit, params.status, params.search, params.type]);
+  };
 
   const approvePreRegistration = useCallback(async (leadId: string): Promise<boolean> => {
     try {
@@ -118,7 +118,7 @@ export function usePreRegistrations(params: UsePreRegistrationsParams = {}): Use
 
   useEffect(() => {
     fetchPreRegistrations();
-  }, [fetchPreRegistrations]);
+  }, [params.page, params.limit, params.status, params.search, params.type]);
 
   return {
     preRegistrations,
