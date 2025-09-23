@@ -3,36 +3,37 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import { AuthProvider } from './contexts/AuthContext';
 import { ProtectedRoute } from './components/Auth/ProtectedRoute';
 import { Layout } from './components/Layout/Layout';
+import { Dashboard } from './components/Dashboard/Dashboard';
 import { CustomerList } from './components/Customer/CustomerList';
 import { CustomerDetailsPage } from './components/Customer/CustomerDetailsPage';
 import { CustomerEditPage } from './components/Customer/CustomerEditPage';
 import { PreRegistrationManager } from './components/PreRegistration/PreRegistrationManager';
 import { SharedCustomerView } from './components/Public/SharedCustomerView';
 
-function DashboardRoutes() {
+function AppRoutes() {
   return (
     <Layout>
       <Routes>
-        {/* Redirecionar / para /dashboard/customers */}
-        <Route path="/" element={<Navigate to="/dashboard/customers" replace />} />
+        {/* Página inicial - Dashboard real */}
+        <Route path="/" element={<Dashboard />} />
         
-        {/* Rotas do Dashboard */}
-        <Route path="/dashboard/customers" element={<CustomerList />} />
-        <Route path="/dashboard/customers/:customerId" element={<CustomerDetailsPage />} />
-        <Route path="/dashboard/customers/:customerId/edit" element={<CustomerEditPage />} />
-        <Route path="/dashboard/pre-registrations" element={<PreRegistrationManager />} />
+        {/* Rotas principais */}
+        <Route path="/customers" element={<CustomerList />} />
+        <Route path="/customers/:customerId" element={<CustomerDetailsPage />} />
+        <Route path="/customers/:customerId/edit" element={<CustomerEditPage />} />
+        <Route path="/pre-registrations" element={<PreRegistrationManager />} />
         
-        {/* Rota 404 para dashboard */}
-        <Route path="/dashboard/*" element={
-          <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        {/* Rota 404 */}
+        <Route path="/*" element={
+          <div className="flex items-center justify-center min-h-96">
             <div className="text-center">
               <h1 className="text-4xl font-bold text-gray-900 mb-4">404</h1>
               <p className="text-gray-600 mb-4">Página não encontrada</p>
               <a 
-                href="/dashboard/customers" 
+                href="/" 
                 className="text-blue-600 hover:text-blue-700"
               >
-                Voltar ao Dashboard
+                Voltar ao Início
               </a>
             </div>
           </div>
@@ -50,10 +51,10 @@ function App() {
           {/* Rota pública para links compartilhados */}
           <Route path="/shared/:linkId" element={<SharedCustomerView />} />
           
-          {/* Rotas protegidas do dashboard */}
+          {/* Rotas protegidas */}
           <Route path="/*" element={
             <ProtectedRoute>
-              <DashboardRoutes />
+              <AppRoutes />
             </ProtectedRoute>
           } />
         </Routes>

@@ -6,31 +6,38 @@ export function usePageInfo() {
   const getPageInfo = () => {
     const path = location.pathname;
     
-    if (path.startsWith('/dashboard/customers')) {
+    if (path === '/') {
+      return {
+        title: 'Dashboard',
+        breadcrumb: ['Dashboard']
+      };
+    }
+    
+    if (path.startsWith('/customers')) {
+      if (path.includes('/edit')) {
+        return {
+          title: 'Editar Cliente',
+          breadcrumb: ['Dashboard', 'Clientes', 'Editar']
+        };
+      }
+      
+      if (path !== '/customers') {
+        return {
+          title: 'Detalhes do Cliente',
+          breadcrumb: ['Dashboard', 'Clientes', 'Detalhes']
+        };
+      }
+      
       return {
         title: 'Clientes',
         breadcrumb: ['Dashboard', 'Clientes']
       };
     }
     
-    if (path.startsWith('/dashboard/pre-registrations')) {
+    if (path.startsWith('/pre-registrations')) {
       return {
         title: 'Pré-Cadastros',
         breadcrumb: ['Dashboard', 'Pré-Cadastros']
-      };
-    }
-    
-    if (path.startsWith('/dashboard/customers/') && path.includes('/edit')) {
-      return {
-        title: 'Editar Cliente',
-        breadcrumb: ['Dashboard', 'Clientes', 'Editar']
-      };
-    }
-    
-    if (path.startsWith('/dashboard/customers/') && !path.includes('/edit')) {
-      return {
-        title: 'Detalhes do Cliente',
-        breadcrumb: ['Dashboard', 'Clientes', 'Detalhes']
       };
     }
     

@@ -1,6 +1,6 @@
 import React from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { Users, Activity, LogOut, User, FileText, X } from 'lucide-react';
+import { Users, Activity, LogOut, User, FileText, X, Home } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 
 interface SidebarProps {
@@ -68,9 +68,21 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
           {/* Navigation */}
           <nav className="flex-1 px-4 py-6 space-y-2">
             <button
-              onClick={() => handleNavigation('/dashboard/customers')}
+              onClick={() => handleNavigation('/')}
               className={`w-full flex items-center space-x-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
-                isActive('/dashboard/customers')
+                isActive('/')
+                  ? 'bg-tellus-primary text-white'
+                  : 'text-gray-600 hover:bg-gray-100 hover:text-tellus-primary'
+              }`}
+            >
+              <Home className="w-5 h-5" />
+              <span>Dashboard</span>
+            </button>
+
+            <button
+              onClick={() => handleNavigation('/customers')}
+              className={`w-full flex items-center space-x-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+                isActive('/customers')
                   ? 'bg-tellus-primary text-white'
                   : 'text-gray-600 hover:bg-gray-100 hover:text-tellus-primary'
               }`}
@@ -80,9 +92,9 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
             </button>
 
             <button
-              onClick={() => handleNavigation('/dashboard/pre-registrations')}
+              onClick={() => handleNavigation('/pre-registrations')}
               className={`w-full flex items-center space-x-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
-                isActive('/dashboard/pre-registrations')
+                isActive('/pre-registrations')
                   ? 'bg-tellus-primary text-white'
                   : 'text-gray-600 hover:bg-gray-100 hover:text-tellus-primary'
               }`}
