@@ -101,6 +101,22 @@ export const PreRegistrationSchema = z.object({
     spouseCompanyName: z.string().optional()
   }).optional(),
   
+  // Dados da Pessoa Jurídica
+  companyData: z.object({
+    hasCompany: z.boolean().optional(),
+    companyCnpj: z.string().optional(),
+    companyName: z.string().optional(),
+    companyAddress: z.object({
+      street: z.string().optional(),
+      number: z.string().optional(),
+      complement: z.string().optional(),
+      neighborhood: z.string().optional(),
+      city: z.string().optional(),
+      state: z.string().optional(),
+      zipCode: z.string().optional()
+    }).optional()
+  }).optional(),
+  
   // Dados adicionais
   maritalStatus: z.enum(['solteiro', 'casado', 'divorciado', 'viuvo', 'uniao_estavel']).optional(),
   notes: z.string().optional(),

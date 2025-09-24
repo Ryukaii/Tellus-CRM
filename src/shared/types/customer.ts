@@ -22,7 +22,7 @@ export const CustomerSchema = z.object({
   profession: z.string().optional(),
   employmentType: z.string().optional(),
   monthlyIncome: z.number().optional(),
-  companyName: z.string().optional(),
+  personalCompanyName: z.string().optional(),
   propertyValue: z.number().optional(),
   propertyType: z.string().optional(),
   propertyCity: z.string().optional(),
@@ -40,6 +40,21 @@ export const CustomerSchema = z.object({
   source: z.string().optional(),
   govPassword: z.string().min(6, 'Senha gov deve ter pelo menos 6 caracteres').optional(),
   processes: z.array(z.enum(['agro', 'credito', 'consultoria', 'credito_imobiliario', 'geral'])).optional(),
+  
+  // Dados da Pessoa Jurídica
+  hasCompany: z.boolean().optional(),
+  companyCnpj: z.string().optional(),
+  companyName: z.string().optional(),
+  companyAddress: z.object({
+    street: z.string().optional(),
+    number: z.string().optional(),
+    complement: z.string().optional(),
+    neighborhood: z.string().optional(),
+    city: z.string().optional(),
+    state: z.string().optional(),
+    zipCode: z.string().optional()
+  }).optional(),
+  
   createdAt: z.string().optional(),
   updatedAt: z.string().optional()
 });
@@ -65,7 +80,7 @@ export const CustomerUpdateSchema = z.object({
   profession: z.string().optional(),
   employmentType: z.string().optional(),
   monthlyIncome: z.number().optional(),
-  companyName: z.string().optional(),
+  personalCompanyName: z.string().optional(),
   propertyValue: z.number().optional(),
   propertyType: z.string().optional(),
   propertyCity: z.string().optional(),

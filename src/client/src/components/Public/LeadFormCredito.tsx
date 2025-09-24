@@ -12,6 +12,7 @@ import { CepService } from '../../services/cepService';
 import { StateSelect } from '../UI/StateSelect';
 import { CPFValidationService, ExistingCustomerData } from '../../services/cpfValidationService';
 import { ExistingCustomerModal } from '../UI/ExistingCustomerModal';
+import { CNPJService } from '../../services/cnpjService';
 
 interface FormData {
   // Dados Pessoais
@@ -38,7 +39,7 @@ interface FormData {
   profession: string;
   employmentType: string;
   monthlyIncome: number;
-  companyName: string;
+  personalCompanyName: string;
   
   // Dados do Imóvel
   propertyValue: number;
@@ -97,6 +98,20 @@ interface FormData {
     url: string;
   }>;
   
+  // Dados da Pessoa Jurídica
+  hasCompany: boolean;
+  companyCnpj: string;
+  companyName: string;
+  companyAddress: {
+    street: string;
+    number: string;
+    complement: string;
+    neighborhood: string;
+    city: string;
+    state: string;
+    zipCode: string;
+  };
+  
   // Observações
   notes: string;
 }
@@ -126,6 +141,12 @@ export function LeadFormCredito() {
   // Estados para validação de CPF existente
   const [existingCustomerModal, setExistingCustomerModal] = useState(false);
   const [existingCustomerData, setExistingCustomerData] = useState<ExistingCustomerData | null>(null);
+  
+  // Estados para validação de CNPJ
+  const [consultingCNPJ, setConsultingCNPJ] = useState(false);
+  const [cnpjConsulted, setCnpjConsulted] = useState(false);
+  const [cnpjValid, setCnpjValid] = useState(false);
+  const [cnpjNotFound, setCnpjNotFound] = useState(false);
 
   const [formData, setFormData] = useState<FormData>({
     name: '',
@@ -147,7 +168,7 @@ export function LeadFormCredito() {
     profession: '',
     employmentType: 'clt',
     monthlyIncome: 0,
-    companyName: '',
+    personalCompanyName: '',
     propertyValue: 0,
     propertyType: 'apartamento',
     propertyCity: '',
@@ -180,6 +201,18 @@ export function LeadFormCredito() {
     hasSpouseIncomeProof: false,
     hasSpouseTaxReturn: false,
     hasSpouseBankStatements: false,
+    hasCompany: false,
+    companyCnpj: '',
+    companyName: '',
+    companyAddress: {
+      street: '',
+      number: '',
+      complement: '',
+      neighborhood: '',
+      city: '',
+      state: '',
+      zipCode: ''
+    },
     documents: [],
     notes: ''
   });
@@ -237,7 +270,7 @@ export function LeadFormCredito() {
             profession: preRegistration.professionalData?.profession || '',
             employmentType: preRegistration.professionalData?.employmentType || 'clt',
             monthlyIncome: preRegistration.professionalData?.monthlyIncome || 0,
-            companyName: preRegistration.professionalData?.companyName || ''
+            personalCompanyName: preRegistration.professionalData?.companyName || ''
           }));
         }
         
@@ -300,6 +333,19 @@ export function LeadFormCredito() {
           }));
         }
         
+        if (preRegistration.companyData) {
+          setFormData(prev => ({
+            ...prev,
+            hasCompany: preRegistration.companyData?.hasCompany || false,
+            companyCnpj: preRegistration.companyData?.companyCnpj || '',
+            companyName: preRegistration.companyData?.companyName || '',
+            companyAddress: {
+              ...prev.companyAddress,
+              ...preRegistration.companyData?.companyAddress
+            }
+          }));
+        }
+        
       } catch (error) {
         console.error('Error loading progress:', error);
         setError('Erro ao carregar progresso salvo');
@@ -354,6 +400,20 @@ export function LeadFormCredito() {
       } else {
         setCepConsulted(false);
         setCepNotFound(false);
+      }
+    }
+
+    // Se for o campo CNPJ da empresa, verificar validação e consultar
+    if (field === 'companyCnpj') {
+      const cnpjLimpo = value.replace(/\D/g, '');
+      const isValid = cnpjLimpo.length === 14 && CNPJService.validarCNPJ(value);
+      setCnpjValid(isValid);
+      
+      if (isValid) {
+        consultarCNPJ(value);
+      } else {
+        setCnpjConsulted(false);
+        setCnpjNotFound(false);
       }
     }
   };
@@ -461,6 +521,48 @@ export function LeadFormCredito() {
     }
   };
 
+  const consultarCNPJ = async (cnpj: string) => {
+    const cnpjLimpo = cnpj.replace(/\D/g, '');
+    
+    // Só consultar se tiver 14 dígitos
+    if (cnpjLimpo.length === 14) {
+      setConsultingCNPJ(true);
+      setError(null);
+      setCnpjNotFound(false);
+      
+      try {
+        const dadosCNPJ = await CNPJService.consultarCNPJ(cnpj);
+        
+        if (dadosCNPJ) {
+          setFormData(prev => ({
+            ...prev,
+            personalCompanyName: dadosCNPJ.razaoSocial,
+            companyAddress: {
+              ...prev.companyAddress,
+              street: dadosCNPJ.endereco.logradouro.split(',')[0].trim(),
+              number: dadosCNPJ.endereco.logradouro.split(',')[1]?.trim() || '',
+              neighborhood: dadosCNPJ.endereco.bairro,
+              city: dadosCNPJ.endereco.municipio,
+              state: dadosCNPJ.endereco.uf,
+              zipCode: dadosCNPJ.endereco.cep
+            }
+          }));
+          setCnpjConsulted(true);
+          setCnpjNotFound(false);
+        } else {
+          setCnpjNotFound(true);
+          setError('CNPJ válido mas não encontrado na base de dados. Preencha os dados manualmente.');
+        }
+      } catch (error) {
+        console.error('Erro ao consultar CNPJ:', error);
+        setCnpjNotFound(true);
+        setError('Erro ao consultar CNPJ. Preencha os dados manualmente.');
+      } finally {
+        setConsultingCNPJ(false);
+      }
+    }
+  };
+
   // Validações
   const validateCPF = (cpf: string): boolean => {
     const numbers = cpf.replace(/\D/g, '');
@@ -506,6 +608,10 @@ export function LeadFormCredito() {
 
   // RG não tem validação específica pois cada estado tem formato diferente
 
+  const validateCNPJ = (cnpj: string): boolean => {
+    return CNPJService.validarCNPJ(cnpj);
+  };
+
   const validateAge = (birthDate: string): boolean => {
     const today = new Date();
     const birth = new Date(birthDate);
@@ -543,6 +649,10 @@ export function LeadFormCredito() {
     return numbers.replace(/(\d{5})(\d{3})/, '$1-$2');
     }
     return value.slice(0, 9); // Limitar a 9 caracteres
+  };
+
+  const formatCNPJ = (value: string) => {
+    return CNPJService.formatarCNPJ(value);
   };
 
   // RG não tem formatação específica pois cada estado tem formato diferente
@@ -707,7 +817,7 @@ export function LeadFormCredito() {
             profession: formData.profession,
             employmentType: formData.employmentType,
             monthlyIncome: formData.monthlyIncome,
-            companyName: formData.companyName
+            personalCompanyName: formData.personalCompanyName
           }
         };
       case 4:
@@ -771,6 +881,12 @@ export function LeadFormCredito() {
             spouseEmploymentType: formData.spouseEmploymentType,
             spouseMonthlyIncome: formData.spouseMonthlyIncome,
             spouseCompanyName: formData.spouseCompanyName
+          },
+          companyData: {
+            hasCompany: formData.hasCompany,
+            companyCnpj: formData.companyCnpj,
+            companyName: formData.companyName,
+            companyAddress: formData.companyAddress
           },
           uploadedDocuments: formData.documents,
           notes: formData.notes
@@ -845,7 +961,7 @@ export function LeadFormCredito() {
       case 5:
         // Se tem cônjuge, valida os campos obrigatórios do cônjuge
         if (formData.hasSpouse) {
-          return formData.spouseName.trim().length >= 2 && 
+          const spouseValid = formData.spouseName.trim().length >= 2 && 
                  validateCPF(formData.spouseCpf) && 
                  formData.spouseRg.trim().length >= 1 && 
                  formData.spouseBirthDate && 
@@ -853,13 +969,47 @@ export function LeadFormCredito() {
                  formData.spouseProfession.trim().length >= 2 && 
                  formData.spouseMonthlyIncome > 0 &&
                  formData.spouseMonthlyIncome >= 1000;
+          
+          // Se tem empresa, valida os campos obrigatórios da empresa
+          if (formData.hasCompany) {
+            const companyValid = validateCNPJ(formData.companyCnpj) &&
+                   formData.personalCompanyName.trim().length >= 2 &&
+                   formData.companyAddress.street.trim().length >= 3 &&
+                   formData.companyAddress.number.trim().length >= 1 &&
+                   formData.companyAddress.neighborhood.trim().length >= 2 &&
+                   formData.companyAddress.city.trim().length >= 2 &&
+                   formData.companyAddress.state.trim().length === 2 &&
+                   validateCEP(formData.companyAddress.zipCode);
+            return spouseValid && companyValid;
+          }
+          
+          return spouseValid;
         }
-        return true; // Se não tem cônjuge, etapa é válida
+        
+        // Se tem empresa, valida os campos obrigatórios da empresa
+        if (formData.hasCompany) {
+          return validateCNPJ(formData.companyCnpj) &&
+                 formData.personalCompanyName.trim().length >= 2 &&
+                 formData.companyAddress.street.trim().length >= 3 &&
+                 formData.companyAddress.number.trim().length >= 1 &&
+                 formData.companyAddress.neighborhood.trim().length >= 2 &&
+                 formData.companyAddress.city.trim().length >= 2 &&
+                 formData.companyAddress.state.trim().length === 2 &&
+                 validateCEP(formData.companyAddress.zipCode);
+        }
+        
+        return true; // Se não tem cônjuge nem empresa, etapa é válida
       case 6:
         return formData.govPassword.trim().length >= 6 && 
                formData.hasTwoFactorDisabled;
       case 7:
-        return true; // Documentos são opcionais
+        // Se tem empresa, verificar se os documentos obrigatórios foram enviados
+        if (formData.hasCompany) {
+          const hasContractSocial = formData.documents.some(doc => doc.documentType === 'contract_social');
+          const hasCNPJ = formData.documents.some(doc => doc.documentType === 'cnpj');
+          return hasContractSocial && hasCNPJ;
+        }
+        return true; // Documentos são opcionais se não tem empresa
       default:
         return true;
     }
@@ -1660,8 +1810,8 @@ export function LeadFormCredito() {
 
                   <Input
                     label="Empresa (se aplicável)"
-                    value={formData.companyName}
-                    onChange={(e) => handleChange('companyName', e.target.value)}
+                    value={formData.personalCompanyName}
+                    onChange={(e) => handleChange('personalCompanyName', e.target.value)}
                     placeholder="Nome da empresa"
                     maxLength={100}
                   />
@@ -1746,22 +1896,37 @@ export function LeadFormCredito() {
                   <div className="w-12 h-12 bg-gradient-to-r from-tellus-primary to-blue-600 rounded-xl flex items-center justify-center mx-auto mb-3">
                     <User className="w-6 h-6 text-white" />
                   </div>
-                  <h3 className="text-xl font-bold text-gray-900 mb-2">Dados do Cônjuge</h3>
-                  <p className="text-sm text-gray-600">Informe os dados do seu cônjuge (se aplicável)</p>
+                  <h3 className="text-xl font-bold text-gray-900 mb-2">Dados do Cônjuge e Empresa</h3>
+                  <p className="text-sm text-gray-600">Informe os dados do seu cônjuge e/ou empresa (se aplicável)</p>
                 </div>
 
                 <div className="space-y-6">
-                  <div className="flex items-center space-x-2">
-                    <input
-                      type="checkbox"
-                      id="hasSpouse"
-                      checked={formData.hasSpouse}
-                      onChange={(e) => handleChange('hasSpouse', e.target.checked)}
-                      className="h-4 w-4 text-tellus-primary focus:ring-tellus-primary border-gray-300 rounded"
-                    />
-                    <label htmlFor="hasSpouse" className="text-sm font-medium text-gray-700">
-                      Possuo cônjuge/companheiro(a)
-                    </label>
+                  <div className="space-y-4">
+                    <div className="flex items-center space-x-2">
+                      <input
+                        type="checkbox"
+                        id="hasSpouse"
+                        checked={formData.hasSpouse}
+                        onChange={(e) => handleChange('hasSpouse', e.target.checked)}
+                        className="h-4 w-4 text-tellus-primary focus:ring-tellus-primary border-gray-300 rounded"
+                      />
+                      <label htmlFor="hasSpouse" className="text-sm font-medium text-gray-700">
+                        Possuo cônjuge/companheiro(a)
+                      </label>
+                    </div>
+
+                    <div className="flex items-center space-x-2">
+                      <input
+                        type="checkbox"
+                        id="hasCompany"
+                        checked={formData.hasCompany}
+                        onChange={(e) => handleChange('hasCompany', e.target.checked)}
+                        className="h-4 w-4 text-tellus-primary focus:ring-tellus-primary border-gray-300 rounded"
+                      />
+                      <label htmlFor="hasCompany" className="text-sm font-medium text-gray-700">
+                        Possuo uma empresa (Pessoa Jurídica)
+                      </label>
+                    </div>
                   </div>
 
                   {formData.hasSpouse && (
@@ -1891,6 +2056,149 @@ export function LeadFormCredito() {
                           placeholder="Nome da empresa"
                           maxLength={100}
                         />
+                      </div>
+                    </div>
+                  )}
+
+                  {formData.hasCompany && (
+                    <div className="space-y-6 animate-fadeIn">
+                      <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                        <p className="text-sm text-blue-800">
+                          <strong>Importante:</strong> Para empresas, é necessário apresentar todos os documentos empresariais obrigatórios.
+                        </p>
+                      </div>
+
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div className="sm:col-span-2">
+                          <div className="relative">
+                            <Input
+                              label="CNPJ da Empresa *"
+                              value={formatCNPJ(formData.companyCnpj)}
+                              onChange={(e) => handleChange('companyCnpj', e.target.value)}
+                              placeholder="00.000.000/0000-00"
+                              maxLength={18}
+                            />
+                            {consultingCNPJ && (
+                              <div className="absolute right-3 top-8">
+                                <LoadingSpinner size="sm" />
+                              </div>
+                            )}
+                          </div>
+                          {formData.companyCnpj && !validateCNPJ(formData.companyCnpj) && (
+                            <p className="text-red-500 text-xs mt-1">CNPJ inválido</p>
+                          )}
+                          {cnpjConsulted && (
+                            <p className="text-green-600 text-xs mt-1">✓ Dados preenchidos automaticamente</p>
+                          )}
+                          {cnpjNotFound && (
+                            <p className="text-yellow-600 text-xs mt-1">⚠️ CNPJ válido mas não encontrado. Preencha os dados manualmente.</p>
+                          )}
+                        </div>
+
+                        <div className="sm:col-span-2">
+                          <Input
+                            label="Razão Social da Empresa *"
+                            value={formData.companyName}
+                            onChange={(e) => handleChange('companyName', e.target.value)}
+                            placeholder="Nome completo da empresa"
+                            maxLength={200}
+                          />
+                          {formData.companyName && formData.companyName.trim().length < 2 && (
+                            <p className="text-red-500 text-xs mt-1">Razão social deve ter pelo menos 2 caracteres</p>
+                          )}
+                        </div>
+                      </div>
+
+                      <div className="border-t pt-6">
+                        <h4 className="text-lg font-semibold text-gray-900 mb-4">Endereço da Empresa</h4>
+                        
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                          <div className="sm:col-span-2">
+                            <Input
+                              label="Rua *"
+                              value={formData.companyAddress.street}
+                              onChange={(e) => handleChange('companyAddress.street', e.target.value)}
+                              placeholder="Nome da rua"
+                              maxLength={100}
+                            />
+                            {formData.companyAddress.street && formData.companyAddress.street.trim().length < 3 && (
+                              <p className="text-red-500 text-xs mt-1">Nome da rua deve ter pelo menos 3 caracteres</p>
+                            )}
+                          </div>
+
+                          <div>
+                            <Input
+                              label="Número *"
+                              value={formData.companyAddress.number}
+                              onChange={(e) => handleChange('companyAddress.number', e.target.value)}
+                              placeholder="123"
+                              maxLength={10}
+                            />
+                            {formData.companyAddress.number && formData.companyAddress.number.trim().length < 1 && (
+                              <p className="text-red-500 text-xs mt-1">Número é obrigatório</p>
+                            )}
+                          </div>
+
+                          <div>
+                            <Input
+                              label="Complemento"
+                              value={formData.companyAddress.complement}
+                              onChange={(e) => handleChange('companyAddress.complement', e.target.value)}
+                              placeholder="Sala, andar, etc."
+                              maxLength={50}
+                            />
+                          </div>
+
+                          <div>
+                            <Input
+                              label="Bairro *"
+                              value={formData.companyAddress.neighborhood}
+                              onChange={(e) => handleChange('companyAddress.neighborhood', e.target.value)}
+                              placeholder="Nome do bairro"
+                              maxLength={50}
+                            />
+                            {formData.companyAddress.neighborhood && formData.companyAddress.neighborhood.trim().length < 2 && (
+                              <p className="text-red-500 text-xs mt-1">Nome do bairro deve ter pelo menos 2 caracteres</p>
+                            )}
+                          </div>
+
+                          <div>
+                            <Input
+                              label="Cidade *"
+                              value={formData.companyAddress.city}
+                              onChange={(e) => handleChange('companyAddress.city', e.target.value)}
+                              placeholder="Nome da cidade"
+                              maxLength={50}
+                            />
+                            {formData.companyAddress.city && formData.companyAddress.city.trim().length < 2 && (
+                              <p className="text-red-500 text-xs mt-1">Nome da cidade deve ter pelo menos 2 caracteres</p>
+                            )}
+                          </div>
+
+                          <div>
+                            <StateSelect
+                              label="Estado *"
+                              value={formData.companyAddress.state}
+                              onChange={(value) => handleChange('companyAddress.state', value)}
+                              placeholder="Selecione o estado"
+                              required
+                              error={formData.companyAddress.state && formData.companyAddress.state.trim().length !== 2 ? "Selecione um estado" : undefined}
+                            />
+                          </div>
+
+                          <div>
+                            <Input
+                              label="CEP *"
+                              value={formatCEP(formData.companyAddress.zipCode)}
+                              onChange={(e) => handleChange('companyAddress.zipCode', e.target.value)}
+                              placeholder="00000-000"
+                              maxLength={9}
+                            />
+                            {formData.companyAddress.zipCode && !validateCEP(formData.companyAddress.zipCode) && (
+                              <p className="text-red-500 text-xs mt-1">CEP inválido</p>
+                            )}
+                          </div>
+                        </div>
                       </div>
                     </div>
                   )}
@@ -2058,17 +2366,22 @@ export function LeadFormCredito() {
                   </div>
 
                   {/* Documentação para Pessoa Jurídica */}
-                  {formData.employmentType === 'empresario' && (
+                  {(formData.employmentType === 'empresario' || formData.hasCompany) && (
                     <div className="bg-white border border-gray-200 rounded-lg p-6">
                       <h4 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
                         <Briefcase className="w-5 h-5 mr-2 text-tellus-primary" />
-                        Documentação para Pessoa Jurídica
+                        Documentação para Pessoa Jurídica {formData.hasCompany ? '(Obrigatória)' : ''}
                       </h4>
                       
                       <div className="space-y-6">
                         {/* 1. Contrato Social */}
                         <div>
-                          <h5 className="text-base font-medium text-gray-800 mb-2">1. Contrato Social Completo</h5>
+                          <h5 className="text-base font-medium text-gray-800 mb-2">
+                            1. Contrato Social Completo {formData.hasCompany ? '*' : ''}
+                          </h5>
+                          {formData.hasCompany && (
+                            <p className="text-sm text-red-600 mb-3">Campo obrigatório para empresas</p>
+                          )}
                           <DocumentUpload
                             sessionId={sessionId || ''}
                             documentType="contract_social"
@@ -2083,6 +2396,7 @@ export function LeadFormCredito() {
                             onUploadError={(error) => setError(error)}
                             maxFiles={1}
                             userCpf={formData.cpf}
+                            required={formData.hasCompany}
                           />
                         </div>
 
@@ -2110,7 +2424,12 @@ export function LeadFormCredito() {
 
                         {/* 3. Cartão CNPJ */}
                         <div>
-                          <h5 className="text-base font-medium text-gray-800 mb-2">3. Cartão CNPJ Atualizado</h5>
+                          <h5 className="text-base font-medium text-gray-800 mb-2">
+                            3. Cartão CNPJ Atualizado {formData.hasCompany ? '*' : ''}
+                          </h5>
+                          {formData.hasCompany && (
+                            <p className="text-sm text-red-600 mb-3">Campo obrigatório para empresas</p>
+                          )}
                           <DocumentUpload
                             sessionId={sessionId || ''}
                             documentType="cnpj"
@@ -2125,6 +2444,7 @@ export function LeadFormCredito() {
                             onUploadError={(error) => setError(error)}
                             maxFiles={1}
                             userCpf={formData.cpf}
+                            required={formData.hasCompany}
                           />
                         </div>
                       </div>

@@ -59,7 +59,7 @@ class CustomerService {
       profession: mongoCustomer.profession,
       employmentType: mongoCustomer.employmentType,
       monthlyIncome: mongoCustomer.monthlyIncome,
-      companyName: mongoCustomer.companyName,
+      personalCompanyName: mongoCustomer.companyName,
       propertyValue: mongoCustomer.propertyValue,
       propertyType: mongoCustomer.propertyType,
       propertyCity: mongoCustomer.propertyCity,
@@ -69,7 +69,7 @@ class CustomerService {
       status: mongoCustomer.status || 'ativo',
       source: mongoCustomer.source,
       govPassword: mongoCustomer.govPassword,
-      processes: mongoCustomer.processes,
+      processes: mongoCustomer.processes as ("agro" | "credito" | "consultoria" | "credito_imobiliario" | "geral")[] | undefined,
       createdAt: mongoCustomer.createdAt?.toISOString(),
       updatedAt: mongoCustomer.updatedAt?.toISOString()
     };
@@ -88,7 +88,7 @@ class CustomerService {
       profession: customerData.profession,
       employmentType: customerData.employmentType,
       monthlyIncome: customerData.monthlyIncome,
-      companyName: customerData.companyName,
+      companyName: customerData.personalCompanyName,
       propertyValue: customerData.propertyValue,
       propertyType: customerData.propertyType,
       propertyCity: customerData.propertyCity,
@@ -235,7 +235,7 @@ class CustomerService {
       if (customerData.profession !== undefined) updateData.profession = customerData.profession;
       if (customerData.employmentType !== undefined) updateData.employmentType = customerData.employmentType;
       if (customerData.monthlyIncome !== undefined) updateData.monthlyIncome = customerData.monthlyIncome;
-      if (customerData.companyName !== undefined) updateData.companyName = customerData.companyName;
+      if (customerData.personalCompanyName !== undefined) updateData.companyName = customerData.personalCompanyName;
       if (customerData.propertyValue !== undefined) updateData.propertyValue = customerData.propertyValue;
       if (customerData.propertyType !== undefined) updateData.propertyType = customerData.propertyType;
       if (customerData.propertyCity !== undefined) updateData.propertyCity = customerData.propertyCity;
@@ -376,7 +376,7 @@ class CustomerService {
           missingDocuments: this.getMissingDocuments(customer, processType)
         },
         canProceed: true,
-        message: `CPF encontrado! Você já possui processos: ${existingProcesses.map(p => this.getProcessDisplayName(p)).join(', ')}. Deseja adicionar ${this.getProcessDisplayName(processType)}?`
+        message: `CPF encontrado! Você já possui processos: ${existingProcesses.map((p: string) => this.getProcessDisplayName(p)).join(', ')}. Deseja adicionar ${this.getProcessDisplayName(processType)}?`
       };
     } catch (error) {
       console.error('Error checking CPF:', error);

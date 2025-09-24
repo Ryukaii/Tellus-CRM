@@ -29,7 +29,7 @@ export const LeadSchema = z.object({
   profession: z.string().min(1, 'Profissão é obrigatória'),
   employmentType: z.enum(['clt', 'servidor_publico', 'autonomo', 'empresario', 'aposentado']),
   monthlyIncome: z.number().min(0, 'Renda deve ser positiva'),
-  companyName: z.string().optional(),
+  personalCompanyName: z.string().optional(),
   
   // Dados do Imóvel de Interesse
   propertyValue: z.number().min(0, 'Valor do imóvel deve ser positivo'),
@@ -57,6 +57,20 @@ export const LeadSchema = z.object({
   hasCompanyDocs: z.boolean().optional(),
   hasTaxReturn: z.boolean().optional(),
   hasBankStatements: z.boolean().optional(),
+  
+  // Dados da Pessoa Jurídica
+  hasCompany: z.boolean().optional(),
+  companyCnpj: z.string().optional(),
+  companyName: z.string().optional(),
+  companyAddress: z.object({
+    street: z.string().optional(),
+    number: z.string().optional(),
+    complement: z.string().optional(),
+    neighborhood: z.string().optional(),
+    city: z.string().optional(),
+    state: z.string().optional(),
+    zipCode: z.string().optional()
+  }).optional(),
   
   // Documentos Enviados
   uploadedDocuments: z.array(z.object({
