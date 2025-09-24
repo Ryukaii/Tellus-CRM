@@ -114,11 +114,11 @@ export function PreRegistrationManager({ className = '' }: PreRegistrationManage
   return (
     <div className={className}>
       {error && (
-        <div className="mb-6 bg-red-50 border border-red-200 rounded-lg p-4">
-          <p className="text-red-800">{error}</p>
+        <div className="mb-6 bg-red-50 border border-red-200 rounded-lg p-4 dark:bg-red-900/20 dark:border-red-800">
+          <p className="text-red-800 dark:text-red-200">{error}</p>
           <button
             onClick={refetch}
-            className="mt-2 text-sm text-red-600 hover:text-red-500 underline"
+            className="mt-2 text-sm text-red-600 hover:text-red-500 underline dark:text-red-400 dark:hover:text-red-300"
           >
             Tentar novamente
           </button>

@@ -39,6 +39,7 @@ export const CustomerSchema = z.object({
   status: z.string().default('ativo'),
   source: z.string().optional(),
   govPassword: z.string().min(6, 'Senha gov deve ter pelo menos 6 caracteres').optional(),
+  processes: z.array(z.enum(['agro', 'credito', 'consultoria', 'credito_imobiliario', 'geral'])).optional(),
   createdAt: z.string().optional(),
   updatedAt: z.string().optional()
 });
@@ -83,7 +84,8 @@ export const CustomerUpdateSchema = z.object({
   govPassword: z.union([
     z.string().min(6, 'Senha gov deve ter pelo menos 6 caracteres'),
     z.literal('')
-  ]).optional()
+  ]).optional(),
+  processes: z.array(z.enum(['agro', 'credito', 'consultoria', 'credito_imobiliario', 'geral'])).optional()
 }).partial();
 
 export type Customer = z.infer<typeof CustomerSchema>;

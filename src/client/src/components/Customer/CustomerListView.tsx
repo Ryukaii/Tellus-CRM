@@ -114,14 +114,14 @@ export const CustomerListView: React.FC<CustomerListViewProps> = ({
     return (
       <div className="space-y-4">
         {[...Array(5)].map((_, i) => (
-          <div key={i} className="bg-white rounded-lg border p-4 animate-pulse">
+          <div key={i} className="bg-white rounded-lg border p-4 animate-pulse dark:bg-dark-card dark:border-dark-border">
             <div className="flex items-center space-x-4">
-              <div className="w-12 h-12 bg-gray-200 rounded-full"></div>
+              <div className="w-12 h-12 bg-gray-200 rounded-full dark:bg-dark-surfaceLight"></div>
               <div className="flex-1 space-y-2">
-                <div className="h-4 bg-gray-200 rounded w-1/3"></div>
-                <div className="h-3 bg-gray-200 rounded w-1/2"></div>
+                <div className="h-4 bg-gray-200 rounded w-1/3 dark:bg-dark-surfaceLight"></div>
+                <div className="h-3 bg-gray-200 rounded w-1/2 dark:bg-dark-surfaceLight"></div>
               </div>
-              <div className="w-20 h-6 bg-gray-200 rounded"></div>
+              <div className="w-20 h-6 bg-gray-200 rounded dark:bg-dark-surfaceLight"></div>
             </div>
           </div>
         ))}
@@ -132,17 +132,17 @@ export const CustomerListView: React.FC<CustomerListViewProps> = ({
   return (
     <div className="space-y-6">
       {/* Filtros */}
-      <div className="bg-white rounded-lg border border-gray-200 shadow-sm">
+      <div className="bg-white rounded-lg border border-gray-200 shadow-sm dark:bg-dark-card dark:border-dark-border">
         <div className="p-6">
           {/* Header com contador */}
           <div className="flex items-center justify-between mb-6">
             <div className="flex items-center space-x-3">
-              <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
-                <Search className="w-4 h-4 text-blue-600" />
+              <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center dark:bg-dark-surfaceLight">
+                <Search className="w-4 h-4 text-blue-600 dark:text-dark-accent" />
               </div>
               <div>
-                <h3 className="text-lg font-semibold text-gray-900">Filtros e Busca</h3>
-                <p className="text-sm text-gray-500">
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-dark-text">Filtros e Busca</h3>
+                <p className="text-sm text-gray-500 dark:text-dark-textSecondary">
                   {filteredCustomers.length} cliente{filteredCustomers.length !== 1 ? 's' : ''} encontrado{filteredCustomers.length !== 1 ? 's' : ''}
                 </p>
               </div>
@@ -180,13 +180,13 @@ export const CustomerListView: React.FC<CustomerListViewProps> = ({
             <div className="flex flex-col sm:flex-row gap-4">
               {/* Filtro de Status */}
               <div className="flex-1">
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-gray-700 mb-2 dark:text-dark-textSecondary">
                   Status
                 </label>
                 <select
                   value={statusFilter}
                   onChange={(e) => setStatusFilter(e.target.value)}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm bg-white"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm bg-white dark:bg-dark-input dark:border-dark-inputBorder dark:text-dark-text dark:focus:ring-dark-accent dark:focus:border-dark-accent"
                 >
                   <option value="all">Todos os status</option>
                   <option value="ativo">Ativo</option>
@@ -198,13 +198,13 @@ export const CustomerListView: React.FC<CustomerListViewProps> = ({
 
               {/* Ordenação */}
               <div className="flex-1">
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-gray-700 mb-2 dark:text-dark-textSecondary">
                   Ordenar por
                 </label>
                 <select
                   value={sortBy}
                   onChange={(e) => setSortBy(e.target.value)}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm bg-white"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm bg-white dark:bg-dark-input dark:border-dark-inputBorder dark:text-dark-text dark:focus:ring-dark-accent dark:focus:border-dark-accent"
                 >
                   <option value="name">Nome</option>
                   <option value="createdAt">Data de cadastro</option>
@@ -219,12 +219,12 @@ export const CustomerListView: React.FC<CustomerListViewProps> = ({
       {/* Lista de Clientes */}
       <div className="space-y-4">
         {filteredCustomers.length === 0 ? (
-          <div className="bg-white rounded-lg border p-12 text-center">
-            <User className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-            <h3 className="text-lg font-medium text-gray-900 mb-2">
+          <div className="bg-white rounded-lg border p-12 text-center dark:bg-dark-card dark:border-dark-border">
+            <User className="w-12 h-12 text-gray-400 mx-auto mb-4 dark:text-dark-textMuted" />
+            <h3 className="text-lg font-medium text-gray-900 mb-2 dark:text-dark-text">
               Nenhum cliente encontrado
             </h3>
-            <p className="text-gray-500">
+            <p className="text-gray-500 dark:text-dark-textSecondary">
               {searchTerm || statusFilter !== 'all' 
                 ? 'Tente ajustar os filtros de busca'
                 : 'Ainda não há clientes cadastrados'
@@ -236,21 +236,21 @@ export const CustomerListView: React.FC<CustomerListViewProps> = ({
             <div
               key={customer.id}
               onClick={() => handleCustomerClick(customer.id)}
-              className="bg-white rounded-lg border hover:border-blue-300 hover:shadow-md transition-all duration-200 cursor-pointer"
+              className="bg-white rounded-lg border hover:border-blue-300 hover:shadow-md transition-all duration-200 cursor-pointer dark:bg-dark-card dark:border-dark-border dark:hover:bg-dark-cardHover dark:hover:border-dark-accent"
             >
               <div className="p-4 sm:p-6">
                 {/* Mobile Layout */}
                 <div className="block sm:hidden">
                   <div className="flex items-start space-x-3 mb-3">
                     {/* Avatar */}
-                    <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0">
-                      <User className="w-5 h-5 text-blue-600" />
+                    <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0 dark:bg-dark-surfaceLight">
+                      <User className="w-5 h-5 text-blue-600 dark:text-dark-accent" />
                     </div>
 
                     {/* Nome e Status */}
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center justify-between mb-1">
-                        <h3 className="text-base font-semibold text-gray-900 truncate">
+                        <h3 className="text-base font-semibold text-gray-900 truncate dark:text-dark-text">
                           {customer.name}
                         </h3>
                         <span className={`px-2 py-1 text-xs font-medium rounded-full ${getStatusColor(customer.status)}`}>
@@ -259,18 +259,18 @@ export const CustomerListView: React.FC<CustomerListViewProps> = ({
                       </div>
                       
                       {/* Informações principais no mobile */}
-                      <div className="space-y-1 text-sm text-gray-600">
+                      <div className="space-y-1 text-sm text-gray-600 dark:text-dark-textSecondary">
                         <div className="flex items-center space-x-2">
-                          <Mail className="w-3 h-3 text-gray-400" />
+                          <Mail className="w-3 h-3 text-gray-400 dark:text-dark-textMuted" />
                           <span className="truncate">{customer.email}</span>
                         </div>
                         <div className="flex items-center space-x-2">
-                          <Phone className="w-3 h-3 text-gray-400" />
+                          <Phone className="w-3 h-3 text-gray-400 dark:text-dark-textMuted" />
                           <span>{customer.phone}</span>
                         </div>
                         {customer.address && (
                           <div className="flex items-center space-x-2">
-                            <MapPin className="w-3 h-3 text-gray-400" />
+                            <MapPin className="w-3 h-3 text-gray-400 dark:text-dark-textMuted" />
                             <span className="truncate">
                               {customer.address.city} - {customer.address.state}
                             </span>
@@ -313,14 +313,14 @@ export const CustomerListView: React.FC<CustomerListViewProps> = ({
                   <div className="flex items-center justify-between">
                     <div className="flex items-center space-x-4 flex-1">
                       {/* Avatar */}
-                      <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
-                        <User className="w-6 h-6 text-blue-600" />
+                      <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center dark:bg-dark-surfaceLight">
+                        <User className="w-6 h-6 text-blue-600 dark:text-dark-accent" />
                       </div>
 
                       {/* Informações Principais */}
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center space-x-3 mb-2">
-                          <h3 className="text-lg font-semibold text-gray-900 truncate">
+                          <h3 className="text-lg font-semibold text-gray-900 truncate dark:text-dark-text">
                             {customer.name}
                           </h3>
                           <span className={`px-2 py-1 text-xs font-medium rounded-full ${getStatusColor(customer.status)}`}>
@@ -328,28 +328,28 @@ export const CustomerListView: React.FC<CustomerListViewProps> = ({
                           </span>
                         </div>
 
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 text-sm text-gray-600">
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 text-sm text-gray-600 dark:text-dark-textSecondary">
                           {/* Contato */}
                           <div className="flex items-center space-x-2">
-                            <Mail className="w-4 h-4 text-gray-400" />
+                            <Mail className="w-4 h-4 text-gray-400 dark:text-dark-textMuted" />
                             <span className="truncate">{customer.email}</span>
                           </div>
 
                           <div className="flex items-center space-x-2">
-                            <Phone className="w-4 h-4 text-gray-400" />
+                            <Phone className="w-4 h-4 text-gray-400 dark:text-dark-textMuted" />
                             <span>{customer.phone}</span>
                           </div>
 
                           {/* CPF */}
                           <div className="flex items-center space-x-2">
-                            <User className="w-4 h-4 text-gray-400" />
+                            <User className="w-4 h-4 text-gray-400 dark:text-dark-textMuted" />
                             <span>{customer.cpf}</span>
                           </div>
 
                           {/* Localização */}
                           {customer.address && (
                             <div className="flex items-center space-x-2">
-                              <MapPin className="w-4 h-4 text-gray-400" />
+                              <MapPin className="w-4 h-4 text-gray-400 dark:text-dark-textMuted" />
                               <span className="truncate">
                                 {customer.address.city} - {customer.address.state}
                               </span>
@@ -359,7 +359,7 @@ export const CustomerListView: React.FC<CustomerListViewProps> = ({
                           {/* Profissão */}
                           {customer.profession && (
                             <div className="flex items-center space-x-2">
-                              <Building className="w-4 h-4 text-gray-400" />
+                              <Building className="w-4 h-4 text-gray-400 dark:text-dark-textMuted" />
                               <span className="truncate">{customer.profession}</span>
                             </div>
                           )}
@@ -367,7 +367,7 @@ export const CustomerListView: React.FC<CustomerListViewProps> = ({
                           {/* Renda */}
                           {customer.monthlyIncome && (
                             <div className="flex items-center space-x-2">
-                              <DollarSign className="w-4 h-4 text-gray-400" />
+                              <DollarSign className="w-4 h-4 text-gray-400 dark:text-dark-textMuted" />
                               <span>{formatCurrency(customer.monthlyIncome)}</span>
                             </div>
                           )}
@@ -375,14 +375,14 @@ export const CustomerListView: React.FC<CustomerListViewProps> = ({
                           {/* Estado Civil */}
                           {customer.maritalStatus && (
                             <div className="flex items-center space-x-2">
-                              <Heart className="w-4 h-4 text-gray-400" />
+                              <Heart className="w-4 h-4 text-gray-400 dark:text-dark-textMuted" />
                               <span className="capitalize">{customer.maritalStatus}</span>
                             </div>
                           )}
 
                           {/* Data de Cadastro */}
                           <div className="flex items-center space-x-2">
-                            <Calendar className="w-4 h-4 text-gray-400" />
+                            <Calendar className="w-4 h-4 text-gray-400 dark:text-dark-textMuted" />
                             <span>Cadastro: {formatDate(customer.createdAt)}</span>
                           </div>
                         </div>
@@ -425,38 +425,38 @@ export const CustomerListView: React.FC<CustomerListViewProps> = ({
 
       {/* Estatísticas */}
       {filteredCustomers.length > 0 && (
-        <div className="bg-white rounded-lg border p-4 sm:p-6">
-          <h3 className="text-base sm:text-lg font-medium text-gray-900 mb-4">Estatísticas</h3>
+        <div className="bg-white rounded-lg border p-4 sm:p-6 dark:bg-dark-card dark:border-dark-border">
+          <h3 className="text-base sm:text-lg font-medium text-gray-900 mb-4 dark:text-dark-text">Estatísticas</h3>
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
-            <div className="text-center p-3 bg-blue-50 rounded-lg">
-              <div className="text-xl sm:text-2xl font-bold text-blue-600">
+            <div className="text-center p-3 bg-blue-50 rounded-lg dark:bg-dark-surfaceLight">
+              <div className="text-xl sm:text-2xl font-bold text-blue-600 dark:text-dark-accent">
                 {filteredCustomers.length}
               </div>
-              <div className="text-xs sm:text-sm text-gray-600">Total</div>
+              <div className="text-xs sm:text-sm text-gray-600 dark:text-dark-textSecondary">Total</div>
             </div>
             
-            <div className="text-center p-3 bg-green-50 rounded-lg">
-              <div className="text-xl sm:text-2xl font-bold text-green-600">
+            <div className="text-center p-3 bg-green-50 rounded-lg dark:bg-dark-surfaceLight">
+              <div className="text-xl sm:text-2xl font-bold text-green-600 dark:text-green-400">
                 {filteredCustomers.filter(c => c.status === 'ativo').length}
               </div>
-              <div className="text-xs sm:text-sm text-gray-600">Ativos</div>
+              <div className="text-xs sm:text-sm text-gray-600 dark:text-dark-textSecondary">Ativos</div>
             </div>
             
-            <div className="text-center p-3 bg-purple-50 rounded-lg">
-              <div className="text-xl sm:text-2xl font-bold text-purple-600">
+            <div className="text-center p-3 bg-purple-50 rounded-lg dark:bg-dark-surfaceLight">
+              <div className="text-xl sm:text-2xl font-bold text-purple-600 dark:text-purple-400">
                 {filteredCustomers.reduce((acc, c) => acc + (c.uploadedDocuments?.length || 0), 0)}
               </div>
-              <div className="text-xs sm:text-sm text-gray-600">Documentos</div>
+              <div className="text-xs sm:text-sm text-gray-600 dark:text-dark-textSecondary">Documentos</div>
             </div>
 
-            <div className="text-center p-3 bg-yellow-50 rounded-lg">
-              <div className="text-lg sm:text-2xl font-bold text-yellow-600">
+            <div className="text-center p-3 bg-yellow-50 rounded-lg dark:bg-dark-surfaceLight">
+              <div className="text-lg sm:text-2xl font-bold text-yellow-600 dark:text-yellow-400">
                 {formatCurrency(
                   filteredCustomers.reduce((acc, c) => acc + (c.monthlyIncome || 0), 0) / 
                   filteredCustomers.filter(c => c.monthlyIncome).length || 0
                 )}
               </div>
-              <div className="text-xs sm:text-sm text-gray-600">Renda Média</div>
+              <div className="text-xs sm:text-sm text-gray-600 dark:text-dark-textSecondary">Renda Média</div>
             </div>
           </div>
         </div>

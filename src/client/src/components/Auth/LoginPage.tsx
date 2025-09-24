@@ -40,7 +40,7 @@ export function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-tellus-primary via-tellus-secondary to-tellus-accent flex items-center justify-center p-2 sm:p-4">
+    <div className="min-h-screen bg-gradient-to-br from-tellus-primary via-tellus-gold-500 to-tellus-bronze-600 flex items-center justify-center p-2 sm:p-4">
       <div className="w-full max-w-md">
         {/* Logo e Header */}
         <div className="text-center mb-6 sm:mb-8">
@@ -48,15 +48,15 @@ export function LoginPage() {
             <Activity className="w-6 h-6 sm:w-8 sm:h-8 text-tellus-primary" />
           </div>
           <h1 className="text-2xl sm:text-3xl font-bold text-white mb-2">Tellures CRM</h1>
-          <p className="text-blue-100 text-sm sm:text-base">Faça login para acessar o sistema</p>
+          <p className="text-tellus-gold-100 text-sm sm:text-base">Faça login para acessar o sistema</p>
         </div>
 
         {/* Formulário de Login */}
-        <div className="bg-white rounded-xl sm:rounded-2xl shadow-2xl p-4 sm:p-6 lg:p-8">
+        <div className="bg-white dark:bg-dark-surface rounded-xl sm:rounded-2xl shadow-2xl p-4 sm:p-6 lg:p-8 border dark:border-dark-border">
           <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6">
             {/* Campo Email */}
             <div className="space-y-2">
-              <label className="text-sm font-medium text-gray-700 flex items-center space-x-2">
+              <label className="text-sm font-medium text-gray-700 dark:text-dark-textSecondary flex items-center space-x-2">
                 <Mail className="w-4 h-4" />
                 <span>Email</span>
               </label>
@@ -64,7 +64,7 @@ export function LoginPage() {
                 type="email"
                 value={credentials.email}
                 onChange={(e) => handleChange('email', e.target.value)}
-                className="w-full h-10 sm:h-12 px-3 sm:px-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-tellus-primary focus:border-transparent transition-all duration-200 text-sm sm:text-base"
+                className="w-full h-10 sm:h-12 px-3 sm:px-4 border border-tellus-charcoal-300 dark:border-dark-border dark:bg-dark-surfaceLight dark:text-dark-text rounded-lg focus:ring-2 focus:ring-tellus-primary focus:border-transparent transition-all duration-200 text-sm sm:text-base"
                 placeholder="admin@tellus.com"
                 required
               />
@@ -72,7 +72,7 @@ export function LoginPage() {
 
             {/* Campo Senha */}
             <div className="space-y-2">
-              <label className="text-sm font-medium text-gray-700 flex items-center space-x-2">
+              <label className="text-sm font-medium text-gray-700 dark:text-dark-textSecondary flex items-center space-x-2">
                 <Lock className="w-4 h-4" />
                 <span>Senha</span>
               </label>
@@ -81,14 +81,14 @@ export function LoginPage() {
                   type={showPassword ? 'text' : 'password'}
                   value={credentials.password}
                   onChange={(e) => handleChange('password', e.target.value)}
-                  className="w-full h-10 sm:h-12 px-3 sm:px-4 pr-10 sm:pr-12 border border-gray-300 rounded-lg focus:ring-2 focus:ring-tellus-primary focus:border-transparent transition-all duration-200 text-sm sm:text-base"
+                  className="w-full h-10 sm:h-12 px-3 sm:px-4 pr-10 sm:pr-12 border border-tellus-charcoal-300 dark:border-dark-border dark:bg-dark-surfaceLight dark:text-dark-text rounded-lg focus:ring-2 focus:ring-tellus-primary focus:border-transparent transition-all duration-200 text-sm sm:text-base"
                   placeholder="Digite sua senha"
                   required
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
+                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:text-dark-textMuted dark:hover:text-dark-text transition-colors"
                 >
                   {showPassword ? <EyeOff className="w-4 h-4 sm:w-5 sm:h-5" /> : <Eye className="w-4 h-4 sm:w-5 sm:h-5" />}
                 </button>
@@ -124,7 +124,7 @@ export function LoginPage() {
 
         {/* Footer */}
         <div className="text-center mt-6 sm:mt-8">
-          <p className="text-blue-100 text-xs sm:text-sm">
+          <p className="text-tellus-gold-100 text-xs sm:text-sm">
             © 2024 Tellures CRM. Sistema de gerenciamento de clientes.
           </p>
         </div>

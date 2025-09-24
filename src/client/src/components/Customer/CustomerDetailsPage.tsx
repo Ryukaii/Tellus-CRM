@@ -223,10 +223,10 @@ export const CustomerDetailsPage: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-gray-50 dark:bg-dark-background flex items-center justify-center">
         <div className="text-center">
           <LoadingSpinner size="lg" />
-          <p className="mt-4 text-gray-600">Carregando dados do cliente...</p>
+          <p className="mt-4 text-gray-600 dark:text-dark-textSecondary">Carregando dados do cliente...</p>
         </div>
       </div>
     );
@@ -234,15 +234,15 @@ export const CustomerDetailsPage: React.FC = () => {
 
   if (error || !customer) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-gray-50 dark:bg-dark-background flex items-center justify-center">
         <div className="max-w-md mx-auto text-center">
-          <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
-            <AlertCircle className="w-8 h-8 text-red-600" />
+          <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4 dark:bg-red-900/20">
+            <AlertCircle className="w-8 h-8 text-red-600 dark:text-red-400" />
           </div>
-          <h1 className="text-xl font-semibold text-gray-900 mb-2">
+          <h1 className="text-xl font-semibold text-gray-900 mb-2 dark:text-dark-text">
             Cliente não encontrado
           </h1>
-          <p className="text-gray-600 mb-4">{error}</p>
+          <p className="text-gray-600 mb-4 dark:text-dark-textSecondary">{error}</p>
           <Button onClick={handleGoBack}>
             Voltar para lista
           </Button>
@@ -252,9 +252,9 @@ export const CustomerDetailsPage: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 dark:bg-dark-background">
       {/* Header */}
-      <div className="bg-white shadow-sm border-b">
+      <div className="bg-white shadow-sm border-b dark:bg-dark-card dark:border-dark-border">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="py-4 sm:py-6">
             {/* Mobile Layout */}
@@ -275,10 +275,10 @@ export const CustomerDetailsPage: React.FC = () => {
               </div>
               
               <div>
-                <h1 className="text-xl font-bold text-gray-900">
+                <h1 className="text-xl font-bold text-gray-900 dark:text-dark-text">
                   {customer.name}
                 </h1>
-                <p className="text-sm text-gray-600">
+                <p className="text-sm text-gray-600 dark:text-dark-textSecondary">
                   Cliente desde {formatDate(customer.createdAt)}
                 </p>
               </div>
@@ -327,10 +327,10 @@ export const CustomerDetailsPage: React.FC = () => {
                 </Button>
                 
                 <div>
-                  <h1 className="text-2xl font-bold text-gray-900">
+                  <h1 className="text-2xl font-bold text-gray-900 dark:text-dark-text">
                     {customer.name}
                   </h1>
-                  <p className="text-gray-600">
+                  <p className="text-gray-600 dark:text-dark-textSecondary">
                     Cliente desde {formatDate(customer.createdAt)}
                   </p>
                 </div>
@@ -378,39 +378,39 @@ export const CustomerDetailsPage: React.FC = () => {
           {/* Coluna Principal */}
           <div className="lg:col-span-2 space-y-4 sm:space-y-8">
             {/* Dados Pessoais */}
-            <div className="bg-white rounded-lg shadow-sm border">
-              <div className="px-4 sm:px-6 py-3 sm:py-4 border-b">
-                <h2 className="text-base sm:text-lg font-semibold text-gray-900 flex items-center">
-                  <User className="w-4 h-4 sm:w-5 sm:h-5 mr-2 text-blue-500" />
+            <div className="bg-white rounded-lg shadow-sm border dark:bg-dark-card dark:border-dark-border">
+              <div className="px-4 sm:px-6 py-3 sm:py-4 border-b dark:border-dark-border">
+                <h2 className="text-base sm:text-lg font-semibold text-gray-900 flex items-center dark:text-dark-text">
+                  <User className="w-4 h-4 sm:w-5 sm:h-5 mr-2 text-blue-500 dark:text-dark-accent" />
                   Dados Pessoais
                 </h2>
               </div>
               <div className="p-4 sm:p-6">
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Nome Completo</label>
-                    <p className="text-gray-900">{customer.name}</p>
+                    <label className="block text-sm font-medium text-gray-700 mb-1 dark:text-dark-textSecondary">Nome Completo</label>
+                    <p className="text-gray-900 dark:text-dark-text">{customer.name}</p>
                   </div>
                   
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">CPF</label>
-                    <p className="text-gray-900 font-mono">{customer.cpf}</p>
+                    <label className="block text-sm font-medium text-gray-700 mb-1 dark:text-dark-textSecondary">CPF</label>
+                    <p className="text-gray-900 font-mono dark:text-dark-text">{customer.cpf}</p>
                   </div>
 
                   {customer.rg && (
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">RG</label>
-                      <p className="text-gray-900 font-mono">{customer.rg}</p>
+                      <label className="block text-sm font-medium text-gray-700 mb-1 dark:text-dark-textSecondary">RG</label>
+                      <p className="text-gray-900 font-mono dark:text-dark-text">{customer.rg}</p>
                     </div>
                   )}
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-1 dark:text-dark-textSecondary">Email</label>
                     <div className="flex items-center space-x-2">
-                      <Mail className="w-4 h-4 text-gray-400" />
+                      <Mail className="w-4 h-4 text-gray-400 dark:text-dark-textMuted" />
                       <a 
                         href={`mailto:${customer.email}`}
-                        className="text-blue-600 hover:text-blue-700"
+                        className="text-blue-600 hover:text-blue-700 dark:text-dark-accent dark:hover:text-dark-accentLight"
                       >
                         {customer.email}
                       </a>
@@ -418,12 +418,12 @@ export const CustomerDetailsPage: React.FC = () => {
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Telefone</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-1 dark:text-dark-textSecondary">Telefone</label>
                     <div className="flex items-center space-x-2">
-                      <Phone className="w-4 h-4 text-gray-400" />
+                      <Phone className="w-4 h-4 text-gray-400 dark:text-dark-textMuted" />
                       <a 
                         href={`tel:${customer.phone}`}
-                        className="text-blue-600 hover:text-blue-700"
+                        className="text-blue-600 hover:text-blue-700 dark:text-dark-accent dark:hover:text-dark-accentLight"
                       >
                         {customer.phone}
                       </a>
@@ -432,20 +432,20 @@ export const CustomerDetailsPage: React.FC = () => {
 
                   {customer.birthDate && (
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Data de Nascimento</label>
+                      <label className="block text-sm font-medium text-gray-700 mb-1 dark:text-dark-textSecondary">Data de Nascimento</label>
                       <div className="flex items-center space-x-2">
-                        <Calendar className="w-4 h-4 text-gray-400" />
-                        <span className="text-gray-900">{formatDate(customer.birthDate)}</span>
+                        <Calendar className="w-4 h-4 text-gray-400 dark:text-dark-textMuted" />
+                        <span className="text-gray-900 dark:text-dark-text">{formatDate(customer.birthDate)}</span>
                       </div>
                     </div>
                   )}
 
                   {customer.maritalStatus && (
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Estado Civil</label>
+                      <label className="block text-sm font-medium text-gray-700 mb-1 dark:text-dark-textSecondary">Estado Civil</label>
                       <div className="flex items-center space-x-2">
-                        <Heart className="w-4 h-4 text-gray-400" />
-                        <span className="text-gray-900 capitalize">{customer.maritalStatus}</span>
+                        <Heart className="w-4 h-4 text-gray-400 dark:text-dark-textMuted" />
+                        <span className="text-gray-900 capitalize dark:text-dark-text">{customer.maritalStatus}</span>
                       </div>
                     </div>
                   )}
@@ -455,41 +455,41 @@ export const CustomerDetailsPage: React.FC = () => {
 
             {/* Endereço */}
             {customer.address && (
-              <div className="bg-white rounded-lg shadow-sm border">
-                <div className="px-4 sm:px-6 py-3 sm:py-4 border-b">
-                  <h2 className="text-base sm:text-lg font-semibold text-gray-900 flex items-center">
-                    <MapPin className="w-4 h-4 sm:w-5 sm:h-5 mr-2 text-green-500" />
+              <div className="bg-white rounded-lg shadow-sm border dark:bg-dark-card dark:border-dark-border">
+                <div className="px-4 sm:px-6 py-3 sm:py-4 border-b dark:border-dark-border">
+                  <h2 className="text-base sm:text-lg font-semibold text-gray-900 flex items-center dark:text-dark-text">
+                    <MapPin className="w-4 h-4 sm:w-5 sm:h-5 mr-2 text-green-500 dark:text-green-400" />
                     Endereço
                   </h2>
                 </div>
                 <div className="p-4 sm:p-6">
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
                     <div className="sm:col-span-2">
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Logradouro</label>
-                      <p className="text-gray-900">
+                      <label className="block text-sm font-medium text-gray-700 mb-1 dark:text-dark-textSecondary">Logradouro</label>
+                      <p className="text-gray-900 dark:text-dark-text">
                         {customer.address.street}, {customer.address.number}
                         {customer.address.complement && ` - ${customer.address.complement}`}
                       </p>
                     </div>
 
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Bairro</label>
-                      <p className="text-gray-900">{customer.address.neighborhood}</p>
+                      <label className="block text-sm font-medium text-gray-700 mb-1 dark:text-dark-textSecondary">Bairro</label>
+                      <p className="text-gray-900 dark:text-dark-text">{customer.address.neighborhood}</p>
                     </div>
 
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">CEP</label>
-                      <p className="text-gray-900 font-mono">{customer.address.zipCode}</p>
+                      <label className="block text-sm font-medium text-gray-700 mb-1 dark:text-dark-textSecondary">CEP</label>
+                      <p className="text-gray-900 font-mono dark:text-dark-text">{customer.address.zipCode}</p>
                     </div>
 
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Cidade</label>
-                      <p className="text-gray-900">{customer.address.city}</p>
+                      <label className="block text-sm font-medium text-gray-700 mb-1 dark:text-dark-textSecondary">Cidade</label>
+                      <p className="text-gray-900 dark:text-dark-text">{customer.address.city}</p>
                     </div>
 
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Estado</label>
-                      <p className="text-gray-900">{customer.address.state}</p>
+                      <label className="block text-sm font-medium text-gray-700 mb-1 dark:text-dark-textSecondary">Estado</label>
+                      <p className="text-gray-900 dark:text-dark-text">{customer.address.state}</p>
                     </div>
                   </div>
                 </div>
@@ -497,10 +497,10 @@ export const CustomerDetailsPage: React.FC = () => {
             )}
 
             {/* Dados Profissionais */}
-            <div className="bg-white rounded-lg shadow-sm border">
-              <div className="px-4 sm:px-6 py-3 sm:py-4 border-b">
-                <h2 className="text-base sm:text-lg font-semibold text-gray-900 flex items-center">
-                  <Building className="w-4 h-4 sm:w-5 sm:h-5 mr-2 text-purple-500" />
+            <div className="bg-white rounded-lg shadow-sm border dark:bg-dark-card dark:border-dark-border">
+              <div className="px-4 sm:px-6 py-3 sm:py-4 border-b dark:border-dark-border">
+                <h2 className="text-base sm:text-lg font-semibold text-gray-900 flex items-center dark:text-dark-text">
+                  <Building className="w-4 h-4 sm:w-5 sm:h-5 mr-2 text-purple-500 dark:text-purple-400" />
                   Dados Profissionais
                 </h2>
               </div>
@@ -508,24 +508,24 @@ export const CustomerDetailsPage: React.FC = () => {
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
                   {customer.profession && (
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Profissão</label>
-                      <p className="text-gray-900">{customer.profession}</p>
+                      <label className="block text-sm font-medium text-gray-700 mb-1 dark:text-dark-textSecondary">Profissão</label>
+                      <p className="text-gray-900 dark:text-dark-text">{customer.profession}</p>
                     </div>
                   )}
 
                   {customer.employmentType && (
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Tipo de Emprego</label>
-                      <p className="text-gray-900 capitalize">{customer.employmentType.replace('_', ' ')}</p>
+                      <label className="block text-sm font-medium text-gray-700 mb-1 dark:text-dark-textSecondary">Tipo de Emprego</label>
+                      <p className="text-gray-900 capitalize dark:text-dark-text">{customer.employmentType.replace('_', ' ')}</p>
                     </div>
                   )}
 
                   {customer.monthlyIncome && (
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Renda Mensal</label>
+                      <label className="block text-sm font-medium text-gray-700 mb-1 dark:text-dark-textSecondary">Renda Mensal</label>
                       <div className="flex items-center space-x-2">
-                        <DollarSign className="w-4 h-4 text-gray-400" />
-                        <span className="text-gray-900 font-semibold">
+                        <DollarSign className="w-4 h-4 text-gray-400 dark:text-dark-textMuted" />
+                        <span className="text-gray-900 font-semibold dark:text-dark-text">
                           {formatCurrency(customer.monthlyIncome)}
                         </span>
                       </div>
@@ -534,17 +534,17 @@ export const CustomerDetailsPage: React.FC = () => {
 
                   {customer.companyName && (
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Empresa</label>
-                      <p className="text-gray-900">{customer.companyName}</p>
+                      <label className="block text-sm font-medium text-gray-700 mb-1 dark:text-dark-textSecondary">Empresa</label>
+                      <p className="text-gray-900 dark:text-dark-text">{customer.companyName}</p>
                     </div>
                   )}
 
                   {customer.propertyValue && (
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Valor do Imóvel</label>
+                      <label className="block text-sm font-medium text-gray-700 mb-1 dark:text-dark-textSecondary">Valor do Imóvel</label>
                       <div className="flex items-center space-x-2">
-                        <DollarSign className="w-4 h-4 text-gray-400" />
-                        <span className="text-gray-900 font-semibold">
+                        <DollarSign className="w-4 h-4 text-gray-400 dark:text-dark-textMuted" />
+                        <span className="text-gray-900 font-semibold dark:text-dark-text">
                           {formatCurrency(customer.propertyValue)}
                         </span>
                       </div>
@@ -553,8 +553,8 @@ export const CustomerDetailsPage: React.FC = () => {
 
                   {customer.propertyType && (
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Tipo do Imóvel</label>
-                      <p className="text-gray-900 capitalize">{customer.propertyType}</p>
+                      <label className="block text-sm font-medium text-gray-700 mb-1 dark:text-dark-textSecondary">Tipo do Imóvel</label>
+                      <p className="text-gray-900 capitalize dark:text-dark-text">{customer.propertyType}</p>
                     </div>
                   )}
                 </div>
@@ -562,7 +562,7 @@ export const CustomerDetailsPage: React.FC = () => {
             </div>
 
             {/* Documentos */}
-            <div className="bg-white rounded-lg shadow-sm border">
+            <div className="bg-white rounded-lg shadow-sm border dark:bg-dark-card dark:border-dark-border">
               <div className="p-4 sm:p-6">
                 <CustomerDocumentManager
                   customerId={customerId || ''}
@@ -576,13 +576,13 @@ export const CustomerDetailsPage: React.FC = () => {
 
             {/* Observações */}
             {customer.notes && (
-              <div className="bg-white rounded-lg shadow-sm border">
-                <div className="px-4 sm:px-6 py-3 sm:py-4 border-b">
-                  <h2 className="text-base sm:text-lg font-semibold text-gray-900">Observações</h2>
+              <div className="bg-white rounded-lg shadow-sm border dark:bg-dark-card dark:border-dark-border">
+                <div className="px-4 sm:px-6 py-3 sm:py-4 border-b dark:border-dark-border">
+                  <h2 className="text-base sm:text-lg font-semibold text-gray-900 dark:text-dark-text">Observações</h2>
                 </div>
                 <div className="p-4 sm:p-6">
                   <div className="prose prose-sm max-w-none">
-                    <p className="text-gray-700 whitespace-pre-wrap text-sm sm:text-base">{customer.notes}</p>
+                    <p className="text-gray-700 whitespace-pre-wrap text-sm sm:text-base dark:text-dark-textSecondary">{customer.notes}</p>
                   </div>
                 </div>
               </div>
@@ -592,12 +592,12 @@ export const CustomerDetailsPage: React.FC = () => {
           {/* Sidebar */}
           <div className="space-y-4 sm:space-y-6">
             {/* Informações Rápidas */}
-            <div className="bg-white rounded-lg shadow-sm border p-4 sm:p-6">
-              <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-3 sm:mb-4">Informações Rápidas</h3>
+            <div className="bg-white rounded-lg shadow-sm border p-4 sm:p-6 dark:bg-dark-card dark:border-dark-border">
+              <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-3 sm:mb-4 dark:text-dark-text">Informações Rápidas</h3>
               
               <div className="space-y-4">
                 <div className="flex justify-between items-center">
-                  <span className="text-sm text-gray-600">Status</span>
+                  <span className="text-sm text-gray-600 dark:text-dark-textSecondary">Status</span>
                   <span className={`px-2 py-1 text-xs font-medium rounded-full ${getStatusColor(customer.status)}`}>
                     {customer.status}
                   </span>
@@ -605,24 +605,24 @@ export const CustomerDetailsPage: React.FC = () => {
 
                 {customer.source && (
                   <div className="flex justify-between items-center">
-                    <span className="text-sm text-gray-600">Origem</span>
-                    <span className="text-sm font-medium text-gray-900 capitalize">
+                    <span className="text-sm text-gray-600 dark:text-dark-textSecondary">Origem</span>
+                    <span className="text-sm font-medium text-gray-900 capitalize dark:text-dark-text">
                       {customer.source.replace('_', ' ')}
                     </span>
                   </div>
                 )}
 
                 <div className="flex justify-between items-center">
-                  <span className="text-sm text-gray-600">Cadastrado em</span>
-                  <span className="text-sm font-medium text-gray-900">
+                  <span className="text-sm text-gray-600 dark:text-dark-textSecondary">Cadastrado em</span>
+                  <span className="text-sm font-medium text-gray-900 dark:text-dark-text">
                     {formatDate(customer.createdAt)}
                   </span>
                 </div>
 
                 {customer.updatedAt && (
                   <div className="flex justify-between items-center">
-                    <span className="text-sm text-gray-600">Última atualização</span>
-                    <span className="text-sm font-medium text-gray-900">
+                    <span className="text-sm text-gray-600 dark:text-dark-textSecondary">Última atualização</span>
+                    <span className="text-sm font-medium text-gray-900 dark:text-dark-text">
                       {formatDate(customer.updatedAt)}
                     </span>
                   </div>
@@ -630,10 +630,10 @@ export const CustomerDetailsPage: React.FC = () => {
 
                 {customer.uploadedDocuments && (
                   <div className="flex justify-between items-center">
-                    <span className="text-sm text-gray-600">Documentos</span>
+                    <span className="text-sm text-gray-600 dark:text-dark-textSecondary">Documentos</span>
                     <div className="flex items-center space-x-1">
-                      <FileText className="w-4 h-4 text-green-500" />
-                      <span className="text-sm font-medium text-green-600">
+                      <FileText className="w-4 h-4 text-green-500 dark:text-green-400" />
+                      <span className="text-sm font-medium text-green-600 dark:text-green-400">
                         {customer.uploadedDocuments.length}
                       </span>
                     </div>
@@ -643,8 +643,8 @@ export const CustomerDetailsPage: React.FC = () => {
             </div>
 
             {/* Ações Rápidas */}
-            <div className="bg-white rounded-lg shadow-sm border p-4 sm:p-6">
-              <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-3 sm:mb-4">Ações Rápidas</h3>
+            <div className="bg-white rounded-lg shadow-sm border p-4 sm:p-6 dark:bg-dark-card dark:border-dark-border">
+              <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-3 sm:mb-4 dark:text-dark-text">Ações Rápidas</h3>
               
               <div className="space-y-2 sm:space-y-3">
                 <Button
@@ -699,26 +699,26 @@ export const CustomerDetailsPage: React.FC = () => {
       >
         <div className="space-y-4">
           <div className="flex items-start space-x-3">
-            <div className="w-10 h-10 bg-red-100 rounded-full flex items-center justify-center flex-shrink-0">
-              <Trash2 className="w-5 h-5 text-red-600" />
+            <div className="w-10 h-10 bg-red-100 rounded-full flex items-center justify-center flex-shrink-0 dark:bg-red-900/20">
+              <Trash2 className="w-5 h-5 text-red-600 dark:text-red-400" />
             </div>
             <div className="flex-1">
-              <h3 className="text-lg font-medium text-gray-900">
+              <h3 className="text-lg font-medium text-gray-900 dark:text-dark-text">
                 Excluir cliente
               </h3>
-              <p className="text-sm text-gray-600 mt-1">
+              <p className="text-sm text-gray-600 mt-1 dark:text-dark-textSecondary">
                 Tem certeza que deseja excluir o cliente{' '}
-                <span className="font-medium text-gray-900">
+                <span className="font-medium text-gray-900 dark:text-dark-text">
                   "{customer?.name}"
                 </span>?
               </p>
-              <p className="text-xs text-red-600 mt-2">
+              <p className="text-xs text-red-600 mt-2 dark:text-red-400">
                 ⚠️ Esta ação não pode ser desfeita. Todos os dados do cliente, incluindo documentos, serão removidos permanentemente.
               </p>
             </div>
           </div>
 
-          <div className="flex justify-end space-x-3 pt-4 border-t">
+          <div className="flex justify-end space-x-3 pt-4 border-t dark:border-dark-border">
             <Button
               variant="outline"
               onClick={cancelDelete}

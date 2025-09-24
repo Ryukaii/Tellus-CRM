@@ -12,10 +12,10 @@ export function ProtectedRoute({ children }: ProtectedRouteProps) {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-gray-50 dark:bg-dark-background flex items-center justify-center">
         <div className="text-center">
           <LoadingSpinner size="lg" className="mx-auto mb-4" />
-          <p className="text-gray-600">Verificando autenticação...</p>
+          <p className="text-gray-600 dark:text-dark-textSecondary">Verificando autenticação...</p>
         </div>
       </div>
     );

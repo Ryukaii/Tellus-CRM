@@ -2,6 +2,7 @@ import React from 'react'
 import ReactDOM from 'react-dom/client'
 import App from './App.tsx'
 import PublicApp from './PublicApp.tsx'
+import { ThemeProvider } from './contexts/ThemeContext'
 import './index.css'
 
 // Detectar se estamos na rota de cadastro público
@@ -14,6 +15,8 @@ if (isPublicRoute) {
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
-    {isPublicRoute ? <PublicApp /> : <App />}
+    <ThemeProvider>
+      {isPublicRoute ? <PublicApp /> : <App />}
+    </ThemeProvider>
   </React.StrictMode>,
 )

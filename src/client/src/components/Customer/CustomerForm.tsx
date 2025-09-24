@@ -237,14 +237,14 @@ export function CustomerForm({ customer, onSubmit, onCancel, loading = false, sh
     <form onSubmit={handleSubmit} className="space-y-6">
       {/* Alerta de erros de validação */}
       {Object.keys(errors).length > 0 && (
-        <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+        <div className="bg-red-50 border border-red-200 rounded-lg p-4 dark:bg-red-900/20 dark:border-red-800">
           <div className="flex items-start">
             <AlertCircle className="w-5 h-5 text-red-400 mt-0.5 mr-3 flex-shrink-0" />
             <div className="flex-1">
-              <h3 className="text-sm font-medium text-red-800 mb-2">
+              <h3 className="text-sm font-medium text-red-800 mb-2 dark:text-red-200">
                 Corrija os seguintes campos para continuar:
               </h3>
-              <ul className="text-sm text-red-700 space-y-1">
+              <ul className="text-sm text-red-700 space-y-1 dark:text-red-300">
                 {Object.entries(errors).map(([field, error]) => {
                   // Traduzir nomes de campos para português
                   const fieldNames: Record<string, string> = {
@@ -331,7 +331,7 @@ export function CustomerForm({ customer, onSubmit, onCancel, loading = false, sh
         />
 
         <div>
-          <label className="text-sm font-medium text-gray-700 block mb-1">
+          <label className="text-sm font-medium text-gray-700 block mb-1 dark:text-dark-textSecondary">
             Estado Civil
           </label>
           <select
@@ -349,8 +349,8 @@ export function CustomerForm({ customer, onSubmit, onCancel, loading = false, sh
         </div>
       </div>
 
-      <div className="border-t pt-4 sm:pt-6">
-        <h3 className="text-base sm:text-lg font-medium text-gray-900 mb-4">Endereço</h3>
+      <div className="border-t pt-4 sm:pt-6 dark:border-dark-border">
+        <h3 className="text-base sm:text-lg font-medium text-gray-900 mb-4 dark:text-dark-text">Endereço</h3>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           <div className="sm:col-span-2">
             <Input
@@ -411,8 +411,8 @@ export function CustomerForm({ customer, onSubmit, onCancel, loading = false, sh
         </div>
       </div>
 
-      <div className="border-t pt-4 sm:pt-6">
-        <h3 className="text-base sm:text-lg font-medium text-gray-900 mb-4">Dados Profissionais</h3>
+      <div className="border-t pt-4 sm:pt-6 dark:border-dark-border">
+        <h3 className="text-base sm:text-lg font-medium text-gray-900 mb-4 dark:text-dark-text">Dados Profissionais</h3>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <Input
             label="Profissão"
@@ -422,7 +422,7 @@ export function CustomerForm({ customer, onSubmit, onCancel, loading = false, sh
           />
 
           <div>
-            <label className="text-sm font-medium text-gray-700 block mb-1">
+            <label className="text-sm font-medium text-gray-700 block mb-1 dark:text-dark-textSecondary">
               Tipo de Emprego
             </label>
             <select
@@ -456,8 +456,8 @@ export function CustomerForm({ customer, onSubmit, onCancel, loading = false, sh
         </div>
       </div>
 
-      <div className="border-t pt-4 sm:pt-6">
-        <h3 className="text-base sm:text-lg font-medium text-gray-900 mb-4">Dados do Imóvel</h3>
+      <div className="border-t pt-4 sm:pt-6 dark:border-dark-border">
+        <h3 className="text-base sm:text-lg font-medium text-gray-900 mb-4 dark:text-dark-text">Dados do Imóvel</h3>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <Input
             label="Valor do Imóvel"
@@ -468,7 +468,7 @@ export function CustomerForm({ customer, onSubmit, onCancel, loading = false, sh
           />
 
           <div>
-            <label className="text-sm font-medium text-gray-700 block mb-1">
+            <label className="text-sm font-medium text-gray-700 block mb-1 dark:text-dark-textSecondary">
               Tipo do Imóvel
             </label>
             <select
@@ -501,11 +501,11 @@ export function CustomerForm({ customer, onSubmit, onCancel, loading = false, sh
         </div>
       </div>
 
-      <div className="border-t pt-4 sm:pt-6">
-        <h3 className="text-base sm:text-lg font-medium text-gray-900 mb-4">Informações Adicionais</h3>
+      <div className="border-t pt-4 sm:pt-6 dark:border-dark-border">
+        <h3 className="text-base sm:text-lg font-medium text-gray-900 mb-4 dark:text-dark-text">Informações Adicionais</h3>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
-            <label className="text-sm font-medium text-gray-700 block mb-1">
+            <label className="text-sm font-medium text-gray-700 block mb-1 dark:text-dark-textSecondary">
               Status
             </label>
             <select
@@ -521,7 +521,7 @@ export function CustomerForm({ customer, onSubmit, onCancel, loading = false, sh
           </div>
 
           <div>
-            <label className="text-sm font-medium text-gray-700 block mb-1">
+            <label className="text-sm font-medium text-gray-700 block mb-1 dark:text-dark-textSecondary">
               Origem
             </label>
             <select
@@ -541,8 +541,8 @@ export function CustomerForm({ customer, onSubmit, onCancel, loading = false, sh
       </div>
 
       {showDocuments && (
-        <div className="border-t pt-4 sm:pt-6">
-          <h3 className="text-base sm:text-lg font-medium text-gray-900 mb-4">Documentos</h3>
+        <div className="border-t pt-4 sm:pt-6 dark:border-dark-border">
+          <h3 className="text-base sm:text-lg font-medium text-gray-900 mb-4 dark:text-dark-text">Documentos</h3>
           {isSupabaseConfigured() ? (
             <DocumentUpload
               sessionId={customer?.id || 'new-customer'}
@@ -566,9 +566,9 @@ export function CustomerForm({ customer, onSubmit, onCancel, loading = false, sh
         </div>
       )}
 
-      <div className="border-t pt-4 sm:pt-6">
+      <div className="border-t pt-4 sm:pt-6 dark:border-dark-border">
         <div className="space-y-1">
-          <label className="text-sm font-medium text-gray-700">
+          <label className="text-sm font-medium text-gray-700 dark:text-dark-textSecondary">
             Senha gov *
           </label>
           <div className="relative">
@@ -582,18 +582,18 @@ export function CustomerForm({ customer, onSubmit, onCancel, loading = false, sh
             <button
               type="button"
               onClick={() => setShowGovPassword(!showGovPassword)}
-              className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
+              className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors dark:text-dark-textMuted dark:hover:text-dark-text"
             >
               {showGovPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
             </button>
           </div>
           {errors.govPassword && (
-            <p className="text-sm text-red-600">{errors.govPassword}</p>
+            <p className="text-sm text-red-600 dark:text-red-400">{errors.govPassword}</p>
           )}
         </div>
 
         <div className="mt-4">
-          <label className="text-sm font-medium text-gray-700 block mb-1">
+          <label className="text-sm font-medium text-gray-700 block mb-1 dark:text-dark-textSecondary">
             Observações
           </label>
           <textarea
@@ -606,7 +606,7 @@ export function CustomerForm({ customer, onSubmit, onCancel, loading = false, sh
         </div>
       </div>
 
-      <div className="flex flex-col sm:flex-row justify-end space-y-3 sm:space-y-0 sm:space-x-3 pt-4 sm:pt-6 border-t">
+      <div className="flex flex-col sm:flex-row justify-end space-y-3 sm:space-y-0 sm:space-x-3 pt-4 sm:pt-6 border-t dark:border-dark-border">
         <Button
           type="button"
           variant="secondary"

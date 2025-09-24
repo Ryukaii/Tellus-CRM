@@ -136,33 +136,33 @@ export const ShareCustomerModal: React.FC<ShareCustomerModalProps> = ({
         {!shareableLink ? (
           <>
             {/* Informações do Cliente */}
-            <div className="bg-gray-50 p-4 rounded-lg">
-              <h3 className="font-medium text-gray-900 mb-2">Cliente a ser compartilhado:</h3>
+            <div className="bg-gray-50 p-4 rounded-lg dark:bg-dark-surfaceLight">
+              <h3 className="font-medium text-gray-900 mb-2 dark:text-dark-text">Cliente a ser compartilhado:</h3>
               <div className="flex items-center space-x-3">
-                <User className="w-5 h-5 text-gray-400" />
+                <User className="w-5 h-5 text-gray-400 dark:text-dark-textMuted" />
                 <div>
-                  <p className="font-medium">{customer.name}</p>
-                  <p className="text-sm text-gray-500">CPF: {customer.cpf}</p>
+                  <p className="font-medium dark:text-dark-text">{customer.name}</p>
+                  <p className="text-sm text-gray-500 dark:text-dark-textSecondary">CPF: {customer.cpf}</p>
                 </div>
               </div>
             </div>
 
             {/* Configurações de Tempo */}
             <div>
-              <h3 className="font-medium text-gray-900 mb-3 flex items-center">
+              <h3 className="font-medium text-gray-900 mb-3 flex items-center dark:text-dark-text">
                 <Clock className="w-4 h-4 mr-2" />
                 Configurações de Tempo
               </h3>
               
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-gray-700 mb-1 dark:text-dark-textSecondary">
                     Expira em (horas)
                   </label>
                   <select 
                     value={expiresInHours} 
                     onChange={(e) => setExpiresInHours(Number(e.target.value))}
-                    className="w-full border border-gray-300 rounded-md px-3 py-2"
+                    className="w-full border border-gray-300 rounded-md px-3 py-2 dark:border-dark-inputBorder dark:bg-dark-input dark:text-dark-text"
                   >
                     <option value={1}>1 hora</option>
                     <option value={6}>6 horas</option>
@@ -174,13 +174,13 @@ export const ShareCustomerModal: React.FC<ShareCustomerModalProps> = ({
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-gray-700 mb-1 dark:text-dark-textSecondary">
                     Máximo de acessos
                   </label>
                   <select 
                     value={maxAccess || ''} 
                     onChange={(e) => setMaxAccess(e.target.value ? Number(e.target.value) : undefined)}
-                    className="w-full border border-gray-300 rounded-md px-3 py-2"
+                    className="w-full border border-gray-300 rounded-md px-3 py-2 dark:border-dark-inputBorder dark:bg-dark-input dark:text-dark-text"
                   >
                     <option value="">Ilimitado</option>
                     <option value={1}>1 acesso</option>
@@ -194,7 +194,7 @@ export const ShareCustomerModal: React.FC<ShareCustomerModalProps> = ({
 
             {/* Permissões de Acesso */}
             <div>
-              <h3 className="font-medium text-gray-900 mb-3 flex items-center">
+              <h3 className="font-medium text-gray-900 mb-3 flex items-center dark:text-dark-text">
                 <Eye className="w-4 h-4 mr-2" />
                 O que será compartilhado
               </h3>
@@ -205,10 +205,10 @@ export const ShareCustomerModal: React.FC<ShareCustomerModalProps> = ({
                     type="checkbox"
                     checked={permissions.viewPersonalData}
                     onChange={() => handlePermissionChange('viewPersonalData')}
-                    className="rounded border-gray-300"
+                    className="rounded border-gray-300 dark:border-dark-inputBorder dark:bg-dark-input"
                   />
-                  <User className="w-4 h-4 text-gray-400" />
-                  <span className="text-sm">Dados Pessoais (nome, CPF, email, telefone)</span>
+                  <User className="w-4 h-4 text-gray-400 dark:text-dark-textMuted" />
+                  <span className="text-sm dark:text-dark-text">Dados Pessoais (nome, CPF, email, telefone)</span>
                 </label>
 
                 <label className="flex items-center space-x-3">
@@ -216,10 +216,10 @@ export const ShareCustomerModal: React.FC<ShareCustomerModalProps> = ({
                     type="checkbox"
                     checked={permissions.viewAddress}
                     onChange={() => handlePermissionChange('viewAddress')}
-                    className="rounded border-gray-300"
+                    className="rounded border-gray-300 dark:border-dark-inputBorder dark:bg-dark-input"
                   />
-                  <MapPin className="w-4 h-4 text-gray-400" />
-                  <span className="text-sm">Endereço</span>
+                  <MapPin className="w-4 h-4 text-gray-400 dark:text-dark-textMuted" />
+                  <span className="text-sm dark:text-dark-text">Endereço</span>
                 </label>
 
                 <label className="flex items-center space-x-3">
@@ -227,10 +227,10 @@ export const ShareCustomerModal: React.FC<ShareCustomerModalProps> = ({
                     type="checkbox"
                     checked={permissions.viewFinancialData}
                     onChange={() => handlePermissionChange('viewFinancialData')}
-                    className="rounded border-gray-300"
+                    className="rounded border-gray-300 dark:border-dark-inputBorder dark:bg-dark-input"
                   />
-                  <DollarSign className="w-4 h-4 text-gray-400" />
-                  <span className="text-sm">Dados Financeiros</span>
+                  <DollarSign className="w-4 h-4 text-gray-400 dark:text-dark-textMuted" />
+                  <span className="text-sm dark:text-dark-text">Dados Financeiros</span>
                 </label>
 
                 <label className="flex items-center space-x-3">
@@ -238,10 +238,10 @@ export const ShareCustomerModal: React.FC<ShareCustomerModalProps> = ({
                     type="checkbox"
                     checked={permissions.viewDocuments}
                     onChange={() => handlePermissionChange('viewDocuments')}
-                    className="rounded border-gray-300"
+                    className="rounded border-gray-300 dark:border-dark-inputBorder dark:bg-dark-input"
                   />
-                  <FileText className="w-4 h-4 text-gray-400" />
-                  <span className="text-sm">Documentos</span>
+                  <FileText className="w-4 h-4 text-gray-400 dark:text-dark-textMuted" />
+                  <span className="text-sm dark:text-dark-text">Documentos</span>
                 </label>
 
                 <label className="flex items-center space-x-3">
@@ -249,10 +249,10 @@ export const ShareCustomerModal: React.FC<ShareCustomerModalProps> = ({
                     type="checkbox"
                     checked={permissions.viewNotes}
                     onChange={() => handlePermissionChange('viewNotes')}
-                    className="rounded border-gray-300"
+                    className="rounded border-gray-300 dark:border-dark-inputBorder dark:bg-dark-input"
                   />
-                  <MessageSquare className="w-4 h-4 text-gray-400" />
-                  <span className="text-sm">Observações</span>
+                  <MessageSquare className="w-4 h-4 text-gray-400 dark:text-dark-textMuted" />
+                  <span className="text-sm dark:text-dark-text">Observações</span>
                 </label>
               </div>
             </div>
@@ -260,23 +260,23 @@ export const ShareCustomerModal: React.FC<ShareCustomerModalProps> = ({
             {/* Seleção de Documentos */}
             {permissions.viewDocuments && customer.uploadedDocuments && customer.uploadedDocuments.length > 0 && (
               <div>
-                <h3 className="font-medium text-gray-900 mb-3">
+                <h3 className="font-medium text-gray-900 mb-3 dark:text-dark-text">
                   Selecionar Documentos
                 </h3>
                 
                 <div className="max-h-40 overflow-y-auto space-y-2">
                   {customer.uploadedDocuments.map((doc) => (
-                    <label key={doc.id} className="flex items-center space-x-3 p-2 hover:bg-gray-50 rounded">
+                    <label key={doc.id} className="flex items-center space-x-3 p-2 hover:bg-gray-50 rounded dark:hover:bg-dark-surfaceLight">
                       <input
                         type="checkbox"
                         checked={selectedDocuments.includes(doc.id)}
                         onChange={() => handleDocumentToggle(doc.id)}
-                        className="rounded border-gray-300"
+                        className="rounded border-gray-300 dark:border-dark-inputBorder dark:bg-dark-input"
                       />
-                      <FileText className="w-4 h-4 text-gray-400" />
+                      <FileText className="w-4 h-4 text-gray-400 dark:text-dark-textMuted" />
                       <div className="flex-1">
-                        <p className="text-sm font-medium">{doc.fileName}</p>
-                        <p className="text-xs text-gray-500">{doc.documentType}</p>
+                        <p className="text-sm font-medium dark:text-dark-text">{doc.fileName}</p>
+                        <p className="text-xs text-gray-500 dark:text-dark-textSecondary">{doc.documentType}</p>
                       </div>
                     </label>
                   ))}
@@ -285,7 +285,7 @@ export const ShareCustomerModal: React.FC<ShareCustomerModalProps> = ({
             )}
 
             {/* Botões de Ação */}
-            <div className="flex justify-end space-x-3 pt-4 border-t">
+            <div className="flex justify-end space-x-3 pt-4 border-t dark:border-dark-border">
               <Button
                 variant="outline"
                 onClick={handleClose}
@@ -310,27 +310,27 @@ export const ShareCustomerModal: React.FC<ShareCustomerModalProps> = ({
         ) : (
           /* Link Criado */
           <div className="text-center space-y-4">
-            <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto">
-              <Check className="w-8 h-8 text-green-600" />
+            <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto dark:bg-green-900/20">
+              <Check className="w-8 h-8 text-green-600 dark:text-green-400" />
             </div>
             
             <div>
-              <h3 className="text-lg font-medium text-gray-900 mb-2">
+              <h3 className="text-lg font-medium text-gray-900 mb-2 dark:text-dark-text">
                 Link de Compartilhamento Criado!
               </h3>
-              <p className="text-sm text-gray-600">
+              <p className="text-sm text-gray-600 dark:text-dark-textSecondary">
                 O link expira em {expiresInHours} hora{expiresInHours !== 1 ? 's' : ''}
                 {maxAccess && ` e permite até ${maxAccess} acesso${maxAccess !== 1 ? 's' : ''}`}
               </p>
             </div>
 
-            <div className="bg-gray-50 p-4 rounded-lg">
+            <div className="bg-gray-50 p-4 rounded-lg dark:bg-dark-surfaceLight">
               <div className="flex items-center space-x-2">
                 <input
                   type="text"
                   value={`${window.location.origin}/shared/${shareableLink.id}`}
                   readOnly
-                  className="flex-1 px-3 py-2 bg-white border border-gray-300 rounded-md text-sm"
+                  className="flex-1 px-3 py-2 bg-white border border-gray-300 rounded-md text-sm dark:bg-dark-input dark:border-dark-inputBorder dark:text-dark-text"
                 />
                 <Button
                   onClick={handleCopyLink}

@@ -10,16 +10,8 @@ import { DocumentService } from '../../services/documentService';
 import { CPFService } from '../../services/cpfService';
 import { CepService } from '../../services/cepService';
 import { StateSelect } from '../UI/StateSelect';
-// Estados brasileiros
-const ESTADOS_POR_SIGLA: Record<string, string> = {
-  'AC': 'Acre', 'AL': 'Alagoas', 'AP': 'Amapá', 'AM': 'Amazonas', 'BA': 'Bahia',
-  'CE': 'Ceará', 'DF': 'Distrito Federal', 'ES': 'Espírito Santo', 'GO': 'Goiás',
-  'MA': 'Maranhão', 'MT': 'Mato Grosso', 'MS': 'Mato Grosso do Sul', 'MG': 'Minas Gerais',
-  'PA': 'Pará', 'PB': 'Paraíba', 'PR': 'Paraná', 'PE': 'Pernambuco', 'PI': 'Piauí',
-  'RJ': 'Rio de Janeiro', 'RN': 'Rio Grande do Norte', 'RS': 'Rio Grande do Sul',
-  'RO': 'Rondônia', 'RR': 'Roraima', 'SC': 'Santa Catarina', 'SP': 'São Paulo',
-  'SE': 'Sergipe', 'TO': 'Tocantins'
-};
+import { CPFValidationService, ExistingCustomerData } from '../../services/cpfValidationService';
+import { ExistingCustomerModal } from '../UI/ExistingCustomerModal';
 
 interface FormData {
   // Dados Pessoais
@@ -95,7 +87,15 @@ interface FormData {
   hasSpouseBankStatements: boolean;
   
   // Documentos Enviados
-  documents: DocumentUpload[];
+  documents: Array<{
+    id: string;
+    fileName: string;
+    fileSize: number;
+    fileType: string;
+    documentType: string;
+    uploadedAt: string;
+    url: string;
+  }>;
   
   // Observações
   notes: string;
@@ -122,6 +122,10 @@ export function LeadFormConsultoria() {
   const [cepConsulted, setCepConsulted] = useState(false);
   const [cepValid, setCepValid] = useState(false);
   const [cepNotFound, setCepNotFound] = useState(false);
+  
+  // Estados para validação de CPF existente
+  const [existingCustomerModal, setExistingCustomerModal] = useState(false);
+  const [existingCustomerData, setExistingCustomerData] = useState<ExistingCustomerData | null>(null);
 
   const [formData, setFormData] = useState<FormData>({
     name: '',
@@ -543,10 +547,107 @@ export function LeadFormConsultoria() {
 
   // RG não tem formatação específica pois cada estado tem formato diferente
 
+  // Validar CPF e verificar se já existe no sistema
+  const validateCPFAndCheckExisting = async () => {
+    const cleanCPF = formData.cpf.replace(/\D/g, '');
+    
+    if (!validateCPF(cleanCPF)) {
+      return {
+        exists: false,
+        canProceed: false,
+        message: 'CPF inválido'
+      };
+    }
+
+    try {
+      const result = await CPFValidationService.validateCPF(cleanCPF, 'consultoria');
+      return result;
+    } catch (error) {
+      console.error('Error validating CPF:', error);
+      return {
+        exists: false,
+        canProceed: true,
+        message: 'Erro ao verificar CPF. Tente novamente.'
+      };
+    }
+  };
+
+  // Funções para lidar com o modal de cliente existente
+  const handleAddProcess = async () => {
+    if (!existingCustomerData) return;
+    
+    try {
+      setLoading(true);
+      const cleanCPF = formData.cpf.replace(/\D/g, '');
+      
+      // Adicionar processo ao cliente existente
+      await CPFValidationService.addProcessToExistingCustomer(cleanCPF, 'consultoria');
+      
+      // Preencher dados do cliente existente
+      setFormData(prev => ({
+        ...prev,
+        name: existingCustomerData.name,
+        email: existingCustomerData.email,
+        phone: existingCustomerData.phone
+      }));
+      
+      setExistingCustomerModal(false);
+      setExistingCustomerData(null);
+      
+      // Continuar para próxima etapa
+      const stepData = getCurrentStepData();
+      await PreRegistrationApi.nextStep(stepData);
+      setCurrentStep(currentStep + 1);
+      setError(null);
+    } catch (error) {
+      console.error('Error adding process:', error);
+      setError('Erro ao adicionar processo. Tente novamente.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleContinueAnyway = async () => {
+    try {
+      setLoading(true);
+      setExistingCustomerModal(false);
+      setExistingCustomerData(null);
+      
+      // Continuar normalmente
+      const stepData = getCurrentStepData();
+      await PreRegistrationApi.nextStep(stepData);
+      setCurrentStep(currentStep + 1);
+      setError(null);
+    } catch (error) {
+      console.error('Error continuing:', error);
+      setError('Erro ao continuar. Tente novamente.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const nextStep = async () => {
     if (currentStep < totalSteps) {
       try {
         setLoading(true);
+        
+        // Se está no passo 1 (dados pessoais), verificar CPF
+        if (currentStep === 1) {
+          const cpfValidation = await validateCPFAndCheckExisting();
+          if (!cpfValidation.canProceed) {
+            setError(cpfValidation.message || 'CPF já cadastrado');
+            setLoading(false);
+            return;
+          }
+          
+          // Se CPF existe mas pode adicionar processo, mostrar modal
+          if (cpfValidation.exists && cpfValidation.customerData) {
+            setExistingCustomerData(cpfValidation.customerData);
+            setExistingCustomerModal(true);
+            setLoading(false);
+            return;
+          }
+        }
         
         // Salvar dados da etapa atual
         const stepData = getCurrentStepData();
@@ -734,7 +835,7 @@ export function LeadFormConsultoria() {
                CepService.validarFormatoCep(formData.address.zipCode);
       case 3:
         return formData.profession.trim().length >= 2 && 
-               formData.monthlyIncome > 0 && 
+               formData.monthlyIncome && formData.monthlyIncome > 0 && 
                formData.monthlyIncome >= 1000; // Renda mínima de R$ 1.000
       case 4:
         return formData.propertyValue > 0 && 
@@ -863,7 +964,7 @@ export function LeadFormConsultoria() {
               </div>
               <div className="flex items-center space-x-3 text-white/90">
                 <CheckCircle className="w-5 h-5 text-green-300" />
-                <span>Análise em até 30 dias</span>
+                <span className="font-semibold">Análise Rápida: <span className="text-green-300 font-bold">1-3 dias úteis</span></span>
               </div>
             </div>
           </div>
@@ -986,7 +1087,7 @@ export function LeadFormConsultoria() {
                 <div className="space-y-2 text-white/90 text-sm">
                   <div>• 1ª Etapa: Documentação pessoal e renda</div>
                   <div>• 2ª Etapa: Documentação do imóvel (após aprovação)</div>
-                  <div>• Análise em até 30 dias</div>
+                  <div>• Análise Rápida: 1-3 dias úteis</div>
                   <div>• Progresso salvo automaticamente</div>
                   <div>• Atualizações por email</div>
                 </div>
@@ -1539,15 +1640,21 @@ export function LeadFormConsultoria() {
                   <div>
                   <Input
                     label="Renda Mensal *"
-                    type="number"
-                    value={formData.monthlyIncome > 0 ? formData.monthlyIncome : ''}
-                    onChange={(e) => handleChange('monthlyIncome', parseFloat(e.target.value) || 0)}
-                    placeholder="5000"
-                      min="1000"
-                      max="999999"
+                    type="text"
+                    value={formData.monthlyIncome ? new Intl.NumberFormat('pt-BR', { 
+                      style: 'currency', 
+                      currency: 'BRL' 
+                    }).format(formData.monthlyIncome) : ''}
+                    onChange={(e) => {
+                      const rawValue = e.target.value.replace(/[^\d]/g, '');
+                      const numericValue = rawValue ? parseFloat(rawValue) / 100 : null;
+                      handleChange('monthlyIncome', numericValue);
+                    }}
+                    placeholder="R$ 5.000,00"
+                      maxLength={15}
                   />
                     {formData.monthlyIncome && formData.monthlyIncome < 1000 && (
-                      <p className="text-red-500 text-xs mt-1">Renda mínima de R$ 1.000</p>
+                      <p className="text-red-500 text-xs mt-1">Renda mínima de R$ 1.000,00</p>
                     )}
                   </div>
 
@@ -2252,6 +2359,21 @@ export function LeadFormConsultoria() {
           </div>
         </div>
       </div>
+
+      {/* Modal para cliente existente */}
+      {existingCustomerData && (
+        <ExistingCustomerModal
+          isOpen={existingCustomerModal}
+          onClose={() => {
+            setExistingCustomerModal(false);
+            setExistingCustomerData(null);
+          }}
+          onContinue={handleContinueAnyway}
+          onAddProcess={handleAddProcess}
+          customerData={existingCustomerData}
+          processType="consultoria"
+        />
+      )}
     </div>
   );
 }

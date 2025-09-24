@@ -39,6 +39,7 @@ interface MongoCustomer {
   status?: string;
   source?: string;
   govPassword?: string;
+  processes?: string[];
   createdAt?: Date;
   updatedAt?: Date;
 }
@@ -68,6 +69,7 @@ class CustomerService {
       status: mongoCustomer.status || 'ativo',
       source: mongoCustomer.source,
       govPassword: mongoCustomer.govPassword,
+      processes: mongoCustomer.processes,
       createdAt: mongoCustomer.createdAt?.toISOString(),
       updatedAt: mongoCustomer.updatedAt?.toISOString()
     };
@@ -95,7 +97,8 @@ class CustomerService {
       notes: customerData.notes,
       status: customerData.status,
       source: customerData.source,
-      govPassword: customerData.govPassword
+      govPassword: customerData.govPassword,
+      processes: customerData.processes
     };
   }
 
@@ -242,6 +245,7 @@ class CustomerService {
       if (customerData.source !== undefined) updateData.source = customerData.source;
       if (customerData.govPassword !== undefined) updateData.govPassword = customerData.govPassword;
       if (customerData.notes !== undefined) updateData.notes = customerData.notes;
+      if (customerData.processes !== undefined) updateData.processes = customerData.processes;
 
       // Handle address updates - merge with existing address
       if (customerData.address) {
@@ -328,6 +332,167 @@ class CustomerService {
     } catch (error) {
       throw error;
     }
+  }
+
+  async checkCPFExists(cpf: string, processType: string): Promise<{
+    exists: boolean;
+    customerData?: any;
+    canProceed: boolean;
+    message?: string;
+  }> {
+    try {
+      // Buscar cliente por CPF
+      const customer = await database.findCustomerByCPF(cpf);
+      
+      if (!customer) {
+        return {
+          exists: false,
+          canProceed: true,
+          message: 'CPF não encontrado no sistema. Pode prosseguir.'
+        };
+      }
+
+      // Verificar se já tem este tipo de processo
+      const existingProcesses = customer.processes || [];
+      if (existingProcesses.includes(processType)) {
+        return {
+          exists: true,
+          canProceed: false,
+          message: `Este CPF já possui um processo de ${this.getProcessDisplayName(processType)} cadastrado.`
+        };
+      }
+
+      // CPF existe mas não tem este processo - pode adicionar
+      return {
+        exists: true,
+        customerData: {
+          id: customer._id.toString(),
+          name: customer.name,
+          email: customer.email,
+          phone: customer.phone,
+          cpf: customer.cpf,
+          processes: existingProcesses,
+          hasCompleteData: this.hasCompleteData(customer),
+          missingDocuments: this.getMissingDocuments(customer, processType)
+        },
+        canProceed: true,
+        message: `CPF encontrado! Você já possui processos: ${existingProcesses.map(p => this.getProcessDisplayName(p)).join(', ')}. Deseja adicionar ${this.getProcessDisplayName(processType)}?`
+      };
+    } catch (error) {
+      console.error('Error checking CPF:', error);
+      return {
+        exists: false,
+        canProceed: true,
+        message: 'Erro ao verificar CPF. Tente novamente.'
+      };
+    }
+  }
+
+  async getCustomerByCPF(cpf: string): Promise<any> {
+    try {
+      const customer = await database.findCustomerByCPF(cpf);
+      if (!customer) return null;
+
+      return {
+        id: customer._id.toString(),
+        name: customer.name,
+        email: customer.email,
+        phone: customer.phone,
+        cpf: customer.cpf,
+        processes: customer.processes || [],
+        hasCompleteData: this.hasCompleteData(customer),
+        missingDocuments: this.getMissingDocuments(customer, '')
+      };
+    } catch (error) {
+      console.error('Error getting customer by CPF:', error);
+      return null;
+    }
+  }
+
+  async addProcessToCustomer(cpf: string, processType: string): Promise<any> {
+    try {
+      const customer = await database.findCustomerByCPF(cpf);
+      if (!customer) return null;
+
+      const existingProcesses = customer.processes || [];
+      if (existingProcesses.includes(processType)) {
+        throw new Error('Processo já existe para este cliente');
+      }
+
+      const updatedProcesses = [...existingProcesses, processType];
+      
+      const result = await database.updateCustomer(customer._id.toString(), {
+        processes: updatedProcesses
+      });
+
+      if (result) {
+        return {
+          id: result._id.toString(),
+          name: result.name,
+          email: result.email,
+          phone: result.phone,
+          cpf: result.cpf,
+          processes: updatedProcesses,
+          hasCompleteData: this.hasCompleteData(result),
+          missingDocuments: this.getMissingDocuments(result, processType)
+        };
+      }
+
+      return null;
+    } catch (error) {
+      console.error('Error adding process to customer:', error);
+      throw error;
+    }
+  }
+
+  private getProcessDisplayName(processType: string): string {
+    const processNames: Record<string, string> = {
+      'agro': 'Agronegócio',
+      'credito': 'Crédito',
+      'consultoria': 'Consultoria',
+      'credito_imobiliario': 'Crédito Imobiliário',
+      'geral': 'Geral'
+    };
+    return processNames[processType] || processType;
+  }
+
+  private hasCompleteData(customer: any): boolean {
+    return !!(
+      customer.name &&
+      customer.email &&
+      customer.phone &&
+      customer.cpf &&
+      customer.address?.street &&
+      customer.address?.city &&
+      customer.address?.state
+    );
+  }
+
+  private getMissingDocuments(customer: any, processType: string): string[] {
+    const missing: string[] = [];
+    
+    // Documentos básicos sempre necessários
+    if (!customer.uploadedDocuments || customer.uploadedDocuments.length === 0) {
+      missing.push('Documentos básicos (RG, CPF, comprovante de endereço)');
+    }
+
+    // Documentos específicos por tipo de processo
+    switch (processType) {
+      case 'agro':
+        if (!customer.hasCompanyDocs) missing.push('Documentos da empresa');
+        if (!customer.hasTaxReturn) missing.push('Declaração de imposto de renda');
+        break;
+      case 'credito':
+      case 'credito_imobiliario':
+        if (!customer.hasIncomeProof) missing.push('Comprovante de renda');
+        if (!customer.hasBankStatements) missing.push('Extratos bancários');
+        break;
+      case 'consultoria':
+        // Consultoria pode ter documentos mais flexíveis
+        break;
+    }
+
+    return missing;
   }
 }
 

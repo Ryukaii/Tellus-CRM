@@ -167,8 +167,8 @@ export function PreRegistrationList({
       {/* Header com filtros */}
       <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
         <div>
-          <h2 className="text-xl font-semibold text-gray-900">Leads de Pré-Cadastro</h2>
-          <p className="text-sm text-gray-600 mt-1">
+          <h2 className="text-xl font-semibold text-gray-900 dark:text-dark-text">Leads de Pré-Cadastro</h2>
+          <p className="text-sm text-gray-600 mt-1 dark:text-dark-textSecondary">
             {total} {total === 1 ? 'lead encontrado' : 'leads encontrados'}
           </p>
         </div>
@@ -176,7 +176,7 @@ export function PreRegistrationList({
         <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
           {/* Busca */}
           <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4 dark:text-dark-textMuted" />
             <Input
               type="text"
               placeholder="Buscar por nome, email ou CPF..."
@@ -188,11 +188,11 @@ export function PreRegistrationList({
 
           {/* Filtro de Status */}
           <div className="relative">
-            <Filter className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+            <Filter className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4 dark:text-dark-textMuted" />
             <select
               value={filter}
               onChange={(e) => handleFilterChange(e.target.value as 'all' | 'approved' | 'pending')}
-              className="pl-10 pr-8 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-tellus-primary focus:border-transparent appearance-none bg-white"
+              className="pl-10 pr-8 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-tellus-primary focus:border-transparent appearance-none bg-white dark:bg-dark-input dark:border-dark-inputBorder dark:text-dark-text dark:focus:ring-dark-accent dark:focus:border-dark-accent"
             >
               <option value="all">Todos os Status</option>
               <option value="approved">Aprovados</option>
@@ -202,11 +202,11 @@ export function PreRegistrationList({
 
           {/* Filtro de Tipo */}
           <div className="relative">
-            <Filter className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+            <Filter className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4 dark:text-dark-textMuted" />
             <select
               value={typeFilter}
               onChange={(e) => handleTypeChange(e.target.value as 'all' | 'credito' | 'consultoria' | 'agro' | 'geral' | 'credito_imobiliario')}
-              className="pl-10 pr-8 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-tellus-primary focus:border-transparent appearance-none bg-white"
+              className="pl-10 pr-8 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-tellus-primary focus:border-transparent appearance-none bg-white dark:bg-dark-input dark:border-dark-inputBorder dark:text-dark-text dark:focus:ring-dark-accent dark:focus:border-dark-accent"
             >
               <option value="all">Todos os Tipos</option>
               <option value="credito">Crédito Pessoal</option>
@@ -222,17 +222,17 @@ export function PreRegistrationList({
       {/* Lista de pré-cadastros */}
       {preRegistrations.length === 0 ? (
         <div className="text-center py-12">
-          <User className="mx-auto h-12 w-12 text-gray-400" />
-          <h3 className="mt-2 text-sm font-medium text-gray-900">Nenhum lead encontrado</h3>
-          <p className="mt-1 text-sm text-gray-500">
+          <User className="mx-auto h-12 w-12 text-gray-400 dark:text-dark-textMuted" />
+          <h3 className="mt-2 text-sm font-medium text-gray-900 dark:text-dark-text">Nenhum lead encontrado</h3>
+          <p className="mt-1 text-sm text-gray-500 dark:text-dark-textSecondary">
             {searchTerm || filter !== 'all' 
               ? 'Tente ajustar os filtros de busca.' 
               : 'Os leads aparecerão aqui quando os pré-cadastros forem finalizados.'}
           </p>
         </div>
       ) : (
-        <div className="bg-white shadow overflow-hidden sm:rounded-md">
-          <ul className="divide-y divide-gray-200">
+        <div className="bg-white shadow overflow-hidden sm:rounded-md dark:bg-dark-card dark:shadow-lg">
+          <ul className="divide-y divide-gray-200 dark:divide-dark-border">
             {preRegistrations.map((lead) => {
               const isProcessing = processingActions.has(lead.id!);
               
@@ -249,7 +249,7 @@ export function PreRegistrationList({
                         
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center space-x-2 flex-wrap">
-                            <p className="text-sm font-medium text-gray-900 truncate">
+                            <p className="text-sm font-medium text-gray-900 truncate dark:text-dark-text">
                               {lead.name || 'Nome não informado'}
                             </p>
                             {getStatusBadge(lead)}
@@ -260,20 +260,20 @@ export function PreRegistrationList({
                           
                           <div className="mt-1 flex flex-col sm:flex-row sm:items-center sm:space-x-4 space-y-1 sm:space-y-0">
                             {lead.email && (
-                              <div className="flex items-center text-sm text-gray-500">
-                                <Mail className="flex-shrink-0 mr-1.5 h-4 w-4" />
+                              <div className="flex items-center text-sm text-gray-500 dark:text-dark-textSecondary">
+                                <Mail className="flex-shrink-0 mr-1.5 h-4 w-4 dark:text-dark-textMuted" />
                                 {lead.email}
                               </div>
                             )}
                             {lead.phone && (
-                              <div className="flex items-center text-sm text-gray-500">
-                                <Phone className="flex-shrink-0 mr-1.5 h-4 w-4" />
+                              <div className="flex items-center text-sm text-gray-500 dark:text-dark-textSecondary">
+                                <Phone className="flex-shrink-0 mr-1.5 h-4 w-4 dark:text-dark-textMuted" />
                                 {lead.phone}
                               </div>
                             )}
                             {lead.address?.city && (
-                              <div className="flex items-center text-sm text-gray-500">
-                                <MapPin className="flex-shrink-0 mr-1.5 h-4 w-4" />
+                              <div className="flex items-center text-sm text-gray-500 dark:text-dark-textSecondary">
+                                <MapPin className="flex-shrink-0 mr-1.5 h-4 w-4 dark:text-dark-textMuted" />
                                 {lead.address.city}, {lead.address.state}
                               </div>
                             )}
@@ -281,11 +281,11 @@ export function PreRegistrationList({
                           
                           {/* Barra de progresso */}
                           <div className="mt-2">
-                            <div className="flex items-center justify-between text-xs text-gray-500 mb-1">
+                            <div className="flex items-center justify-between text-xs text-gray-500 mb-1 dark:text-dark-textSecondary">
                               <span>Formulário Completo</span>
                               <span>{getProgressPercentage()}%</span>
                             </div>
-                            <div className="w-full bg-gray-200 rounded-full h-1.5">
+                            <div className="w-full bg-gray-200 rounded-full h-1.5 dark:bg-dark-surfaceLight">
                               <div 
                                 className="bg-tellus-primary h-1.5 rounded-full transition-all duration-300"
                                 style={{ width: `${getProgressPercentage()}%` }}
@@ -293,8 +293,8 @@ export function PreRegistrationList({
                             </div>
                           </div>
                           
-                          <div className="mt-1 flex items-center text-xs text-gray-500">
-                            <Calendar className="flex-shrink-0 mr-1 h-3 w-3" />
+                          <div className="mt-1 flex items-center text-xs text-gray-500 dark:text-dark-textSecondary">
+                            <Calendar className="flex-shrink-0 mr-1 h-3 w-3 dark:text-dark-textMuted" />
                             Criado em {formatDate(lead.createdAt)}
                             {lead.updatedAt && (
                               <span className="ml-2">• Atualizado: {formatDate(lead.updatedAt)}</span>
@@ -359,7 +359,7 @@ export function PreRegistrationList({
 
       {/* Paginação */}
       {totalPages > 1 && (
-        <div className="flex items-center justify-between border-t border-gray-200 bg-white px-4 py-3 sm:px-6">
+        <div className="flex items-center justify-between border-t border-gray-200 bg-white px-4 py-3 sm:px-6 dark:border-dark-border dark:bg-dark-card">
           <div className="flex flex-1 justify-between sm:hidden">
             <Button
               onClick={() => onPageChange(Math.max(1, page - 1))}
@@ -379,7 +379,7 @@ export function PreRegistrationList({
           
           <div className="hidden sm:flex sm:flex-1 sm:items-center sm:justify-between">
             <div>
-              <p className="text-sm text-gray-700">
+              <p className="text-sm text-gray-700 dark:text-dark-textSecondary">
                 Mostrando <span className="font-medium">{Math.min((page - 1) * limit + 1, total)}</span> até{' '}
                 <span className="font-medium">{Math.min(page * limit, total)}</span> de{' '}
                 <span className="font-medium">{total}</span> resultados

@@ -105,10 +105,10 @@ export const CustomerEditPage: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-gray-50 dark:bg-dark-background flex items-center justify-center">
         <div className="text-center">
           <LoadingSpinner size="lg" />
-          <p className="mt-4 text-gray-600">Carregando dados do cliente...</p>
+          <p className="mt-4 text-gray-600 dark:text-dark-textSecondary">Carregando dados do cliente...</p>
         </div>
       </div>
     );
@@ -116,15 +116,15 @@ export const CustomerEditPage: React.FC = () => {
 
   if (error || !customer) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-gray-50 dark:bg-dark-background flex items-center justify-center">
         <div className="max-w-md mx-auto text-center">
-          <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
-            <AlertCircle className="w-8 h-8 text-red-600" />
+          <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4 dark:bg-red-900/20">
+            <AlertCircle className="w-8 h-8 text-red-600 dark:text-red-400" />
           </div>
-          <h1 className="text-xl font-semibold text-gray-900 mb-2">
+          <h1 className="text-xl font-semibold text-gray-900 mb-2 dark:text-dark-text">
             Cliente não encontrado
           </h1>
-          <p className="text-gray-600 mb-4">{error}</p>
+          <p className="text-gray-600 mb-4 dark:text-dark-textSecondary">{error}</p>
           <Button onClick={handleGoBack}>
             Voltar para lista
           </Button>
@@ -134,9 +134,9 @@ export const CustomerEditPage: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 dark:bg-dark-background">
       {/* Header */}
-      <div className="bg-white shadow-sm border-b">
+      <div className="bg-white shadow-sm border-b dark:bg-dark-card dark:border-dark-border">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between py-6">
             <div className="flex items-center space-x-4">
@@ -150,10 +150,10 @@ export const CustomerEditPage: React.FC = () => {
               </Button>
               
               <div>
-                <h1 className="text-2xl font-bold text-gray-900">
+                <h1 className="text-2xl font-bold text-gray-900 dark:text-dark-text">
                   Editar Cliente
                 </h1>
-                <p className="text-gray-600">
+                <p className="text-gray-600 dark:text-dark-textSecondary">
                   {customer.name}
                 </p>
               </div>
@@ -166,22 +166,22 @@ export const CustomerEditPage: React.FC = () => {
         <div className="flex flex-col xl:flex-row gap-6 xl:gap-8">
           {/* Formulário Principal */}
           <div className="flex-1 xl:flex-[2]">
-            <div className="bg-white rounded-lg shadow-sm border">
-              <div className="px-6 py-4 border-b">
-                <h2 className="text-lg font-semibold text-gray-900">
+            <div className="bg-white rounded-lg shadow-sm border dark:bg-dark-card dark:border-dark-border">
+              <div className="px-6 py-4 border-b dark:border-dark-border">
+                <h2 className="text-lg font-semibold text-gray-900 dark:text-dark-text">
                   Dados do Cliente
                 </h2>
               </div>
               <div className="p-6">
                 {error && (
-                  <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-md">
+                  <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-md dark:bg-red-900/20 dark:border-red-800">
                     <div className="flex">
-                      <AlertCircle className="w-5 h-5 text-red-400 mr-3" />
+                      <AlertCircle className="w-5 h-5 text-red-400 mr-3 dark:text-red-300" />
                       <div>
-                        <h3 className="text-sm font-medium text-red-800">
+                        <h3 className="text-sm font-medium text-red-800 dark:text-red-200">
                           Erro ao salvar
                         </h3>
-                        <p className="mt-1 text-sm text-red-700">{error}</p>
+                        <p className="mt-1 text-sm text-red-700 dark:text-red-300">{error}</p>
                       </div>
                     </div>
                   </div>
@@ -200,7 +200,7 @@ export const CustomerEditPage: React.FC = () => {
 
           {/* Sidebar com Documentos */}
           <div className="w-full xl:w-96 xl:flex-shrink-0">
-            <div className="bg-white rounded-lg shadow-sm border sticky top-6">
+            <div className="bg-white rounded-lg shadow-sm border sticky top-6 dark:bg-dark-card dark:border-dark-border">
               <div className="p-4 sm:p-6">
                 <CustomerDocumentManager
                   customerId={customerId || ''}

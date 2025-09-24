@@ -83,11 +83,11 @@ export function CustomerList() {
     return (
       <div className="flex items-center justify-center min-h-96">
         <div className="text-center">
-          <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
-            <AlertCircle className="w-8 h-8 text-red-600" />
+          <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4 dark:bg-red-900/20">
+            <AlertCircle className="w-8 h-8 text-red-600 dark:text-red-400" />
           </div>
-          <h3 className="text-lg font-medium text-gray-900 mb-2">Erro ao carregar clientes</h3>
-          <p className="text-gray-600 mb-4">{error}</p>
+          <h3 className="text-lg font-medium text-gray-900 mb-2 dark:text-dark-text">Erro ao carregar clientes</h3>
+          <p className="text-gray-600 mb-4 dark:text-dark-textSecondary">{error}</p>
           <Button onClick={fetchCustomers}>Tentar novamente</Button>
         </div>
       </div>
@@ -99,15 +99,16 @@ export function CustomerList() {
       {/* Header com botão de adicionar */}
       <div className="mb-8 flex justify-between items-center">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Clientes</h1>
-          <p className="mt-2 text-gray-600">
+          <h1 className="text-3xl font-bold text-tellus-charcoal-900 dark:text-dark-text">Clientes</h1>
+          <p className="mt-2 text-tellus-charcoal-600 dark:text-dark-textSecondary">
             Gerencie todos os seus clientes em um só lugar
           </p>
         </div>
         
         <Button
+          variant="gold"
           onClick={() => setShowCreateModal(true)}
-          className="flex items-center space-x-2"
+          className="flex items-center space-x-2 shadow-md hover:shadow-lg"
         >
           <Plus className="w-4 h-4" />
           <span>Novo Cliente</span>
@@ -162,26 +163,26 @@ export function CustomerList() {
         >
           <div className="space-y-4">
             <div className="flex items-start space-x-3">
-              <div className="w-10 h-10 bg-red-100 rounded-full flex items-center justify-center flex-shrink-0">
-                <Trash2 className="w-5 h-5 text-red-600" />
+              <div className="w-10 h-10 bg-red-100 rounded-full flex items-center justify-center flex-shrink-0 dark:bg-red-900/20">
+                <Trash2 className="w-5 h-5 text-red-600 dark:text-red-400" />
               </div>
               <div className="flex-1">
-                <h3 className="text-lg font-medium text-gray-900">
+                <h3 className="text-lg font-medium text-gray-900 dark:text-dark-text">
                   Excluir cliente
                 </h3>
-                <p className="text-sm text-gray-600 mt-1">
+                <p className="text-sm text-gray-600 mt-1 dark:text-dark-textSecondary">
                   Tem certeza que deseja excluir o cliente{' '}
-                  <span className="font-medium text-gray-900">
+                  <span className="font-medium text-gray-900 dark:text-dark-text">
                     "{customerToDelete?.name}"
                   </span>?
                 </p>
-                <p className="text-xs text-red-600 mt-2">
+                <p className="text-xs text-red-600 mt-2 dark:text-red-400">
                   ⚠️ Esta ação não pode ser desfeita. Todos os dados do cliente, incluindo documentos, serão removidos permanentemente.
                 </p>
               </div>
             </div>
 
-            <div className="flex justify-end space-x-3 pt-4 border-t">
+            <div className="flex justify-end space-x-3 pt-4 border-t dark:border-dark-border">
               <Button
                 variant="outline"
                 onClick={cancelDeleteCustomer}

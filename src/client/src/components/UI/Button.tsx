@@ -1,7 +1,7 @@
 import React from 'react';
 
 interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
-  variant?: 'primary' | 'secondary' | 'danger';
+  variant?: 'primary' | 'secondary' | 'danger' | 'gold' | 'bronze';
   size?: 'sm' | 'md' | 'lg';
   children: React.ReactNode;
 }
@@ -18,7 +18,9 @@ export function Button({
   const variantClasses = {
     primary: 'btn-primary',
     secondary: 'btn-secondary',
-    danger: 'btn-danger'
+    danger: 'btn-danger',
+    gold: 'btn-gold',
+    bronze: 'btn-bronze'
   };
   
   const sizeClasses = {

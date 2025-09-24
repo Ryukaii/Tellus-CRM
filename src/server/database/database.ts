@@ -202,6 +202,12 @@ class MongoDatabase {
     return result.deletedCount > 0;
   }
 
+  async findCustomerByCPF(cpf: string): Promise<any | null> {
+    this.ensureConnected();
+    const collection = this.getCollection('customers');
+    return await collection.findOne({ cpf });
+  }
+
   // User-specific methods
   async findUserByEmail(email: string): Promise<any | null> {
     this.ensureConnected();

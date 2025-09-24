@@ -27,11 +27,11 @@ function AppRoutes() {
         <Route path="/*" element={
           <div className="flex items-center justify-center min-h-96">
             <div className="text-center">
-              <h1 className="text-4xl font-bold text-gray-900 mb-4">404</h1>
-              <p className="text-gray-600 mb-4">Página não encontrada</p>
+              <h1 className="text-4xl font-bold text-tellus-charcoal-900 mb-4">404</h1>
+              <p className="text-tellus-charcoal-600 mb-4">Página não encontrada</p>
               <a 
                 href="/" 
-                className="text-blue-600 hover:text-blue-700"
+                className="text-tellus-primary hover:text-tellus-gold-600 font-medium transition-colors"
               >
                 Voltar ao Início
               </a>

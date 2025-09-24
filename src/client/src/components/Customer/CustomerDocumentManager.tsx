@@ -224,8 +224,8 @@ export const CustomerDocumentManager: React.FC<CustomerDocumentManagerProps> = (
     <div className={`space-y-4 ${className}`}>
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-        <h3 className="text-lg font-semibold text-gray-900 flex items-center">
-          <FileText className="w-5 h-5 mr-2 text-orange-500" />
+        <h3 className="text-lg font-semibold text-gray-900 flex items-center dark:text-dark-text">
+          <FileText className="w-5 h-5 mr-2 text-orange-500 dark:text-dark-accent" />
           Documentos ({documents.length})
         </h3>
         
@@ -244,14 +244,14 @@ export const CustomerDocumentManager: React.FC<CustomerDocumentManagerProps> = (
 
       {/* Configuração do Supabase */}
       {!isSupabaseConfigured() && (
-        <div className="p-3 bg-amber-50 border border-amber-200 rounded-md">
+        <div className="p-3 bg-amber-50 border border-amber-200 rounded-md dark:bg-amber-900/20 dark:border-amber-800">
           <div className="flex">
-            <AlertCircle className="w-5 h-5 text-amber-400 mr-3" />
+            <AlertCircle className="w-5 h-5 text-amber-400 mr-3 dark:text-amber-300" />
             <div>
-              <h4 className="text-sm font-medium text-amber-800">
+              <h4 className="text-sm font-medium text-amber-800 dark:text-amber-200">
                 Supabase não configurado
               </h4>
-              <p className="mt-1 text-sm text-amber-700">
+              <p className="mt-1 text-sm text-amber-700 dark:text-amber-300">
                 Para upload de documentos em nuvem, configure as variáveis VITE_SUPABASE_URL e VITE_SUPABASE_ANON_KEY.
                 Atualmente usando armazenamento local temporário.
               </p>
@@ -262,12 +262,12 @@ export const CustomerDocumentManager: React.FC<CustomerDocumentManagerProps> = (
 
       {/* Error Message */}
       {error && (
-        <div className="p-4 bg-red-50 border border-red-200 rounded-md">
+        <div className="p-4 bg-red-50 border border-red-200 rounded-md dark:bg-red-900/20 dark:border-red-800">
           <div className="flex">
-            <AlertCircle className="w-5 h-5 text-red-400 mr-3" />
+            <AlertCircle className="w-5 h-5 text-red-400 mr-3 dark:text-red-300" />
             <div>
-              <h3 className="text-sm font-medium text-red-800">Erro</h3>
-              <p className="mt-1 text-sm text-red-700">{error}</p>
+              <h3 className="text-sm font-medium text-red-800 dark:text-red-200">Erro</h3>
+              <p className="mt-1 text-sm text-red-700 dark:text-red-300">{error}</p>
             </div>
           </div>
         </div>
@@ -275,12 +275,12 @@ export const CustomerDocumentManager: React.FC<CustomerDocumentManagerProps> = (
 
       {/* Upload Area */}
       {showUpload && !readOnly && (
-        <div className="border border-gray-200 rounded-lg p-4 bg-gray-50">
+        <div className="border border-gray-200 rounded-lg p-4 bg-gray-50 dark:border-dark-border dark:bg-dark-surfaceLight">
           <div className="flex items-center justify-between mb-4">
-            <h4 className="text-sm font-medium text-gray-900">Adicionar Novos Documentos</h4>
+            <h4 className="text-sm font-medium text-gray-900 dark:text-dark-text">Adicionar Novos Documentos</h4>
             <button
               onClick={() => setShowUpload(false)}
-              className="text-gray-400 hover:text-gray-600 transition-colors"
+              className="text-gray-400 hover:text-gray-600 transition-colors dark:text-dark-textMuted dark:hover:text-dark-text"
             >
               <X className="w-4 h-4" />
             </button>
@@ -309,7 +309,7 @@ export const CustomerDocumentManager: React.FC<CustomerDocumentManagerProps> = (
 
       {/* Documents List */}
       {documents.length === 0 ? (
-        <div className="text-center py-8 text-gray-500">
+        <div className="text-center py-8 text-gray-500 dark:text-dark-textMuted">
           <FileText className="w-12 h-12 mx-auto mb-2 opacity-50" />
           <p>Nenhum documento encontrado</p>
           {!readOnly && (
@@ -319,7 +319,7 @@ export const CustomerDocumentManager: React.FC<CustomerDocumentManagerProps> = (
       ) : (
         <div className="space-y-3 max-w-full overflow-hidden">
           {documents.map((document) => (
-            <div key={document.id} className="bg-white border border-gray-200 rounded-lg p-3 shadow-sm hover:shadow-md transition-shadow">
+            <div key={document.id} className="bg-white border border-gray-200 rounded-lg p-3 shadow-sm hover:shadow-md transition-shadow dark:bg-dark-card dark:border-dark-border dark:hover:shadow-lg">
               <div className="space-y-3">
                 {/* Header com informações do arquivo */}
                 <div className="flex items-start space-x-3">
@@ -327,10 +327,10 @@ export const CustomerDocumentManager: React.FC<CustomerDocumentManagerProps> = (
                     {getFileIcon(document.fileType)}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <h4 className="text-sm font-medium text-gray-900 truncate" title={document.fileName}>
+                    <h4 className="text-sm font-medium text-gray-900 truncate dark:text-dark-text" title={document.fileName}>
                       {document.fileName}
                     </h4>
-                    <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-gray-500 mt-1">
+                    <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-gray-500 mt-1 dark:text-dark-textMuted">
                       <span>{document.fileType}</span>
                       <span>•</span>
                       <span>Enviado em {formatDate(document.uploadedAt)}</span>
@@ -339,8 +339,8 @@ export const CustomerDocumentManager: React.FC<CustomerDocumentManagerProps> = (
                 </div>
 
                 {/* Botões de ação */}
-                <div className="flex items-center justify-end space-x-2 pt-2 border-t border-gray-100">
-                  {uploading && <Loader2 className="w-4 h-4 animate-spin text-blue-500 mr-2" />}
+                <div className="flex items-center justify-end space-x-2 pt-2 border-t border-gray-100 dark:border-dark-border">
+                  {uploading && <Loader2 className="w-4 h-4 animate-spin text-blue-500 mr-2 dark:text-blue-400" />}
                   
                   <button
                     onClick={async () => {
@@ -354,7 +354,7 @@ export const CustomerDocumentManager: React.FC<CustomerDocumentManagerProps> = (
                         console.error('Erro ao abrir documento:', err);
                       }
                     }}
-                    className="inline-flex items-center space-x-1 px-2.5 py-1.5 text-xs font-medium text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded-md transition-colors"
+                    className="inline-flex items-center space-x-1 px-2.5 py-1.5 text-xs font-medium text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded-md transition-colors dark:text-blue-400 dark:hover:text-blue-300 dark:hover:bg-blue-900/20"
                     title="Visualizar documento"
                   >
                     <Eye className="w-3.5 h-3.5" />
@@ -370,7 +370,7 @@ export const CustomerDocumentManager: React.FC<CustomerDocumentManagerProps> = (
                       link.click();
                       document.body.removeChild(link);
                     }}
-                    className="inline-flex items-center space-x-1 px-2.5 py-1.5 text-xs font-medium text-green-600 hover:text-green-700 hover:bg-green-50 rounded-md transition-colors"
+                    className="inline-flex items-center space-x-1 px-2.5 py-1.5 text-xs font-medium text-green-600 hover:text-green-700 hover:bg-green-50 rounded-md transition-colors dark:text-green-400 dark:hover:text-green-300 dark:hover:bg-green-900/20"
                     title="Baixar documento"
                   >
                     <Download className="w-3.5 h-3.5" />
@@ -381,7 +381,7 @@ export const CustomerDocumentManager: React.FC<CustomerDocumentManagerProps> = (
                     <button
                       onClick={() => handleRemoveDocument(document)}
                       disabled={uploading}
-                      className="inline-flex items-center space-x-1 px-2.5 py-1.5 text-xs font-medium text-red-600 hover:text-red-700 hover:bg-red-50 rounded-md transition-colors disabled:opacity-50"
+                      className="inline-flex items-center space-x-1 px-2.5 py-1.5 text-xs font-medium text-red-600 hover:text-red-700 hover:bg-red-50 rounded-md transition-colors disabled:opacity-50 dark:text-red-400 dark:hover:text-red-300 dark:hover:bg-red-900/20"
                       title="Remover documento"
                     >
                       <Trash2 className="w-3.5 h-3.5" />
@@ -404,26 +404,26 @@ export const CustomerDocumentManager: React.FC<CustomerDocumentManagerProps> = (
       >
         <div className="space-y-4">
           <div className="flex items-start space-x-3">
-            <div className="w-10 h-10 bg-red-100 rounded-full flex items-center justify-center flex-shrink-0">
-              <Trash2 className="w-5 h-5 text-red-600" />
+            <div className="w-10 h-10 bg-red-100 rounded-full flex items-center justify-center flex-shrink-0 dark:bg-red-900/20">
+              <Trash2 className="w-5 h-5 text-red-600 dark:text-red-400" />
             </div>
             <div className="flex-1">
-              <h3 className="text-lg font-medium text-gray-900">
+              <h3 className="text-lg font-medium text-gray-900 dark:text-dark-text">
                 Remover documento
               </h3>
-              <p className="text-sm text-gray-600 mt-1">
+              <p className="text-sm text-gray-600 mt-1 dark:text-dark-textSecondary">
                 Tem certeza que deseja remover o documento{' '}
-                <span className="font-medium text-gray-900">
+                <span className="font-medium text-gray-900 dark:text-dark-text">
                   "{documentToDelete?.fileName}"
                 </span>?
               </p>
-              <p className="text-xs text-red-600 mt-2">
+              <p className="text-xs text-red-600 mt-2 dark:text-red-400">
                 ⚠️ Esta ação não pode ser desfeita. O arquivo será removido permanentemente.
               </p>
             </div>
           </div>
 
-          <div className="flex justify-end space-x-3 pt-4 border-t">
+          <div className="flex justify-end space-x-3 pt-4 border-t dark:border-dark-border">
             <Button
               variant="outline"
               onClick={cancelRemoveDocument}

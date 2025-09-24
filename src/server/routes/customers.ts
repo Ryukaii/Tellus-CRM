@@ -6,8 +6,14 @@ import { authenticateToken } from '../middleware/auth.js';
 
 const router = Router();
 
-// Apply authentication middleware to all routes
-router.use(authenticateToken);
+// Apply authentication middleware to all routes except public CPF check
+router.use((req, res, next) => {
+  // Allow public access to CPF check endpoints
+  if (req.path === '/check-cpf' || req.path.startsWith('/by-cpf/') || req.path === '/add-process') {
+    return next();
+  }
+  return authenticateToken(req, res, next);
+});
 
 // GET /api/customers - Listar clientes com filtros
 router.get('/', async (req, res) => {
@@ -261,6 +267,124 @@ router.put('/:id/documents', async (req, res) => {
     const response: ApiResponse = {
       success: false,
       error: 'Erro ao atualizar documentos'
+    };
+    res.status(500).json(response);
+  }
+});
+
+// POST /api/customers/check-cpf - Verificar se CPF já existe
+router.post('/check-cpf', async (req, res) => {
+  try {
+    const { cpf, processType } = req.body;
+    
+    if (!cpf) {
+      const response: ApiResponse = {
+        success: false,
+        error: 'CPF é obrigatório'
+      };
+      return res.status(400).json(response);
+    }
+
+    const cleanCPF = cpf.replace(/\D/g, '');
+    
+    if (cleanCPF.length !== 11) {
+      const response: ApiResponse = {
+        success: true,
+        data: {
+          exists: false,
+          canProceed: false,
+          message: 'CPF deve ter 11 dígitos'
+        }
+      };
+      return res.json(response);
+    }
+
+    const result = await customerService.checkCPFExists(cleanCPF, processType);
+    
+    const response: ApiResponse = {
+      success: true,
+      data: result
+    };
+    
+    res.json(response);
+  } catch (error) {
+    console.error('Error checking CPF:', error);
+    const response: ApiResponse = {
+      success: false,
+      error: 'Erro ao verificar CPF'
+    };
+    res.status(500).json(response);
+  }
+});
+
+// GET /api/customers/by-cpf/:cpf - Buscar cliente por CPF
+router.get('/by-cpf/:cpf', async (req, res) => {
+  try {
+    const { cpf } = req.params;
+    const cleanCPF = cpf.replace(/\D/g, '');
+    
+    const customer = await customerService.getCustomerByCPF(cleanCPF);
+    
+    if (!customer) {
+      const response: ApiResponse = {
+        success: false,
+        error: 'Cliente não encontrado'
+      };
+      return res.status(404).json(response);
+    }
+    
+    const response: ApiResponse = {
+      success: true,
+      data: customer
+    };
+    
+    res.json(response);
+  } catch (error) {
+    console.error('Error fetching customer by CPF:', error);
+    const response: ApiResponse = {
+      success: false,
+      error: 'Erro ao buscar cliente'
+    };
+    res.status(500).json(response);
+  }
+});
+
+// POST /api/customers/add-process - Adicionar processo a cliente existente
+router.post('/add-process', async (req, res) => {
+  try {
+    const { cpf, processType } = req.body;
+    
+    if (!cpf || !processType) {
+      const response: ApiResponse = {
+        success: false,
+        error: 'CPF e tipo de processo são obrigatórios'
+      };
+      return res.status(400).json(response);
+    }
+
+    const cleanCPF = cpf.replace(/\D/g, '');
+    const result = await customerService.addProcessToCustomer(cleanCPF, processType);
+    
+    if (!result) {
+      const response: ApiResponse = {
+        success: false,
+        error: 'Cliente não encontrado'
+      };
+      return res.status(404).json(response);
+    }
+    
+    const response: ApiResponse = {
+      success: true,
+      data: result,
+      message: 'Processo adicionado com sucesso'
+    };
+    
+    res.json(response);
+  } catch (error) {
+    console.error('Error adding process to customer:', error);
+    const response: ApiResponse = {
+      success: false,
+      error: 'Erro ao adicionar processo'
     };
     res.status(500).json(response);
   }
