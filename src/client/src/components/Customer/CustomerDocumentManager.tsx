@@ -223,7 +223,7 @@ export const CustomerDocumentManager: React.FC<CustomerDocumentManagerProps> = (
   return (
     <div className={`space-y-4 ${className}`}>
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <h3 className="text-lg font-semibold text-gray-900 flex items-center">
           <FileText className="w-5 h-5 mr-2 text-orange-500" />
           Documentos ({documents.length})
@@ -232,11 +232,12 @@ export const CustomerDocumentManager: React.FC<CustomerDocumentManagerProps> = (
         {!readOnly && (
           <Button
             onClick={() => setShowUpload(true)}
-            className="flex items-center space-x-2"
+            className="flex items-center justify-center space-x-2 text-sm"
             disabled={uploading}
+            size="sm"
           >
             <Plus className="w-4 h-4" />
-            <span>Adicionar Documentos</span>
+            <span>Adicionar</span>
           </Button>
         )}
       </div>
@@ -277,13 +278,12 @@ export const CustomerDocumentManager: React.FC<CustomerDocumentManagerProps> = (
         <div className="border border-gray-200 rounded-lg p-4 bg-gray-50">
           <div className="flex items-center justify-between mb-4">
             <h4 className="text-sm font-medium text-gray-900">Adicionar Novos Documentos</h4>
-            <Button
-              variant="outline"
+            <button
               onClick={() => setShowUpload(false)}
-              className="text-gray-500"
+              className="text-gray-400 hover:text-gray-600 transition-colors"
             >
               <X className="w-4 h-4" />
-            </Button>
+            </button>
           </div>
           
           {isSupabaseConfigured() ? (
@@ -317,27 +317,30 @@ export const CustomerDocumentManager: React.FC<CustomerDocumentManagerProps> = (
           )}
         </div>
       ) : (
-        <div className="space-y-3">
+        <div className="space-y-3 max-w-full overflow-hidden">
           {documents.map((document) => (
-            <div key={document.id} className="bg-white border border-gray-200 rounded-lg p-4 shadow-sm hover:shadow-md transition-shadow">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                <div className="flex items-start space-x-3 flex-1 min-w-0">
-                  <div className="flex-shrink-0 mt-1">
+            <div key={document.id} className="bg-white border border-gray-200 rounded-lg p-3 shadow-sm hover:shadow-md transition-shadow">
+              <div className="space-y-3">
+                {/* Header com informações do arquivo */}
+                <div className="flex items-start space-x-3">
+                  <div className="flex-shrink-0 mt-0.5">
                     {getFileIcon(document.fileType)}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <h4 className="text-sm font-medium text-gray-900 break-words" title={document.fileName}>
+                    <h4 className="text-sm font-medium text-gray-900 truncate" title={document.fileName}>
                       {document.fileName}
                     </h4>
-                    <div className="flex flex-col sm:flex-row sm:items-center sm:space-x-4 space-y-1 sm:space-y-0 text-xs text-gray-500 mt-1">
-                      <span className="inline-block">{document.fileType}</span>
-                      <span className="inline-block">Enviado em {formatDate(document.uploadedAt)}</span>
+                    <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-gray-500 mt-1">
+                      <span>{document.fileType}</span>
+                      <span>•</span>
+                      <span>Enviado em {formatDate(document.uploadedAt)}</span>
                     </div>
                   </div>
                 </div>
 
-                <div className="flex items-center space-x-2 flex-shrink-0">
-                  {uploading && <Loader2 className="w-4 h-4 animate-spin text-blue-500" />}
+                {/* Botões de ação */}
+                <div className="flex items-center justify-end space-x-2 pt-2 border-t border-gray-100">
+                  {uploading && <Loader2 className="w-4 h-4 animate-spin text-blue-500 mr-2" />}
                   
                   <button
                     onClick={async () => {
@@ -351,11 +354,11 @@ export const CustomerDocumentManager: React.FC<CustomerDocumentManagerProps> = (
                         console.error('Erro ao abrir documento:', err);
                       }
                     }}
-                    className="flex items-center space-x-1 px-3 py-1.5 text-sm text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded-md transition-colors"
+                    className="inline-flex items-center space-x-1 px-2.5 py-1.5 text-xs font-medium text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded-md transition-colors"
                     title="Visualizar documento"
                   >
-                    <Eye className="w-4 h-4" />
-                    <span className="hidden sm:inline">Ver</span>
+                    <Eye className="w-3.5 h-3.5" />
+                    <span>Ver</span>
                   </button>
 
                   <button
@@ -367,22 +370,22 @@ export const CustomerDocumentManager: React.FC<CustomerDocumentManagerProps> = (
                       link.click();
                       document.body.removeChild(link);
                     }}
-                    className="flex items-center space-x-1 px-3 py-1.5 text-sm text-green-600 hover:text-green-700 hover:bg-green-50 rounded-md transition-colors"
+                    className="inline-flex items-center space-x-1 px-2.5 py-1.5 text-xs font-medium text-green-600 hover:text-green-700 hover:bg-green-50 rounded-md transition-colors"
                     title="Baixar documento"
                   >
-                    <Download className="w-4 h-4" />
-                    <span className="hidden sm:inline">Download</span>
+                    <Download className="w-3.5 h-3.5" />
+                    <span>Download</span>
                   </button>
 
                   {!readOnly && (
                     <button
                       onClick={() => handleRemoveDocument(document)}
                       disabled={uploading}
-                      className="flex items-center space-x-1 px-3 py-1.5 text-sm text-red-600 hover:text-red-700 hover:bg-red-50 rounded-md transition-colors"
+                      className="inline-flex items-center space-x-1 px-2.5 py-1.5 text-xs font-medium text-red-600 hover:text-red-700 hover:bg-red-50 rounded-md transition-colors disabled:opacity-50"
                       title="Remover documento"
                     >
-                      <Trash2 className="w-4 h-4" />
-                      <span className="hidden sm:inline">Remover</span>
+                      <Trash2 className="w-3.5 h-3.5" />
+                      <span>Remover</span>
                     </button>
                   )}
                 </div>

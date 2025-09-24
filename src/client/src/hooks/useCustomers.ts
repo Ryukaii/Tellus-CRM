@@ -20,9 +20,17 @@ export function useCustomers(filters: CustomerFilters = {}) {
     try {
       setLoading(true);
       setError(null);
+      console.log('🔄 [USE CUSTOMERS] Buscando clientes com filtros:', memoizedFilters);
       const response = await apiService.getCustomers(memoizedFilters);
+      console.log('✅ [USE CUSTOMERS] Resposta da API:', {
+        customers: response.customers?.length,
+        total: response.total,
+        page: response.page,
+        limit: response.limit
+      });
       setData(response);
     } catch (err) {
+      console.error('❌ [USE CUSTOMERS] Erro ao carregar clientes:', err);
       setError(err instanceof Error ? err.message : 'Erro ao carregar clientes');
     } finally {
       setLoading(false);

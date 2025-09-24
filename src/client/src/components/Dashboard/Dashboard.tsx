@@ -1,11 +1,38 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Users, FileText, TrendingUp, Calendar, DollarSign, CheckCircle, Clock, AlertCircle, XCircle, Plus } from 'lucide-react';
-import { useDashboardStats } from '../../hooks/useDashboardStats';
+import { useDashboard } from '../../hooks/useDashboard';
+import { Modal } from '../UI/Modal';
+import { CustomerForm } from '../Customer/CustomerForm';
+import { useCustomers } from '../../hooks/useCustomers';
 
 export function Dashboard() {
   const navigate = useNavigate();
-  const { stats, recentActivities, loading } = useDashboardStats();
+  const { data, loading, error, refetch } = useDashboard();
+  const { createCustomer } = useCustomers();
+  const [showCreateModal, setShowCreateModal] = useState(false);
+
+  const stats = data?.stats || {
+    totalCustomers: 0,
+    totalPreRegistrations: 0,
+    totalPropertyValue: 0,
+    averageMonthlyIncome: 0,
+    customerGrowth: 0,
+    preRegistrationGrowth: 0
+  };
+
+  const recentActivities = data?.recentActivities || [];
+
+  // Função para formatar moeda
+  const formatCurrency = (value: number): string => {
+    if (!value || value === 0) return 'R$ 0';
+    return new Intl.NumberFormat('pt-BR', {
+      style: 'currency',
+      currency: 'BRL',
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0
+    }).format(value);
+  };
 
   const statsCards = [
     {
@@ -25,28 +52,39 @@ export function Dashboard() {
       changeType: 'positive'
     },
     {
-      name: 'Aprovados',
-      value: stats.approvedPreRegistrations,
-      icon: CheckCircle,
+      name: 'Valor Total dos Imóveis',
+      value: formatCurrency(stats.totalPropertyValue),
+      icon: DollarSign,
       color: 'bg-emerald-500',
-      change: `${stats.conversionRate}%`,
+      change: `${stats.totalCustomers > 0 ? Math.round(stats.totalPropertyValue / stats.totalCustomers / 1000) : 0}k por cliente`,
       changeType: 'neutral'
     },
     {
-      name: 'Pendentes',
-      value: stats.pendingPreRegistrations,
-      icon: Clock,
-      color: 'bg-yellow-500',
-      change: stats.rejectedPreRegistrations > 0 ? `-${stats.rejectedPreRegistrations}` : '0',
-      changeType: stats.rejectedPreRegistrations > 0 ? 'negative' : 'neutral'
+      name: 'Renda Média Mensal',
+      value: formatCurrency(stats.averageMonthlyIncome),
+      icon: TrendingUp,
+      color: 'bg-purple-500',
+      change: `${stats.totalCustomers > 0 ? Math.round((stats.averageMonthlyIncome * stats.totalCustomers) / 1000) : 0}k renda total`,
+      changeType: 'neutral'
     }
   ];
+
+  const handleCreateCustomer = async (customerData: any) => {
+    try {
+      await createCustomer(customerData);
+      setShowCreateModal(false);
+      // Recarregar dados do dashboard após criar cliente
+      refetch();
+    } catch (error) {
+      console.error('Erro ao criar cliente:', error);
+      alert('Erro ao criar cliente');
+    }
+  };
 
   const handleQuickAction = (action: string) => {
     switch (action) {
       case 'new-customer':
-        // Aqui você pode abrir um modal ou navegar para uma página de criação
-        console.log('Abrir modal de novo cliente');
+        setShowCreateModal(true);
         break;
       case 'pre-registrations':
         navigate('/pre-registrations');
@@ -73,11 +111,74 @@ export function Dashboard() {
     }
   };
 
+  // Loading state
+  if (loading) {
+    return (
+      <div className="space-y-6">
+        <div>
+          <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
+          <p className="mt-2 text-gray-600">Carregando dados...</p>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          {[...Array(4)].map((_, i) => (
+            <div key={i} className="bg-white rounded-lg shadow-sm border p-6 animate-pulse">
+              <div className="h-4 bg-gray-200 rounded w-3/4 mb-2"></div>
+              <div className="h-8 bg-gray-200 rounded w-1/2 mb-2"></div>
+              <div className="h-3 bg-gray-200 rounded w-2/3"></div>
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  // Error state
+  if (error) {
+    return (
+      <div className="space-y-6">
+        <div>
+          <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
+          <p className="mt-2 text-gray-600">Visão geral do seu CRM Tellures</p>
+        </div>
+        <div className="bg-red-50 border border-red-200 rounded-lg p-6">
+          <div className="flex items-center">
+            <AlertCircle className="w-5 h-5 text-red-400 mr-3" />
+            <div>
+              <h3 className="text-sm font-medium text-red-800">Erro ao carregar dashboard</h3>
+              <p className="mt-1 text-sm text-red-700">{error}</p>
+              <button
+                onClick={refetch}
+                className="mt-3 text-sm text-red-600 hover:text-red-500 underline"
+              >
+                Tentar novamente
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
+      {/* Welcome Banner */}
+      <div className="bg-gradient-to-r from-tellus-primary to-blue-600 rounded-lg shadow-sm p-6 text-white">
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold">Bem-vindo ao Tellures CRM</h1>
+            <p className="text-blue-100 mt-1">
+              Gerencie seus clientes e leads de forma eficiente
+            </p>
+          </div>
+          <div className="hidden sm:block">
+            <Calendar className="w-12 h-12 text-blue-200" />
+          </div>
+        </div>
+      </div>
+
       {/* Header */}
       <div>
-        <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
+        <h2 className="text-2xl font-bold text-gray-900">Dashboard</h2>
         <p className="mt-2 text-gray-600">
           Visão geral do seu CRM Tellures
         </p>
@@ -106,7 +207,7 @@ export function Dashboard() {
                 {stat.change}
               </span>
               <span className="text-sm text-gray-500 ml-2">
-                {stat.changeType === 'neutral' ? 'taxa de conversão' : 'vs mês anterior'}
+                {stat.changeType === 'neutral' ? '' : 'vs mês anterior'}
               </span>
             </div>
           </div>
@@ -200,14 +301,16 @@ export function Dashboard() {
               
               <button 
                 onClick={() => handleQuickAction('reports')}
-                className="w-full flex items-center space-x-3 p-3 text-left rounded-lg hover:bg-gray-50 transition-colors"
+                disabled
+                className="w-full flex items-center space-x-3 p-3 text-left rounded-lg bg-gray-50 cursor-not-allowed opacity-60"
+                title="Funcionalidade em desenvolvimento"
               >
-                <div className="bg-purple-500 rounded-lg p-2">
+                <div className="bg-gray-400 rounded-lg p-2">
                   <TrendingUp className="w-5 h-5 text-white" />
                 </div>
                 <div>
-                  <p className="text-sm font-medium text-gray-900">Relatórios</p>
-                  <p className="text-xs text-gray-500">Visualizar métricas e dados</p>
+                  <p className="text-sm font-medium text-gray-500">Relatórios</p>
+                  <p className="text-xs text-gray-400">🚧 Em desenvolvimento</p>
                 </div>
               </button>
             </div>
@@ -215,20 +318,20 @@ export function Dashboard() {
         </div>
       </div>
 
-      {/* Bottom Info */}
-      <div className="bg-gradient-to-r from-tellus-primary to-blue-600 rounded-lg shadow-sm p-6 text-white">
-        <div className="flex items-center justify-between">
-          <div>
-            <h3 className="text-lg font-semibold">Bem-vindo ao Tellures CRM</h3>
-            <p className="text-blue-100 mt-1">
-              Gerencie seus clientes e leads de forma eficiente
-            </p>
-          </div>
-          <div className="hidden sm:block">
-            <Calendar className="w-12 h-12 text-blue-200" />
-          </div>
-        </div>
-      </div>
+
+      {/* Modal de Criação de Cliente */}
+      <Modal
+        isOpen={showCreateModal}
+        onClose={() => setShowCreateModal(false)}
+        title="Novo Cliente"
+        size="lg"
+      >
+        <CustomerForm
+          onSubmit={handleCreateCustomer}
+          onCancel={() => setShowCreateModal(false)}
+          loading={loading}
+        />
+      </Modal>
     </div>
   );
 }

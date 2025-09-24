@@ -64,6 +64,7 @@ export function StateSelect({
         onChange={(e) => onChange(e.target.value)}
         disabled={disabled}
         className={`input ${disabled ? 'bg-gray-100 cursor-not-allowed' : ''} ${error ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : ''}`}
+        data-error={error ? 'true' : 'false'}
       >
         <option value="">{placeholder}</option>
         {ESTADOS_BRASILEIROS.map((estado) => (

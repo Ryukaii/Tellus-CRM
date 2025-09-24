@@ -131,62 +131,86 @@ export const CustomerListView: React.FC<CustomerListViewProps> = ({
 
   return (
     <div className="space-y-6">
-      {/* Header com Filtros */}
-      <div className="bg-white rounded-lg border p-4 sm:p-6">
-        <div className="space-y-4">
-          <div>
-            <h1 className="text-xl sm:text-2xl font-bold text-gray-900">Clientes</h1>
-            <p className="text-sm sm:text-base text-gray-600">
-              {filteredCustomers.length} cliente{filteredCustomers.length !== 1 ? 's' : ''} encontrado{filteredCustomers.length !== 1 ? 's' : ''}
-            </p>
+      {/* Filtros */}
+      <div className="bg-white rounded-lg border border-gray-200 shadow-sm">
+        <div className="p-6">
+          {/* Header com contador */}
+          <div className="flex items-center justify-between mb-6">
+            <div className="flex items-center space-x-3">
+              <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
+                <Search className="w-4 h-4 text-blue-600" />
+              </div>
+              <div>
+                <h3 className="text-lg font-semibold text-gray-900">Filtros e Busca</h3>
+                <p className="text-sm text-gray-500">
+                  {filteredCustomers.length} cliente{filteredCustomers.length !== 1 ? 's' : ''} encontrado{filteredCustomers.length !== 1 ? 's' : ''}
+                </p>
+              </div>
+            </div>
+            
+            {/* Botão Atualizar */}
+            {onRefresh && (
+              <Button 
+                onClick={onRefresh} 
+                variant="outline" 
+                size="sm"
+                className="flex items-center space-x-2"
+              >
+                <Filter className="w-4 h-4" />
+                <span>Atualizar</span>
+              </Button>
+            )}
           </div>
           
-          {/* Filtros - Mobile First */}
-          <div className="space-y-3">
-            {/* Busca - Full width on mobile */}
+          {/* Filtros */}
+          <div className="space-y-4">
+            {/* Busca */}
             <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
               <Input
                 type="text"
-                placeholder="Buscar clientes..."
+                placeholder="Buscar por nome, email, CPF ou telefone..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10 w-full sm:w-64"
+                className="pl-12 h-12 text-base border-gray-300 focus:border-blue-500 focus:ring-blue-500"
               />
             </div>
 
-            {/* Filtros em linha no mobile */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+            {/* Filtros em linha */}
+            <div className="flex flex-col sm:flex-row gap-4">
               {/* Filtro de Status */}
-              <select
-                value={statusFilter}
-                onChange={(e) => setStatusFilter(e.target.value)}
-                className="px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
-              >
-                <option value="all">Todos os status</option>
-                <option value="ativo">Ativo</option>
-                <option value="inativo">Inativo</option>
-                <option value="pendente">Pendente</option>
-                <option value="suspenso">Suspenso</option>
-              </select>
+              <div className="flex-1">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Status
+                </label>
+                <select
+                  value={statusFilter}
+                  onChange={(e) => setStatusFilter(e.target.value)}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm bg-white"
+                >
+                  <option value="all">Todos os status</option>
+                  <option value="ativo">Ativo</option>
+                  <option value="inativo">Inativo</option>
+                  <option value="pendente">Pendente</option>
+                  <option value="suspenso">Suspenso</option>
+                </select>
+              </div>
 
               {/* Ordenação */}
-              <select
-                value={sortBy}
-                onChange={(e) => setSortBy(e.target.value)}
-                className="px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
-              >
-                <option value="name">Nome</option>
-                <option value="createdAt">Data de cadastro</option>
-                <option value="status">Status</option>
-              </select>
-
-              {/* Botão Atualizar */}
-              {onRefresh && (
-                <Button onClick={onRefresh} variant="outline" className="w-full sm:w-auto">
-                  Atualizar
-                </Button>
-              )}
+              <div className="flex-1">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Ordenar por
+                </label>
+                <select
+                  value={sortBy}
+                  onChange={(e) => setSortBy(e.target.value)}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm bg-white"
+                >
+                  <option value="name">Nome</option>
+                  <option value="createdAt">Data de cadastro</option>
+                  <option value="status">Status</option>
+                </select>
+              </div>
             </div>
           </div>
         </div>

@@ -63,6 +63,12 @@ class ApiService {
   }
 
   async updateCustomer(id: string, customer: Partial<Customer>): Promise<Customer> {
+    console.log('🔄 [API SERVICE] Atualizando cliente:', {
+      id,
+      url: `/customers/${id}`,
+      data: customer
+    });
+    
     return this.request<Customer>(`/customers/${id}`, {
       method: 'PUT',
       body: JSON.stringify(customer),
@@ -77,6 +83,37 @@ class ApiService {
 
   async healthCheck(): Promise<{ message: string; timestamp: string }> {
     return this.request<{ message: string; timestamp: string }>('/health');
+  }
+
+  // Dashboard endpoint
+  async getDashboardData(): Promise<{
+    stats: {
+      totalCustomers: number;
+      totalPreRegistrations: number;
+      totalPropertyValue: number;
+      averageMonthlyIncome: number;
+      customerGrowth: number;
+      preRegistrationGrowth: number;
+    };
+    recentActivities: Array<{
+      id: string;
+      type: 'customer' | 'pre-registration';
+      title: string;
+      description: string;
+      time: string;
+      status?: string;
+      icon: string;
+      color: string;
+    }>;
+  }> {
+    console.log('🔄 [API SERVICE] Buscando dados do dashboard');
+    const result = await this.request('/dashboard');
+    console.log('✅ [API SERVICE] Dados do dashboard recebidos:', {
+      totalCustomers: result.stats.totalCustomers,
+      totalPreRegistrations: result.stats.totalPreRegistrations,
+      recentActivities: result.recentActivities.length
+    });
+    return result;
   }
 }
 

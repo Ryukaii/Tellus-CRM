@@ -7,6 +7,12 @@ export function useDashboardStats() {
   const { preRegistrations, loading: preRegistrationsLoading } = usePreRegistrations();
 
   const stats = useMemo(() => {
+    console.log('📊 [DASHBOARD STATS] Dados recebidos:', {
+      customers: customers,
+      customersTotal: customers?.total,
+      preRegistrations: preRegistrations?.length
+    });
+
     const totalCustomers = customers?.total || 0;
     const totalPreRegistrations = preRegistrations?.length || 0;
     

@@ -1,19 +1,48 @@
 import React, { useState } from 'react';
-import { Customer } from '../../../../shared/types/customer';
+import { Customer, CustomerUpdateSchema } from '../../../../shared/types/customer';
 import { Button } from '../UI/Button';
 import { Input } from '../UI/Input';
 import { LoadingSpinner } from '../UI/LoadingSpinner';
 import { StateSelect } from '../UI/StateSelect';
-import { Eye, EyeOff } from 'lucide-react';
+import { LocalDocumentUpload } from './LocalDocumentUpload';
+import { DocumentUpload } from '../UI/DocumentUpload';
+import { Eye, EyeOff, AlertCircle } from 'lucide-react';
+
+interface LocalDocument {
+  id: string;
+  fileName: string;
+  fileSize: number;
+  fileType: string;
+  documentType: string;
+  uploadedAt: Date;
+  url: string;
+}
+
+// Função para verificar se o Supabase está configurado
+const isSupabaseConfigured = () => {
+  const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+  const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+  
+  return supabaseUrl && 
+         supabaseUrl !== 'https://your-project.supabase.co' && 
+         supabaseUrl.includes('supabase.co') &&
+         supabaseKey && 
+         supabaseKey !== 'your-anon-key' &&
+         supabaseKey.length > 50;
+};
 
 interface CustomerFormProps {
   customer?: Customer;
   onSubmit: (customer: Omit<Customer, 'id' | 'createdAt' | 'updatedAt'>) => Promise<boolean>;
   onCancel: () => void;
   loading?: boolean;
+  showDocuments?: boolean; // Nova prop para controlar se deve mostrar a seção de documentos
 }
 
-export function CustomerForm({ customer, onSubmit, onCancel, loading = false }: CustomerFormProps) {
+export function CustomerForm({ customer, onSubmit, onCancel, loading = false, showDocuments = true }: CustomerFormProps) {
+  const renderId = Math.random().toString(36).substr(2, 9);
+  console.log(`🔍 CustomerForm render [${renderId}] - showDocuments:`, showDocuments, 'type:', typeof showDocuments);
+  
   const [formData, setFormData] = useState({
     name: customer?.name || '',
     email: customer?.email || '',
@@ -47,6 +76,7 @@ export function CustomerForm({ customer, onSubmit, onCancel, loading = false }: 
 
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [showGovPassword, setShowGovPassword] = useState(false);
+  const [uploadedDocuments, setUploadedDocuments] = useState<any[]>(customer?.uploadedDocuments || []);
 
   const handleChange = (field: string, value: string | number) => {
     if (field.startsWith('address.')) {
@@ -74,37 +104,55 @@ export function CustomerForm({ customer, onSubmit, onCancel, loading = false }: 
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
 
-    if (!formData.name.trim()) newErrors.name = 'Nome é obrigatório';
-    if (!formData.email.trim()) newErrors.email = 'Email é obrigatório';
-    if (!formData.phone.trim()) newErrors.phone = 'Telefone é obrigatório';
-    if (!formData.cpf.trim()) newErrors.cpf = 'CPF é obrigatório';
-    if (!formData.birthDate) newErrors.birthDate = 'Data de nascimento é obrigatória';
-    if (!formData.address.street.trim()) newErrors['address.street'] = 'Rua é obrigatória';
-    if (!formData.address.number.trim()) newErrors['address.number'] = 'Número é obrigatório';
-    if (!formData.address.neighborhood.trim()) newErrors['address.neighborhood'] = 'Bairro é obrigatório';
-    if (!formData.address.city.trim()) newErrors['address.city'] = 'Cidade é obrigatória';
-    if (!formData.address.state.trim()) newErrors['address.state'] = 'Estado é obrigatório';
-    if (!formData.address.zipCode.trim()) newErrors['address.zipCode'] = 'CEP é obrigatório';
-
-    // Email validation
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (formData.email && !emailRegex.test(formData.email)) {
-      newErrors.email = 'Email inválido';
+    // Preparar dados para validação (mesmo processo do handleSubmit)
+    let birthDate = formData.birthDate;
+    if (birthDate && birthDate.includes('/')) {
+      const [day, month, year] = birthDate.split('/');
+      birthDate = `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
     }
 
-    // CPF validation (basic)
-    if (formData.cpf && !/^\d{11}$/.test(formData.cpf.replace(/\D/g, ''))) {
-      newErrors.cpf = 'CPF deve ter 11 dígitos';
-    }
+    const dataToValidate = {
+      ...formData,
+      cpf: formData.cpf.replace(/\D/g, ''),
+      phone: formData.phone.replace(/\D/g, ''),
+      birthDate: birthDate || undefined,
+      address: {
+        ...formData.address,
+        zipCode: formData.address.zipCode.replace(/\D/g, '')
+      },
+      monthlyIncome: formData.monthlyIncome || undefined,
+      propertyValue: formData.propertyValue || undefined,
+      govPassword: formData.govPassword && formData.govPassword.trim() !== '' ? formData.govPassword : undefined
+    };
 
-    // CEP validation
-    if (formData.address.zipCode && !/^\d{8}$/.test(formData.address.zipCode.replace(/\D/g, ''))) {
-      newErrors['address.zipCode'] = 'CEP deve ter 8 dígitos';
-    }
+    // Remover campos vazios
+    Object.keys(dataToValidate).forEach(key => {
+      if (dataToValidate[key] === undefined || dataToValidate[key] === '') {
+        delete dataToValidate[key];
+      }
+    });
 
-    // RG validation (basic)
-    if (formData.rg && formData.rg.length < 5) {
-      newErrors.rg = 'RG deve ter pelo menos 5 caracteres';
+    // Validar usando o schema Zod
+    const validationResult = CustomerUpdateSchema.safeParse(dataToValidate);
+
+    if (!validationResult.success) {
+      // Converter erros do Zod para o formato esperado
+      validationResult.error.errors.forEach(error => {
+        const fieldPath = error.path.join('.');
+        newErrors[fieldPath] = error.message;
+      });
+
+      
+      // Rolar até o primeiro campo com erro após um pequeno delay
+      setTimeout(() => {
+        const firstErrorField = document.querySelector('[data-error="true"]');
+        if (firstErrorField) {
+          firstErrorField.scrollIntoView({ 
+            behavior: 'smooth', 
+            block: 'center' 
+          });
+        }
+      }, 100);
     }
 
     setErrors(newErrors);
@@ -116,17 +164,37 @@ export function CustomerForm({ customer, onSubmit, onCancel, loading = false }: 
     
     if (!validateForm()) return;
 
+    // Converter data para formato YYYY-MM-DD se necessário
+    let birthDate = formData.birthDate;
+    if (birthDate && birthDate.includes('/')) {
+      // Converter DD/MM/YYYY para YYYY-MM-DD
+      const [day, month, year] = birthDate.split('/');
+      birthDate = `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
+    }
+
     const customerData = {
       ...formData,
       cpf: formData.cpf.replace(/\D/g, ''),
       phone: formData.phone.replace(/\D/g, ''),
+      birthDate: birthDate || undefined,
       address: {
         ...formData.address,
         zipCode: formData.address.zipCode.replace(/\D/g, '')
       },
       monthlyIncome: formData.monthlyIncome || undefined,
-      propertyValue: formData.propertyValue || undefined
+      propertyValue: formData.propertyValue || undefined,
+      uploadedDocuments: uploadedDocuments,
+      // Remover govPassword se estiver vazio para evitar erro de validação
+      govPassword: formData.govPassword && formData.govPassword.trim() !== '' ? formData.govPassword : undefined
     };
+
+    // Remover campos undefined/vazios para evitar problemas de validação
+    Object.keys(customerData).forEach(key => {
+      if (customerData[key] === undefined || customerData[key] === '') {
+        delete customerData[key];
+      }
+    });
+
 
     const success = await onSubmit(customerData);
     if (success) {
@@ -167,6 +235,49 @@ export function CustomerForm({ customer, onSubmit, onCancel, loading = false }: 
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
+      {/* Alerta de erros de validação */}
+      {Object.keys(errors).length > 0 && (
+        <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+          <div className="flex items-start">
+            <AlertCircle className="w-5 h-5 text-red-400 mt-0.5 mr-3 flex-shrink-0" />
+            <div className="flex-1">
+              <h3 className="text-sm font-medium text-red-800 mb-2">
+                Corrija os seguintes campos para continuar:
+              </h3>
+              <ul className="text-sm text-red-700 space-y-1">
+                {Object.entries(errors).map(([field, error]) => {
+                  // Traduzir nomes de campos para português
+                  const fieldNames: Record<string, string> = {
+                    'name': 'Nome',
+                    'email': 'Email',
+                    'phone': 'Telefone',
+                    'cpf': 'CPF',
+                    'rg': 'RG',
+                    'birthDate': 'Data de nascimento',
+                    'address.street': 'Rua',
+                    'address.number': 'Número',
+                    'address.neighborhood': 'Bairro',
+                    'address.city': 'Cidade',
+                    'address.state': 'Estado',
+                    'address.zipCode': 'CEP',
+                    'govPassword': 'Senha Gov.br'
+                  };
+                  
+                  const fieldName = fieldNames[field] || field;
+                  
+                  return (
+                    <li key={field} className="flex">
+                      <span className="font-medium">{fieldName}:</span>
+                      <span className="ml-1">{error}</span>
+                    </li>
+                  );
+                })}
+              </ul>
+            </div>
+          </div>
+        </div>
+      )}
+
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
         <div className="sm:col-span-2">
           <Input
@@ -428,6 +539,32 @@ export function CustomerForm({ customer, onSubmit, onCancel, loading = false }: 
           </div>
         </div>
       </div>
+
+      {showDocuments && (
+        <div className="border-t pt-4 sm:pt-6">
+          <h3 className="text-base sm:text-lg font-medium text-gray-900 mb-4">Documentos</h3>
+          {isSupabaseConfigured() ? (
+            <DocumentUpload
+              sessionId={customer?.id || 'new-customer'}
+              documentType="customer_document"
+              label="Documentos do Cliente"
+              description="Adicione documentos relacionados ao cliente (RG, CPF, comprovantes, etc.)"
+              onUploadComplete={setUploadedDocuments}
+              onUploadError={(error) => console.error('Erro no upload:', error)}
+              maxFiles={10}
+              className="mb-6"
+              userCpf={formData.cpf.replace(/\D/g, '')}
+            />
+          ) : (
+            <LocalDocumentUpload
+              onUploadComplete={setUploadedDocuments}
+              onUploadError={(error) => console.error('Erro no upload:', error)}
+              maxFiles={10}
+              className="mb-6"
+            />
+          )}
+        </div>
+      )}
 
       <div className="border-t pt-4 sm:pt-6">
         <div className="space-y-1">

@@ -1,5 +1,5 @@
 import { database } from '../database/database.js';
-import { Customer, CustomerFilters, CustomerResponse } from '../../shared/types/customer.js';
+import { Customer, CustomerUpdate, CustomerFilters, CustomerResponse } from '../../shared/types/customer.js';
 
 interface MongoCustomer {
   _id?: any;
@@ -122,6 +122,10 @@ class CustomerService {
     const { search, city, state, page = 1, limit = 20 } = filters;
     const skip = (page - 1) * limit;
 
+    console.log('🔄 [CUSTOMER SERVICE] getCustomers com filtros:', {
+      search, city, state, page, limit, skip
+    });
+
     // Build MongoDB filter
     const mongoFilter: any = {};
 
@@ -141,8 +145,11 @@ class CustomerService {
       mongoFilter['address.state'] = state;
     }
 
+    console.log('🔍 [CUSTOMER SERVICE] Filtro MongoDB:', mongoFilter);
+
     // Get total count
     const total = await database.countCustomers(mongoFilter);
+    console.log('📊 [CUSTOMER SERVICE] Total de clientes encontrados:', total);
 
     // Get customers with pagination
     const mongoCustomers = await database.findCustomers(mongoFilter, {
@@ -151,39 +158,76 @@ class CustomerService {
       sort: { createdAt: -1 }
     });
 
+    console.log('📋 [CUSTOMER SERVICE] Clientes encontrados:', {
+      count: mongoCustomers.length,
+      customers: mongoCustomers.map(c => ({ _id: c._id, name: c.name }))
+    });
+
     const customers = mongoCustomers.map(customer => this.mapMongoToCustomer(customer));
 
-    return {
+    const result = {
       customers,
       total,
       page,
       limit
     };
+
+    console.log('✅ [CUSTOMER SERVICE] Resultado final:', {
+      customersCount: result.customers.length,
+      total: result.total,
+      page: result.page,
+      limit: result.limit
+    });
+
+    return result;
   }
 
   async getCustomerById(id: string): Promise<Customer | null> {
     try {
+      console.log('🔍 [CUSTOMER SERVICE] Buscando cliente por ID:', { id });
+      
       const mongoCustomer = await database.findCustomerById(id);
-      return mongoCustomer ? this.mapMongoToCustomer(mongoCustomer) : null;
+      
+      if (mongoCustomer) {
+        console.log('✅ [CUSTOMER SERVICE] Cliente encontrado no banco:', { 
+          _id: mongoCustomer._id,
+          name: mongoCustomer.name 
+        });
+        return this.mapMongoToCustomer(mongoCustomer);
+      } else {
+        console.log('❌ [CUSTOMER SERVICE] Cliente não encontrado no banco:', { id });
+        return null;
+      }
     } catch (error) {
+      console.error('❌ [CUSTOMER SERVICE] Erro ao buscar cliente:', { id, error });
       return null;
     }
   }
 
-  async updateCustomer(id: string, customerData: Partial<Customer>): Promise<Customer | null> {
+  async updateCustomer(id: string, customerData: CustomerUpdate): Promise<Customer | null> {
     try {
+      console.log('🔄 [CUSTOMER SERVICE] Buscando cliente para atualização:', { id });
+      
       const existing = await this.getCustomerById(id);
-      if (!existing) return null;
+      if (!existing) {
+        console.error('❌ [CUSTOMER SERVICE] Cliente não encontrado no banco:', { id });
+        return null;
+      }
+      
+      console.log('✅ [CUSTOMER SERVICE] Cliente encontrado:', { 
+        id: existing.id,
+        name: existing.name 
+      });
 
       // Build update data
       const updateData: any = {};
 
-      if (customerData.name) updateData.name = customerData.name;
-      if (customerData.email) updateData.email = customerData.email;
-      if (customerData.phone) updateData.phone = customerData.phone;
-      if (customerData.cpf) updateData.cpf = customerData.cpf;
+      if (customerData.name !== undefined) updateData.name = customerData.name;
+      if (customerData.email !== undefined) updateData.email = customerData.email;
+      if (customerData.phone !== undefined) updateData.phone = customerData.phone;
+      if (customerData.cpf !== undefined) updateData.cpf = customerData.cpf;
       if (customerData.rg !== undefined) updateData.rg = customerData.rg;
-      if (customerData.birthDate) updateData.birthDate = customerData.birthDate;
+      if (customerData.birthDate !== undefined) updateData.birthDate = customerData.birthDate;
       if (customerData.maritalStatus !== undefined) updateData.maritalStatus = customerData.maritalStatus;
       if (customerData.profession !== undefined) updateData.profession = customerData.profession;
       if (customerData.employmentType !== undefined) updateData.employmentType = customerData.employmentType;
@@ -196,22 +240,51 @@ class CustomerService {
       if (customerData.uploadedDocuments !== undefined) updateData.uploadedDocuments = customerData.uploadedDocuments;
       if (customerData.status !== undefined) updateData.status = customerData.status;
       if (customerData.source !== undefined) updateData.source = customerData.source;
-      if (customerData.govPassword) updateData.govPassword = customerData.govPassword;
+      if (customerData.govPassword !== undefined) updateData.govPassword = customerData.govPassword;
       if (customerData.notes !== undefined) updateData.notes = customerData.notes;
 
+      // Handle address updates - merge with existing address
       if (customerData.address) {
+        const existingAddress = existing.address || {};
         updateData.address = {
-          ...existing.address,
-          ...customerData.address
+          street: customerData.address.street !== undefined ? customerData.address.street : existingAddress.street,
+          number: customerData.address.number !== undefined ? customerData.address.number : existingAddress.number,
+          complement: customerData.address.complement !== undefined ? customerData.address.complement : existingAddress.complement,
+          neighborhood: customerData.address.neighborhood !== undefined ? customerData.address.neighborhood : existingAddress.neighborhood,
+          city: customerData.address.city !== undefined ? customerData.address.city : existingAddress.city,
+          state: customerData.address.state !== undefined ? customerData.address.state : existingAddress.state,
+          zipCode: customerData.address.zipCode !== undefined ? customerData.address.zipCode : existingAddress.zipCode
         };
       }
 
       if (Object.keys(updateData).length === 0) {
+        console.log('ℹ️ [CUSTOMER SERVICE] Nenhum campo para atualizar, retornando cliente existente');
         return existing;
       }
 
+      console.log('🔄 [CUSTOMER SERVICE] Enviando dados para database.updateCustomer:', {
+        id,
+        updateDataKeys: Object.keys(updateData)
+      });
+
       const result = await database.updateCustomer(id, updateData);
-      return result ? this.mapMongoToCustomer(result) : null;
+      
+      console.log('🔄 [CUSTOMER SERVICE] Resultado do database.updateCustomer:', {
+        hasResult: !!result,
+        resultType: typeof result
+      });
+
+      if (result) {
+        const mappedCustomer = this.mapMongoToCustomer(result);
+        console.log('✅ [CUSTOMER SERVICE] Cliente mapeado com sucesso:', {
+          id: mappedCustomer.id,
+          name: mappedCustomer.name
+        });
+        return mappedCustomer;
+      } else {
+        console.error('❌ [CUSTOMER SERVICE] database.updateCustomer retornou null/undefined');
+        return null;
+      }
     } catch (error: any) {
       if (error.code === 11000) {
         // Duplicate key error

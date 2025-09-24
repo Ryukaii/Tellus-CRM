@@ -50,15 +50,33 @@ export const CustomerEditPage: React.FC = () => {
   };
 
   const handleSubmit = async (customerData: Omit<Customer, 'id' | 'createdAt' | 'updatedAt'>) => {
-    if (!customerId) return false;
+    if (!customerId) {
+      console.error('❌ [CUSTOMER EDIT] customerId não encontrado');
+      return false;
+    }
     
     try {
       setSaving(true);
       setError(null);
       
-      await apiService.updateCustomer(customerId, customerData);
+      console.log('🔄 [CUSTOMER EDIT] Iniciando atualização:', {
+        customerId,
+        customerData: Object.keys(customerData)
+      });
+      
+      const updatedCustomer = await apiService.updateCustomer(customerId, customerData);
+      
+      console.log('✅ [CUSTOMER EDIT] Cliente atualizado:', updatedCustomer.id);
+      
+      // Atualizar o estado local com os dados atualizados
+      setCustomer(updatedCustomer);
+      
       return true;
     } catch (err) {
+      console.error('❌ [CUSTOMER EDIT] Erro ao atualizar:', {
+        customerId,
+        error: err instanceof Error ? err.message : err
+      });
       setError(err instanceof Error ? err.message : 'Erro ao atualizar cliente');
       return false;
     } finally {
@@ -144,10 +162,10 @@ export const CustomerEditPage: React.FC = () => {
         </div>
       </div>
 
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="flex flex-col xl:flex-row gap-6 xl:gap-8">
           {/* Formulário Principal */}
-          <div className="lg:col-span-2">
+          <div className="flex-1 xl:flex-[2]">
             <div className="bg-white rounded-lg shadow-sm border">
               <div className="px-6 py-4 border-b">
                 <h2 className="text-lg font-semibold text-gray-900">
@@ -174,15 +192,16 @@ export const CustomerEditPage: React.FC = () => {
                   onSubmit={handleSubmit}
                   onCancel={handleCancel}
                   loading={saving}
+                  showDocuments={false}
                 />
               </div>
             </div>
           </div>
 
           {/* Sidebar com Documentos */}
-          <div className="space-y-6">
-            <div className="bg-white rounded-lg shadow-sm border">
-              <div className="p-6">
+          <div className="w-full xl:w-96 xl:flex-shrink-0">
+            <div className="bg-white rounded-lg shadow-sm border sticky top-6">
+              <div className="p-4 sm:p-6">
                 <CustomerDocumentManager
                   customerId={customerId || ''}
                   customerCpf={customer?.cpf || ''}

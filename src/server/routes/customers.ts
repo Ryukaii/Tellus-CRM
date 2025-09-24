@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { customerService } from '../services/customerService.js';
-import { CustomerSchema } from '../../shared/types/customer.js';
+import { CustomerSchema, CustomerUpdateSchema } from '../../shared/types/customer.js';
 import { ApiResponse } from '../../shared/types/api.js';
 import { authenticateToken } from '../middleware/auth.js';
 
@@ -22,7 +22,16 @@ router.get('/', async (req, res) => {
       limit: limit ? parseInt(limit as string) : undefined
     };
 
+    console.log('🔄 [CUSTOMERS API] Buscando clientes com filtros:', filters);
+
     const result = await customerService.getCustomers(filters);
+    
+    console.log('✅ [CUSTOMERS API] Resultado:', {
+      customers: result.customers?.length,
+      total: result.total,
+      page: result.page,
+      limit: result.limit
+    });
     
     const response: ApiResponse = {
       success: true,
@@ -31,7 +40,7 @@ router.get('/', async (req, res) => {
     
     res.json(response);
   } catch (error) {
-    console.error('Error fetching customers:', error);
+    console.error('❌ [CUSTOMERS API] Erro ao buscar clientes:', error);
     const response: ApiResponse = {
       success: false,
       error: 'Erro ao buscar clientes'
@@ -120,9 +129,25 @@ router.put('/:id', async (req, res) => {
   try {
     const { id } = req.params;
     
-    const validationResult = CustomerSchema.partial().safeParse(req.body);
+    const validationResult = CustomerUpdateSchema.safeParse(req.body);
     
     if (!validationResult.success) {
+      console.error('❌ [UPDATE CUSTOMER] Dados inválidos:', {
+        customerId: id,
+        errors: validationResult.error.errors,
+        receivedData: req.body
+      });
+      
+      // Log detalhado de cada erro
+      validationResult.error.errors.forEach((error, index) => {
+        console.error(`❌ [UPDATE CUSTOMER] Erro ${index + 1}:`, {
+          path: error.path,
+          message: error.message,
+          code: error.code,
+          received: 'received' in error ? error.received : 'N/A'
+        });
+      });
+      
       const response: ApiResponse = {
         success: false,
         error: 'Dados inválidos',
@@ -131,9 +156,10 @@ router.put('/:id', async (req, res) => {
       return res.status(400).json(response);
     }
     
-    const customer = await customerService.updateCustomer(id, validationResult.data);
+    const customer = await customerService.updateCustomer(id, validationResult.data as any);
     
     if (!customer) {
+      console.error('❌ [UPDATE CUSTOMER] Cliente não encontrado:', { customerId: id });
       const response: ApiResponse = {
         success: false,
         error: 'Cliente não encontrado'
@@ -149,7 +175,10 @@ router.put('/:id', async (req, res) => {
     
     res.json(response);
   } catch (error: any) {
-    console.error('Error updating customer:', error);
+    console.error('❌ [UPDATE CUSTOMER] Erro interno:', {
+      customerId: req.params.id,
+      error: error.message
+    });
     
     let errorMessage = 'Erro ao atualizar cliente';
     if (error.message?.includes('UNIQUE constraint failed: customers.email')) {

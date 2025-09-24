@@ -17,6 +17,7 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
         <input
           ref={ref}
           className={`input ${error ? 'border-red-500 focus-visible:ring-red-500' : ''} ${className}`}
+          data-error={error ? 'true' : 'false'}
           {...props}
         />
         {error && (

@@ -9,6 +9,7 @@ import authRouter from './routes/auth.js';
 import leadsRouter from './routes/leads.js';
 import preRegistrationRouter from './routes/preRegistration.js';
 import sharingRouter from './routes/sharing.js';
+import dashboardRouter from './routes/dashboard.js';
 import { database } from './database/database.js';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -51,6 +52,7 @@ app.use('/api/customers', customersRouter);
 app.use('/api/leads', leadsRouter);
 app.use('/api/pre-registration', preRegistrationRouter);
 app.use('/api/sharing', sharingRouter);
+app.use('/api/dashboard', dashboardRouter);
 
 // Health check
 app.get('/api/health', (_req, res) => {

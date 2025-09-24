@@ -86,7 +86,49 @@ class MongoDatabase {
   async findCustomerById(id: string): Promise<any | null> {
     this.ensureConnected();
     const collection = this.getCollection('customers');
-    return await collection.findOne({ _id: new ObjectId(id) });
+    
+    console.log('🔍 [DATABASE] Buscando cliente por ID:', { 
+      id,
+      idType: typeof id,
+      idLength: id.length,
+      isValidObjectId: ObjectId.isValid(id)
+    });
+    
+    // Verificar se o ID é válido para ObjectId
+    if (!ObjectId.isValid(id)) {
+      console.error('❌ [DATABASE] ID inválido para ObjectId:', { id });
+      return null;
+    }
+    
+    try {
+      const objectId = new ObjectId(id);
+      console.log('🔍 [DATABASE] ObjectId criado:', { objectId: objectId.toString() });
+      
+      const result = await collection.findOne({ _id: objectId });
+      
+      if (result) {
+        console.log('✅ [DATABASE] Cliente encontrado:', { 
+          _id: result._id,
+          name: result.name 
+        });
+      } else {
+        console.log('❌ [DATABASE] Cliente não encontrado para ObjectId:', { 
+          id,
+          objectId: objectId.toString()
+        });
+        
+        // Vamos também tentar listar alguns documentos para debug
+        const sampleDocs = await collection.find({}).limit(3).toArray();
+        console.log('📋 [DATABASE] Primeiros 3 clientes no banco:', 
+          sampleDocs.map(doc => ({ _id: doc._id, name: doc.name }))
+        );
+      }
+      
+      return result;
+    } catch (error) {
+      console.error('❌ [DATABASE] Erro na query findCustomerById:', { id, error });
+      throw error;
+    }
   }
 
   async findCustomers(filter: any = {}, options: any = {}): Promise<any[]> {
@@ -113,18 +155,43 @@ class MongoDatabase {
     this.ensureConnected();
     const collection = this.getCollection('customers');
     
-    const result = await collection.findOneAndUpdate(
-      { _id: new ObjectId(id) },
-      { 
-        $set: { 
-          ...updateData, 
-          updatedAt: new Date() 
-        } 
-      },
-      { returnDocument: 'after' }
-    );
+    console.log('🔄 [DATABASE] Atualizando cliente:', {
+      id,
+      updateData,
+      objectId: new ObjectId(id).toString()
+    });
     
-    return result ? result.value : null;
+    try {
+      const result = await collection.findOneAndUpdate(
+        { _id: new ObjectId(id) },
+        { 
+          $set: { 
+            ...updateData, 
+            updatedAt: new Date() 
+          } 
+        },
+        { returnDocument: 'after' }
+      );
+      
+      console.log('🔄 [DATABASE] Resultado da atualização:', {
+        found: !!result,
+        value: result ? { _id: result._id, name: result.name } : null
+      });
+      
+      if (result) {
+        console.log('✅ [DATABASE] Cliente atualizado com sucesso:', {
+          _id: result._id,
+          name: result.name
+        });
+        return result;
+      } else {
+        console.error('❌ [DATABASE] findOneAndUpdate não retornou resultado');
+        return null;
+      }
+    } catch (error) {
+      console.error('❌ [DATABASE] Erro na atualização:', { id, error });
+      throw error;
+    }
   }
 
   async deleteCustomer(id: string): Promise<boolean> {
