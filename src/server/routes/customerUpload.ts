@@ -1,6 +1,6 @@
 import express from 'express';
-import { authenticateToken } from '../middleware/auth';
-import { database } from '../database/database';
+import { authenticateToken } from '../middleware/auth.js';
+import { database } from '../database/database.js';
 import { v4 as uuidv4 } from 'uuid';
 import multer from 'multer';
 
