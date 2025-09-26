@@ -468,6 +468,55 @@ class MongoDatabase {
     return result.deletedCount;
   }
 
+  // Customer Upload Links Management
+  async createCustomerUploadLink(uploadLink: any): Promise<void> {
+    if (!this.db) throw new Error('Database not connected');
+    
+    const collection = this.db.collection('customerUploadLinks');
+    await collection.insertOne(uploadLink);
+  }
+
+  async getCustomerUploadLinkById(linkId: string): Promise<any> {
+    if (!this.db) throw new Error('Database not connected');
+    
+    const collection = this.db.collection('customerUploadLinks');
+    return await collection.findOne({ id: linkId });
+  }
+
+  async incrementCustomerUploadLinkAccess(linkId: string): Promise<void> {
+    if (!this.db) throw new Error('Database not connected');
+    
+    const collection = this.db.collection('customerUploadLinks');
+    await collection.updateOne(
+      { id: linkId },
+      { $inc: { accessCount: 1 } }
+    );
+  }
+
+  async getCustomerUploadLinksByUser(userId: string, page: number = 1, limit: number = 10): Promise<any[]> {
+    if (!this.db) throw new Error('Database not connected');
+    
+    const collection = this.db.collection('customerUploadLinks');
+    const skip = (page - 1) * limit;
+    
+    return await collection
+      .find({ createdBy: userId })
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limit)
+      .toArray();
+  }
+
+  async deactivateCustomerUploadLink(linkId: string): Promise<void> {
+    if (!this.db) throw new Error('Database not connected');
+    
+    const collection = this.db.collection('customerUploadLinks');
+    await collection.updateOne(
+      { id: linkId },
+      { $set: { isActive: false } }
+    );
+  }
+
   async close(): Promise<void> {
     if (this.client) {
       await this.client.close();

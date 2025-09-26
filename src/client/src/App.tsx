@@ -9,6 +9,7 @@ import { CustomerDetailsPage } from './components/Customer/CustomerDetailsPage';
 import { CustomerEditPage } from './components/Customer/CustomerEditPage';
 import { PreRegistrationManager } from './components/PreRegistration/PreRegistrationManager';
 import { SharedCustomerView } from './components/Public/SharedCustomerView';
+import { CustomerUploadPage } from './components/Public/CustomerUploadPage';
 
 function AppRoutes() {
   return (
@@ -22,6 +23,9 @@ function AppRoutes() {
         <Route path="/customers/:customerId" element={<CustomerDetailsPage />} />
         <Route path="/customers/:customerId/edit" element={<CustomerEditPage />} />
         <Route path="/pre-registrations" element={<PreRegistrationManager />} />
+        
+        {/* Rota pública para upload de documentos */}
+        <Route path="/upload/:linkId" element={<CustomerUploadPage />} />
         
         {/* Rota 404 */}
         <Route path="/*" element={

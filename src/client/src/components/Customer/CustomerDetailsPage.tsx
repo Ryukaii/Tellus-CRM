@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { 
   ArrowLeft, User, Mail, Phone, MapPin, Building, DollarSign, 
   Calendar, Heart, FileText, Share2, Edit, Trash2, Eye,
-  AlertCircle, CheckCircle, Clock, Download, Loader2
+  AlertCircle, CheckCircle, Clock, Download, Loader2, Upload
 } from 'lucide-react';
 import { Button } from '../UI/Button';
 import { LoadingSpinner } from '../UI/LoadingSpinner';
@@ -11,6 +11,7 @@ import { Modal } from '../UI/Modal';
 import { DocumentViewer, DocumentListViewer } from '../UI/DocumentViewer';
 import { ShareCustomerModal } from './ShareCustomerModal';
 import { CustomerDocumentManager } from './CustomerDocumentManager';
+import { CustomerUploadLinkModal } from './CustomerUploadLinkModal';
 
 interface Customer {
   id: string;
@@ -62,6 +63,7 @@ export const CustomerDetailsPage: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [showShareModal, setShowShareModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [showUploadLinkModal, setShowUploadLinkModal] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [documents, setDocuments] = useState<Array<{
     id: string;
@@ -296,6 +298,15 @@ export const CustomerDetailsPage: React.FC = () => {
 
                 <Button
                   variant="outline"
+                  onClick={() => setShowUploadLinkModal(true)}
+                  className="flex items-center justify-center space-x-2 text-sm"
+                >
+                  <Upload className="w-4 h-4" />
+                  <span>Link Upload</span>
+                </Button>
+
+                <Button
+                  variant="outline"
                   onClick={handleEdit}
                   className="flex items-center justify-center space-x-2 text-sm"
                 >
@@ -348,6 +359,15 @@ export const CustomerDetailsPage: React.FC = () => {
                 >
                   <Share2 className="w-4 h-4" />
                   <span>Compartilhar</span>
+                </Button>
+
+                <Button
+                  variant="outline"
+                  onClick={() => setShowUploadLinkModal(true)}
+                  className="flex items-center space-x-2"
+                >
+                  <Upload className="w-4 h-4" />
+                  <span>Link Upload</span>
                 </Button>
 
                 <Button
@@ -689,6 +709,19 @@ export const CustomerDetailsPage: React.FC = () => {
           alert('Link de compartilhamento copiado para a área de transferência!');
         }}
       />
+
+      {/* Modal de Link de Upload */}
+      {customer && (
+        <CustomerUploadLinkModal
+          customerId={customer.id}
+          customerName={customer.name}
+          isOpen={showUploadLinkModal}
+          onClose={() => setShowUploadLinkModal(false)}
+          onLinkCreated={(link) => {
+            console.log('Link de upload criado:', link);
+          }}
+        />
+      )}
 
       {/* Modal de Confirmação de Exclusão */}
       <Modal
