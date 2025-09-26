@@ -216,7 +216,7 @@ router.post('/:linkId/upload', upload.single('file'), async (req, res) => {
 
     // Gerar ID único para o documento
     const documentId = uuidv4();
-    const fileExtension = uploadedFile.name.split('.').pop();
+    const fileExtension = uploadedFile.originalname.split('.').pop();
     const fileName = `${documentId}.${fileExtension}`;
 
     // Upload para Supabase (se configurado) ou armazenamento local
@@ -225,13 +225,12 @@ router.post('/:linkId/upload', upload.single('file'), async (req, res) => {
 
     try {
       // Tentar upload para Supabase primeiro
-      const { createSignedUrl } = await import('../services/supabaseService.js');
       const { uploadFile } = await import('../services/supabaseService.js');
       
       // Upload para Supabase
       const uploadResult = await uploadFile(uploadedFile.buffer, fileName, 'user-documents');
       
-      if (uploadResult.success) {
+      if (uploadResult.success && uploadResult.filePath && uploadResult.url) {
         filePath = uploadResult.filePath;
         fileUrl = uploadResult.url;
       } else {
@@ -258,7 +257,7 @@ router.post('/:linkId/upload', upload.single('file'), async (req, res) => {
     // Criar objeto do documento
     const newDocument = {
       id: documentId,
-      fileName: uploadedFile.name,
+      fileName: uploadedFile.originalname,
       filePath: filePath,
       fileUrl: fileUrl,
       fileType: uploadedFile.mimetype,
@@ -280,7 +279,7 @@ router.post('/:linkId/upload', upload.single('file'), async (req, res) => {
       message: 'Upload realizado com sucesso!',
       data: {
         documentId: documentId,
-        fileName: uploadedFile.name,
+        fileName: uploadedFile.originalname,
         fileSize: uploadedFile.size
       }
     });

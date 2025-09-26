@@ -4,7 +4,6 @@ import cors from 'cors';
 import helmet from 'helmet';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import multer from 'multer';
 import customersRouter from './routes/customers.js';
 import authRouter from './routes/auth.js';
 import leadsRouter from './routes/leads.js';
@@ -21,30 +20,7 @@ const __dirname = path.dirname(__filename);
 const app = express();
 const PORT = process.env.PORT || 3001;
 
-// Configurar multer para upload de arquivos
-const storage = multer.memoryStorage();
-const upload = multer({ 
-  storage: storage,
-  limits: {
-    fileSize: 50 * 1024 * 1024, // 50MB limite
-  },
-  fileFilter: (req, file, cb) => {
-    // Permitir apenas tipos específicos
-    const allowedTypes = [
-      'application/pdf',
-      'image/jpeg',
-      'image/jpg', 
-      'image/png',
-      'image/webp'
-    ];
-    
-    if (allowedTypes.includes(file.mimetype)) {
-      cb(null, true);
-    } else {
-      cb(new Error('Tipo de arquivo não permitido') as any, false);
-    }
-  }
-});
+// Multer configuration is handled in individual route files
 
 // Middleware
 app.use(helmet({
