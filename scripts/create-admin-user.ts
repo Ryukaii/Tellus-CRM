@@ -1,8 +1,15 @@
 import bcrypt from 'bcryptjs';
 import { MongoClient } from 'mongodb';
+import dotenv from 'dotenv';
 
-const MONGODB_URI = 'mongodb+srv://guilhermeryukaii:quebra2211cab@users.valzs.mongodb.net/telluscrm?retryWrites=true&w=majority&appName=users&authSource=admin&minPoolSize=0';
-const DB_NAME = 'telluscrm';
+// Carregar variáveis de ambiente
+dotenv.config();
+
+const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/tellus-crm';
+const DB_NAME = process.env.DB_NAME || 'telluscrm-dev';
+const ADMIN_EMAIL = process.env.ADMIN_EMAIL || 'admin@tellus.com';
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'admin123';
+const ADMIN_NAME = process.env.ADMIN_NAME || 'Administrador Tellure';
 
 async function createAdminUser() {
   const client = new MongoClient(MONGODB_URI);
@@ -15,7 +22,7 @@ async function createAdminUser() {
     const usersCollection = db.collection('users');
     
     // Verificar se já existe um usuário admin
-    const existingUser = await usersCollection.findOne({ email: 'admin@tellus.com' });
+    const existingUser = await usersCollection.findOne({ email: ADMIN_EMAIL });
     
     if (existingUser) {
       console.log('❌ Usuário admin já existe!');
@@ -23,12 +30,12 @@ async function createAdminUser() {
     }
     
     // Criar hash da senha
-    const hashedPassword = await bcrypt.hash('admin123', 12);
+    const hashedPassword = await bcrypt.hash(ADMIN_PASSWORD, 12);
     
     // Criar usuário admin
     const adminUser = {
-      name: 'Administrador Tellure',
-      email: 'admin@tellus.com',
+      name: ADMIN_NAME,
+      email: ADMIN_EMAIL,
       password: hashedPassword,
       role: 'admin',
       createdAt: new Date(),
@@ -39,8 +46,8 @@ async function createAdminUser() {
     
     console.log('✅ Usuário admin criado com sucesso!');
     console.log(`ID: ${result.insertedId}`);
-    console.log('📧 Email: admin@tellus.com');
-    console.log('🔒 Senha: admin123');
+    console.log(`📧 Email: ${ADMIN_EMAIL}`);
+    console.log(`🔒 Senha: ${ADMIN_PASSWORD}`);
     console.log('👤 Role: admin');
     
   } catch (error) {
