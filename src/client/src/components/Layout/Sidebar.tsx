@@ -54,7 +54,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
                 <Activity className="w-5 h-5 text-white" />
               </div>
               <div>
-                <h1 className="text-lg font-bold text-tellus-charcoal-900 dark:text-dark-text">Tellures</h1>
+                <h1 className="text-lg font-bold text-tellus-charcoal-900 dark:text-dark-text">Tellure</h1>
                 <p className="text-xs text-tellus-gold-600 dark:text-dark-accent font-medium">CRM</p>
               </div>
             </div>

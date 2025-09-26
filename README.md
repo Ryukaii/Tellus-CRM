@@ -1,6 +1,6 @@
-# Tellures CRM
+# Tellure CRM
 
-Um sistema de CRM personalizado desenvolvido para a marca Tellures, com interface moderna e campos específicos para gerenciamento de clientes.
+Um sistema de CRM personalizado desenvolvido para a marca Tellure, com interface moderna e campos específicos para gerenciamento de clientes.
 
 ## 🚀 Funcionalidades
 
@@ -41,7 +41,7 @@ Um sistema de CRM personalizado desenvolvido para a marca Tellures, com interfac
 1. **Clone o repositório:**
    ```bash
    git clone https://github.com/Ryukaii/Tellus-CRM
-   cd TelluresCrm
+   cd TellureCrm
    ```
 
 2. **Instale as dependências:**
@@ -76,7 +76,7 @@ Um sistema de CRM personalizado desenvolvido para a marca Tellures, com interfac
 ## 🏗️ Estrutura do Projeto
 
 ```
-TelluresCrm/
+TellureCrm/
 ├── src/
 │   ├── client/          # Frontend React
 │   │   ├── src/
@@ -108,7 +108,7 @@ TelluresCrm/
 
 ## 🎨 Design System
 
-### Cores da Marca Tellures
+### Cores da Marca Tellure
 - **Primary:** `#2563eb` (Azul principal)
 - **Secondary:** `#1e40af` (Azul escuro)
 - **Accent:** `#3b82f6` (Azul claro)
@@ -247,4 +247,4 @@ Este projeto está sob a licença MIT. Veja o arquivo LICENSE para mais detalhes
 
 ---
 
-Desenvolvido com ❤️ para a marca **Tellures**
+Desenvolvido com ❤️ para a marca **Tellure**

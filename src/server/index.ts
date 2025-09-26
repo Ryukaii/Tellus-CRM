@@ -60,7 +60,7 @@ app.use('/api/external', externalRouter);
 app.get('/api/health', (_req, res) => {
   res.json({ 
     success: true, 
-    message: 'Tellures CRM API is running',
+    message: 'Tellure CRM API is running',
     timestamp: new Date().toISOString()
   });
 });
@@ -138,7 +138,7 @@ async function startServer() {
     
     // Inicia o servidor
     app.listen(PORT, () => {
-      console.log(`🚀 Tellures CRM Server running on port ${PORT}`);
+      console.log(`🚀 Tellure CRM Server running on port ${PORT}`);
       console.log(`📊 API available at http://localhost:${PORT}/api`);
       console.log(`🏥 Health check at http://localhost:${PORT}/api/health`);
     });
