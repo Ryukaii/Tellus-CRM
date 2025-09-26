@@ -2,7 +2,7 @@ import React from 'react'
 import ReactDOM from 'react-dom/client'
 import App from './App.tsx'
 import PublicApp from './PublicApp.tsx'
-import { ThemeProviderWrapper } from './contexts/ThemeContext'
+import { ThemeProviderWrapper, PublicThemeProvider } from './contexts/ThemeContext'
 import { ErrorBoundary } from './components/ErrorBoundary'
 import './index.css'
 
@@ -34,17 +34,26 @@ function isPublicRoute(): boolean {
 // Detectar se estamos na rota de cadastro público
 const isPublic = isPublicRoute();
 
-// Atualizar título da página para rota pública
+// Atualizar título da página para rota pública e forçar tema light
 if (isPublic) {
   document.title = 'Tellure CRM - Pré-Cadastro Crédito Imobiliário';
+  // Forçar tema light para formulários públicos
+  document.documentElement.classList.remove('dark');
+  document.documentElement.classList.add('light');
 }
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
     <ErrorBoundary>
-      <ThemeProviderWrapper>
-        {isPublic ? <PublicApp /> : <App />}
-      </ThemeProviderWrapper>
+      {isPublic ? (
+        <PublicThemeProvider>
+          <PublicApp />
+        </PublicThemeProvider>
+      ) : (
+        <ThemeProviderWrapper>
+          <App />
+        </ThemeProviderWrapper>
+      )}
     </ErrorBoundary>
   </React.StrictMode>,
 )

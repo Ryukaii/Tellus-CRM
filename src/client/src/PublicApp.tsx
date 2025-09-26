@@ -3,7 +3,6 @@ import { LeadFormAgro } from './components/Public/LeadFormAgro';
 import { LeadFormCredito } from './components/Public/LeadFormCredito';
 import { LeadFormConsultoria } from './components/Public/LeadFormConsultoria';
 import { LeadFormCredImobil } from './components/Public/LeadFormCredImobil';
-import { ThemeToggle } from './components/UI/ThemeToggle';
 
 function PublicApp() {
   // Detectar qual formulário usar baseado na URL
@@ -27,27 +26,18 @@ function PublicApp() {
   // Se não for uma rota válida, mostrar página 404
   if (!isValidRoute) {
     return (
-      <div className="min-h-screen bg-gray-50 dark:bg-dark-background flex items-center justify-center relative">
-        {/* Botão de tema no canto superior direito */}
-        <div className="absolute top-4 right-4">
-          <ThemeToggle size="md" variant="icon" />
-        </div>
-        
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
-          <h1 className="text-4xl font-bold text-gray-900 dark:text-dark-text mb-4">404</h1>
-          <p className="text-gray-600 dark:text-dark-textSecondary mb-4">Página não encontrada</p>
+          <h1 className="text-4xl font-bold text-gray-900 mb-4">404</h1>
+          <p className="text-gray-600 mb-4">Página não encontrada</p>
         </div>
       </div>
     );
   }
   
-  // Componente wrapper para formulários públicos com botão de tema
+  // Componente wrapper para formulários públicos (sempre tema light)
   const PublicFormWrapper = ({ children }: { children: React.ReactNode }) => (
-    <div className="relative min-h-screen">
-      {/* Botão de tema no canto superior direito */}
-      <div className="absolute top-4 right-4 z-50">
-        <ThemeToggle size="md" variant="icon" />
-      </div>
+    <div className="min-h-screen">
       {children}
     </div>
   );

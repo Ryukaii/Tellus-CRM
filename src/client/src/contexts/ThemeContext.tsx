@@ -160,3 +160,24 @@ export function useThemeAnywhere() {
     return defaultThemeContext;
   }
 }
+
+// ThemeProvider específico para formulários públicos (sempre light)
+export function PublicThemeProvider({ children }: { children: React.ReactNode }) {
+  const publicThemeContext: ThemeContextType = {
+    theme: 'light',
+    toggleTheme: () => {
+      // Não fazer nada em formulários públicos
+      console.log('Theme toggle disabled in public forms');
+    },
+    setTheme: () => {
+      // Não fazer nada em formulários públicos
+      console.log('Theme set disabled in public forms');
+    }
+  };
+
+  return (
+    <ThemeContext.Provider value={publicThemeContext}>
+      {children}
+    </ThemeContext.Provider>
+  );
+}
