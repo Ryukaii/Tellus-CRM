@@ -432,6 +432,7 @@ router.get('/:linkId/download-all', async (req, res) => {
     }
 
     // Gerar URLs assinadas para todos os documentos
+    const { createSignedUrl } = await import('../services/supabaseService.js');
     const documentUrls = [];
     for (const doc of sharedDocuments) {
       const expiresIn = Math.max(3600, Math.floor((shareableLink.expiresAt.getTime() - now.getTime()) / 1000));
