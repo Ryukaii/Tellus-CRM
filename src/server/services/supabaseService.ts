@@ -108,6 +108,66 @@ export const checkFileExists = async (filePath: string): Promise<boolean> => {
 };
 
 /**
+ * Upload de arquivo para o Supabase Storage
+ */
+export const uploadFile = async (
+  fileBuffer: Buffer, 
+  fileName: string, 
+  bucket: string = STORAGE_BUCKET
+): Promise<{ success: boolean; filePath?: string; url?: string; error?: string }> => {
+  try {
+    if (!supabaseAdmin) {
+      return { 
+        success: false, 
+        error: 'Supabase não configurado no backend' 
+      };
+    }
+
+    console.log('Fazendo upload para Supabase:', fileName, 'bucket:', bucket);
+    
+    const { data, error } = await supabaseAdmin.storage
+      .from(bucket)
+      .upload(fileName, fileBuffer, {
+        contentType: 'application/octet-stream',
+        upsert: false
+      });
+    
+    if (error) {
+      console.error('Erro ao fazer upload:', error);
+      return { 
+        success: false, 
+        error: error.message 
+      };
+    }
+    
+    if (!data?.path) {
+      return { 
+        success: false, 
+        error: 'Upload realizado mas caminho não retornado' 
+      };
+    }
+    
+    // Gerar URL assinada para o arquivo
+    const { createSignedUrl } = await import('./supabaseService.js');
+    const signedUrlResult = await createSignedUrl(data.path, 3600);
+    
+    console.log('Upload realizado com sucesso:', data.path);
+    
+    return {
+      success: true,
+      filePath: data.path,
+      url: signedUrlResult.url
+    };
+  } catch (error) {
+    console.error('Erro na função uploadFile:', error);
+    return { 
+      success: false, 
+      error: error instanceof Error ? error.message : 'Erro desconhecido' 
+    };
+  }
+};
+
+/**
  * Obter URL pública de um arquivo (se o bucket for público)
  */
 export const getPublicUrl = (filePath: string): string => {
@@ -118,6 +178,6 @@ export const getPublicUrl = (filePath: string): string => {
   const { data } = supabaseAdmin.storage
     .from(STORAGE_BUCKET)
     .getPublicUrl(filePath);
-  
+
   return data.publicUrl;
 };

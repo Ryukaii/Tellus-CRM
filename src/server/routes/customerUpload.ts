@@ -2,6 +2,16 @@ import express from 'express';
 import { authenticateToken } from '../middleware/auth';
 import { database } from '../database/database';
 import { v4 as uuidv4 } from 'uuid';
+import multer from 'multer';
+
+// Configurar multer para upload de arquivos
+const storage = multer.memoryStorage();
+const upload = multer({ 
+  storage: storage,
+  limits: {
+    fileSize: 50 * 1024 * 1024, // 50MB limite
+  }
+});
 
 const router = express.Router();
 
@@ -139,7 +149,7 @@ router.get('/:linkId', async (req, res) => {
 });
 
 // Upload de documento via link
-router.post('/:linkId/upload', async (req, res) => {
+router.post('/:linkId/upload', upload.single('file'), async (req, res) => {
   try {
     const { linkId } = req.params;
     const uploadLink = await database.getCustomerUploadLinkById(linkId);
@@ -168,11 +178,111 @@ router.post('/:linkId/upload', async (req, res) => {
       });
     }
 
-    // Aqui você implementaria a lógica de upload
-    // Por enquanto, retornar sucesso
+    // Verificar se há arquivo no request
+    if (!req.file) {
+      return res.status(400).json({
+        success: false,
+        error: 'Nenhum arquivo enviado'
+      });
+    }
+
+    const uploadedFile = req.file;
+
+    // Verificar tipo de arquivo
+    if (!uploadLink.allowedDocumentTypes.includes(uploadedFile.mimetype)) {
+      return res.status(400).json({
+        success: false,
+        error: 'Tipo de arquivo não permitido'
+      });
+    }
+
+    // Verificar tamanho do arquivo
+    const maxSizeBytes = uploadLink.maxFileSize * 1024 * 1024;
+    if (uploadedFile.size > maxSizeBytes) {
+      return res.status(400).json({
+        success: false,
+        error: `Arquivo muito grande. Máximo permitido: ${uploadLink.maxFileSize}MB`
+      });
+    }
+
+    // Buscar cliente
+    const customer = await database.findCustomerById(uploadLink.customerId);
+    if (!customer) {
+      return res.status(404).json({
+        success: false,
+        error: 'Cliente não encontrado'
+      });
+    }
+
+    // Gerar ID único para o documento
+    const documentId = uuidv4();
+    const fileExtension = uploadedFile.name.split('.').pop();
+    const fileName = `${documentId}.${fileExtension}`;
+
+    // Upload para Supabase (se configurado) ou armazenamento local
+    let filePath: string;
+    let fileUrl: string;
+
+    try {
+      // Tentar upload para Supabase primeiro
+      const { createSignedUrl } = await import('../services/supabaseService.js');
+      const { uploadFile } = await import('../services/supabaseService.js');
+      
+      // Upload para Supabase
+      const uploadResult = await uploadFile(uploadedFile.buffer, fileName, 'user-documents');
+      
+      if (uploadResult.success) {
+        filePath = uploadResult.filePath;
+        fileUrl = uploadResult.url;
+      } else {
+        throw new Error('Upload para Supabase falhou');
+      }
+    } catch (error) {
+      console.log('Supabase não disponível, usando armazenamento local');
+      
+      // Fallback para armazenamento local
+      const fs = await import('fs');
+      const path = await import('path');
+      
+      const uploadDir = path.join(process.cwd(), 'uploads', 'documents');
+      if (!fs.existsSync(uploadDir)) {
+        fs.mkdirSync(uploadDir, { recursive: true });
+      }
+      
+      filePath = path.join(uploadDir, fileName);
+      fileUrl = `/uploads/documents/${fileName}`;
+      
+      fs.writeFileSync(filePath, uploadedFile.buffer);
+    }
+
+    // Criar objeto do documento
+    const newDocument = {
+      id: documentId,
+      fileName: uploadedFile.name,
+      filePath: filePath,
+      fileUrl: fileUrl,
+      fileType: uploadedFile.mimetype,
+      fileSize: uploadedFile.size,
+      uploadedAt: new Date(),
+      uploadedVia: 'customer_upload_link',
+      uploadLinkId: linkId
+    };
+
+    // Adicionar documento ao cliente
+    const updatedDocuments = [...(customer.uploadedDocuments || []), newDocument];
+    
+    await database.updateCustomer(uploadLink.customerId, {
+      uploadedDocuments: updatedDocuments
+    });
+
     res.json({
       success: true,
-      message: 'Upload realizado com sucesso!'
+      message: 'Upload realizado com sucesso!',
+      data: {
+        documentId: documentId,
+        fileName: uploadedFile.name,
+        fileSize: uploadedFile.size
+      }
     });
   } catch (error) {
     console.error('Error uploading document:', error);
