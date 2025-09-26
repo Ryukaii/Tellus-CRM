@@ -372,4 +372,97 @@ router.post('/document/signed-url', authenticateToken, async (req, res) => {
   }
 });
 
+// Download em lote de documentos compartilhados
+router.get('/:linkId/download-all', async (req, res) => {
+  try {
+    const { linkId } = req.params;
+    const shareableLink = await database.getShareableLinkById(linkId);
+    
+    if (!shareableLink) {
+      return res.status(404).json({ 
+        success: false, 
+        error: 'Link não encontrado' 
+      });
+    }
+
+    // Verificar se o link ainda é válido
+    const now = new Date();
+    if (!shareableLink.isActive || now > shareableLink.expiresAt) {
+      return res.status(410).json({ 
+        success: false, 
+        error: 'Link expirado ou desativado' 
+      });
+    }
+
+    // Verificar se tem permissão para visualizar documentos
+    if (!shareableLink.permissions.viewDocuments) {
+      return res.status(403).json({ 
+        success: false, 
+        error: 'Sem permissão para baixar documentos' 
+      });
+    }
+
+    // Verificar limite de acessos
+    if (shareableLink.maxAccess && shareableLink.accessCount >= shareableLink.maxAccess) {
+      return res.status(429).json({ 
+        success: false, 
+        error: 'Limite de acessos excedido' 
+      });
+    }
+
+    // Buscar dados completos do cliente
+    const customer = await database.findCustomerById(shareableLink.customerId);
+    if (!customer) {
+      return res.status(404).json({ 
+        success: false, 
+        error: 'Cliente não encontrado' 
+      });
+    }
+
+    // Filtrar documentos que estão no compartilhamento
+    const sharedDocuments = customer.uploadedDocuments?.filter((doc: any) => 
+      shareableLink.documents.some((sharedDoc: any) => sharedDoc.id === doc.id)
+    ) || [];
+
+    if (sharedDocuments.length === 0) {
+      return res.status(404).json({ 
+        success: false, 
+        error: 'Nenhum documento encontrado' 
+      });
+    }
+
+    // Gerar URLs assinadas para todos os documentos
+    const documentUrls = [];
+    for (const doc of sharedDocuments) {
+      const expiresIn = Math.max(3600, Math.floor((shareableLink.expiresAt.getTime() - now.getTime()) / 1000));
+      const result = await createSignedUrl(doc.id, expiresIn);
+      
+      if (result.url) {
+        documentUrls.push({
+          id: doc.id,
+          fileName: doc.fileName,
+          documentType: doc.documentType,
+          signedUrl: result.url,
+          expiresIn
+        });
+      }
+    }
+
+    res.json({
+      success: true,
+      data: {
+        customerName: shareableLink.customerName,
+        documents: documentUrls,
+        totalDocuments: documentUrls.length
+      }
+    });
+  } catch (error) {
+    console.error('Error generating bulk download:', error);
+    res.status(500).json({ 
+      success: false, 
+      error: error instanceof Error ? error.message : 'Erro interno do servidor' 
+    });
+  }
+});
+
 export default router;

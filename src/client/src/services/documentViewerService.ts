@@ -266,4 +266,35 @@ export class SharingService {
       throw error;
     }
   }
+
+  // Download em lote de documentos compartilhados
+  static async downloadAllDocuments(linkId: string): Promise<{
+    customerName: string;
+    documents: Array<{
+      id: string;
+      fileName: string;
+      documentType: string;
+      signedUrl: string;
+      expiresIn: number;
+    }>;
+    totalDocuments: number;
+  }> {
+    try {
+      const response = await fetch(`${this.API_BASE_URL}/sharing/${linkId}/download-all`, {
+        method: 'GET',
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('Error response:', errorText);
+        throw new Error('Erro ao baixar documentos');
+      }
+
+      const result = await response.json();
+      return result.data;
+    } catch (error) {
+      console.error('Error downloading all documents:', error);
+      throw error;
+    }
+  }
 }

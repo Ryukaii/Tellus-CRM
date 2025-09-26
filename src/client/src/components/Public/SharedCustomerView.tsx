@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { 
   User, MapPin, DollarSign, MessageSquare, FileText, 
-  Clock, Eye, AlertCircle, CheckCircle, Loader2 
+  Clock, Eye, AlertCircle, CheckCircle, Loader2, Download 
 } from 'lucide-react';
 import { SharingService, ShareableLink } from '../../services/documentViewerService';
 import { DocumentViewer } from '../UI/DocumentViewer';
@@ -14,6 +14,7 @@ export const SharedCustomerView: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [timeRemaining, setTimeRemaining] = useState<string>('');
+  const [downloading, setDownloading] = useState(false);
 
   useEffect(() => {
     if (linkId) {
@@ -35,6 +36,50 @@ export const SharedCustomerView: React.FC = () => {
       setError(err instanceof Error ? err.message : 'Erro ao carregar dados');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleDownloadAll = async () => {
+    if (!linkId || !shareData) return;
+
+    try {
+      setDownloading(true);
+      setError(null);
+
+      const downloadData = await SharingService.downloadAllDocuments(linkId);
+      
+      // Criar um arquivo ZIP com todos os documentos
+      const JSZip = (await import('jszip')).default;
+      const zip = new JSZip();
+      
+      // Baixar cada documento e adicionar ao ZIP
+      for (const doc of downloadData.documents) {
+        try {
+          const response = await fetch(doc.signedUrl);
+          if (response.ok) {
+            const blob = await response.blob();
+            zip.file(doc.fileName, blob);
+          }
+        } catch (err) {
+          console.error(`Erro ao baixar ${doc.fileName}:`, err);
+        }
+      }
+
+      // Gerar e baixar o ZIP
+      const zipBlob = await zip.generateAsync({ type: 'blob' });
+      const url = URL.createObjectURL(zipBlob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `documentos_${downloadData.customerName.replace(/\s+/g, '_')}.zip`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Erro ao baixar documentos');
+    } finally {
+      setDownloading(false);
     }
   };
 
@@ -286,20 +331,34 @@ export const SharedCustomerView: React.FC = () => {
           {/* Documentos */}
           {shareData.permissions.viewDocuments && shareData.documents.length > 0 && (
             <div className="bg-white rounded-lg shadow-sm border p-6">
-              <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
-                <FileText className="w-5 h-5 mr-2 text-purple-500" />
-                Documentos ({shareData.documents.length})
-              </h2>
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-lg font-semibold text-gray-900 flex items-center">
+                  <FileText className="w-5 h-5 mr-2 text-purple-500" />
+                  Documentos ({shareData.documents.length})
+                </h2>
+                <button
+                  onClick={handleDownloadAll}
+                  disabled={downloading}
+                  className="flex items-center space-x-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                >
+                  {downloading ? (
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                  ) : (
+                    <Download className="w-4 h-4" />
+                  )}
+                  <span>{downloading ? 'Baixando...' : 'Baixar Todos'}</span>
+                </button>
+              </div>
               
-              <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-md">
+              <div className="mb-4 p-3 bg-green-50 border border-green-200 rounded-md">
                 <div className="flex items-start space-x-2">
-                  <Eye className="w-4 h-4 text-blue-600 mt-0.5 flex-shrink-0" />
+                  <Download className="w-4 h-4 text-green-600 mt-0.5 flex-shrink-0" />
                   <div>
-                    <p className="text-sm text-blue-800 font-medium">
-                      Apenas visualização
+                    <p className="text-sm text-green-800 font-medium">
+                      Download disponível
                     </p>
-                    <p className="text-xs text-blue-600 mt-1">
-                      Os documentos podem ser visualizados, mas o download está desabilitado por segurança.
+                    <p className="text-xs text-green-600 mt-1">
+                      Você pode baixar todos os documentos em um arquivo ZIP ou visualizar individualmente.
                     </p>
                   </div>
                 </div>
