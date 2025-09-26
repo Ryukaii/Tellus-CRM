@@ -330,7 +330,94 @@ router.post('/:linkId/signed-urls', async (req, res) => {
   }
 });
 
-// Gerar URL assinada para um documento específico (para visualização)
+// Gerar URL assinada para um documento compartilhado (público - sem autenticação)
+router.post('/:linkId/document/signed-url', async (req, res) => {
+  try {
+    const { linkId } = req.params;
+    const { filePath, expiresIn = 3600 } = req.body;
+
+    if (!filePath) {
+      return res.status(400).json({ 
+        success: false, 
+        error: 'Caminho do arquivo é obrigatório' 
+      });
+    }
+
+    // Verificar se o link de compartilhamento é válido
+    const shareableLink = await database.getShareableLinkById(linkId);
+    
+    if (!shareableLink) {
+      return res.status(404).json({ 
+        success: false, 
+        error: 'Link não encontrado' 
+      });
+    }
+
+    // Verificar se o link ainda é válido
+    const now = new Date();
+    if (!shareableLink.isActive || now > shareableLink.expiresAt) {
+      return res.status(410).json({ 
+        success: false, 
+        error: 'Link expirado ou desativado' 
+      });
+    }
+
+    // Verificar se tem permissão para visualizar documentos
+    if (!shareableLink.permissions.viewDocuments) {
+      return res.status(403).json({ 
+        success: false, 
+        error: 'Sem permissão para visualizar documentos' 
+      });
+    }
+
+    // Verificar se o documento faz parte do compartilhamento
+    const isDocumentShared = shareableLink.documents.some((doc: any) => doc.id === filePath);
+    if (!isDocumentShared) {
+      return res.status(403).json({ 
+        success: false, 
+        error: 'Documento não está disponível neste compartilhamento' 
+      });
+    }
+
+    // Verificar limite de acessos
+    if (shareableLink.maxAccess && shareableLink.accessCount >= shareableLink.maxAccess) {
+      return res.status(429).json({ 
+        success: false, 
+        error: 'Limite de acessos excedido' 
+      });
+    }
+
+    // Calcular tempo de expiração baseado no link compartilhado
+    const linkExpiresIn = Math.max(3600, Math.floor((shareableLink.expiresAt.getTime() - now.getTime()) / 1000));
+    const finalExpiresIn = Math.min(expiresIn, linkExpiresIn);
+    
+    const { createSignedUrl } = await import('../services/supabaseService.js');
+    const result = await createSignedUrl(filePath, finalExpiresIn);
+    
+    if (result.error) {
+      return res.status(500).json({ 
+        success: false, 
+        error: result.error 
+      });
+    }
+
+    res.json({
+      success: true,
+      data: {
+        signedUrl: result.url,
+        expiresIn: finalExpiresIn
+      }
+    });
+  } catch (error) {
+    console.error('Error generating shared document signed URL:', error);
+    res.status(500).json({ 
+      success: false, 
+      error: error instanceof Error ? error.message : 'Erro interno do servidor' 
+    });
+  }
+});
+
+// Gerar URL assinada para um documento específico (para visualização - com autenticação)
 router.post('/document/signed-url', authenticateToken, async (req, res) => {
   try {
     const { filePath, expiresIn = 3600 } = req.body;

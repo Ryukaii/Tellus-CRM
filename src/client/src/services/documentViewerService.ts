@@ -297,4 +297,53 @@ export class SharingService {
       throw error;
     }
   }
+
+  // Gerar URL assinada para documento compartilhado (público - sem autenticação)
+  static async getSharedDocumentSignedUrl(linkId: string, filePath: string, expiresInSeconds?: number): Promise<SignedUrlResult> {
+    try {
+      const expiresIn = expiresInSeconds || 3600;
+      
+      console.log('SharingService - Gerando URL assinada para documento compartilhado:', filePath);
+      console.log('SharingService - Link ID:', linkId);
+      console.log('SharingService - Expires in:', expiresIn, 'segundos');
+      
+      const response = await fetch(`${this.API_BASE_URL}/sharing/${linkId}/document/signed-url`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ filePath, expiresIn })
+      });
+
+      console.log('SharingService - Response status:', response.status);
+      
+      const data = await response.json();
+      console.log('SharingService - Response data:', data);
+
+      if (!data.success) {
+        console.error('SharingService - Erro na resposta:', data.error);
+        return {
+          signedUrl: '',
+          expiresAt: new Date(),
+          error: data.error || 'Erro ao gerar URL assinada'
+        };
+      }
+
+      const expiresAt = new Date();
+      expiresAt.setSeconds(expiresAt.getSeconds() + data.data.expiresIn);
+
+      console.log('SharingService - URL assinada gerada com sucesso');
+      return {
+        signedUrl: data.data.signedUrl,
+        expiresAt,
+      };
+    } catch (error) {
+      console.error('SharingService - Erro na requisição:', error);
+      return {
+        signedUrl: '',
+        expiresAt: new Date(),
+        error: error instanceof Error ? error.message : 'Erro desconhecido'
+      };
+    }
+  }
 }

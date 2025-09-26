@@ -10,6 +10,7 @@ interface DocumentViewerProps {
   showDownload?: boolean;
   showExternalLink?: boolean;
   shareExpiresAt?: Date; // Tempo de expiração do compartilhamento
+  shareLinkId?: string; // ID do link de compartilhamento
 }
 
 export const DocumentViewer: React.FC<DocumentViewerProps> = ({
@@ -19,7 +20,8 @@ export const DocumentViewer: React.FC<DocumentViewerProps> = ({
   className = '',
   showDownload = true,
   showExternalLink = true,
-  shareExpiresAt
+  shareExpiresAt,
+  shareLinkId
 }) => {
   const [signedUrl, setSignedUrl] = useState<SignedUrlResult | null>(null);
   const [loading, setLoading] = useState(false);
@@ -34,8 +36,12 @@ export const DocumentViewer: React.FC<DocumentViewerProps> = ({
     try {
       let result: SignedUrlResult;
       
-      if (shareExpiresAt) {
-        // Usar tempo de expiração do compartilhamento
+      if (shareLinkId && shareExpiresAt) {
+        // Usar endpoint público para documentos compartilhados
+        const { SharingService } = await import('../../services/documentViewerService');
+        result = await SharingService.getSharedDocumentSignedUrl(shareLinkId, filePath);
+      } else if (shareExpiresAt) {
+        // Usar tempo de expiração do compartilhamento (método antigo)
         result = await DocumentViewerService.getSignedDocumentUrlForSharing(filePath, shareExpiresAt);
       } else {
         // Usar tempo padrão (1 hora)

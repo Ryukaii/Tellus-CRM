@@ -372,7 +372,8 @@ export const SharedCustomerView: React.FC = () => {
                     fileName={doc.fileName}
                     fileType="application/pdf" // Assumir PDF por padrão
                     shareExpiresAt={new Date(shareData.expiresAt)}
-                    showDownload={false} // Desabilitar download em links compartilhados
+                    shareLinkId={linkId}
+                    showDownload={true} // Habilitar download em links compartilhados
                   />
                 ))}
               </div>
