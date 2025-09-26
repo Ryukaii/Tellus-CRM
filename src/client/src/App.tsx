@@ -24,9 +24,6 @@ function AppRoutes() {
         <Route path="/customers/:customerId/edit" element={<CustomerEditPage />} />
         <Route path="/pre-registrations" element={<PreRegistrationManager />} />
         
-        {/* Rota pública para upload de documentos */}
-        <Route path="/upload/:linkId" element={<CustomerUploadPage />} />
-        
         {/* Rota 404 */}
         <Route path="/*" element={
           <div className="flex items-center justify-center min-h-96">
@@ -52,8 +49,9 @@ function App() {
     <AuthProvider>
       <Router>
         <Routes>
-          {/* Rota pública para links compartilhados */}
+          {/* Rotas públicas */}
           <Route path="/shared/:linkId" element={<SharedCustomerView />} />
+          <Route path="/upload/:linkId" element={<CustomerUploadPage />} />
           
           {/* Rotas protegidas */}
           <Route path="/*" element={

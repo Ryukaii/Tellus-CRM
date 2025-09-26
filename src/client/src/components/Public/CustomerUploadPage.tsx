@@ -6,6 +6,10 @@ import {
 } from 'lucide-react';
 import { CustomerUploadService, CustomerUploadLink } from '../../services/customerUploadService';
 
+// Forçar tema light para página pública
+document.documentElement.classList.remove('dark');
+document.documentElement.classList.add('light');
+
 export const CustomerUploadPage: React.FC = () => {
   const { linkId } = useParams<{ linkId: string }>();
   const [uploadLink, setUploadLink] = useState<CustomerUploadLink | null>(null);
