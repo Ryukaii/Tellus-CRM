@@ -8,7 +8,35 @@ interface ThemeContextType {
   setTheme: (theme: Theme) => void;
 }
 
-const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
+// Contexto padrão que sempre estará disponível
+const defaultThemeContext: ThemeContextType = {
+  theme: 'light',
+  toggleTheme: () => {
+    console.warn('ThemeProvider not available, using fallback theme toggle');
+    // Aplicar tema diretamente no DOM como fallback
+    const root = document.documentElement;
+    if (root.classList.contains('dark')) {
+      root.classList.remove('dark');
+      localStorage.setItem('tellus-theme', 'light');
+    } else {
+      root.classList.add('dark');
+      localStorage.setItem('tellus-theme', 'dark');
+    }
+  },
+  setTheme: (newTheme: Theme) => {
+    console.warn('ThemeProvider not available, using fallback theme setter');
+    // Aplicar tema diretamente no DOM como fallback
+    const root = document.documentElement;
+    if (newTheme === 'dark') {
+      root.classList.add('dark');
+    } else {
+      root.classList.remove('dark');
+    }
+    localStorage.setItem('tellus-theme', newTheme);
+  }
+};
+
+const ThemeContext = createContext<ThemeContextType>(defaultThemeContext);
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const [theme, setThemeState] = useState<Theme>('light');
@@ -87,18 +115,48 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
 
 export function useTheme() {
   const context = useContext(ThemeContext);
-  if (context === undefined) {
-    console.error('useTheme must be used within a ThemeProvider');
-    // Retornar um contexto padrão em vez de lançar erro
-    return {
-      theme: 'light' as Theme,
-      toggleTheme: () => {
-        console.warn('ThemeProvider not available, using fallback theme toggle');
-      },
-      setTheme: () => {
-        console.warn('ThemeProvider not available, using fallback theme setter');
-      }
-    };
-  }
+  // Agora sempre retorna um contexto válido (padrão ou do provider)
   return context;
+}
+
+// Hook alternativo que sempre funciona, mesmo sem ThemeProvider
+export function useThemeSafe() {
+  const context = useContext(ThemeContext);
+  
+  // Se o contexto for o padrão, significa que não há ThemeProvider
+  if (context === defaultThemeContext) {
+    // Tentar carregar tema do localStorage
+    try {
+      const savedTheme = localStorage.getItem('tellus-theme') as Theme;
+      if (savedTheme && (savedTheme === 'light' || savedTheme === 'dark')) {
+        return {
+          ...context,
+          theme: savedTheme
+        };
+      }
+    } catch (error) {
+      console.warn('Error loading theme from localStorage:', error);
+    }
+  }
+  
+  return context;
+}
+
+// Componente que garante que sempre há um ThemeProvider disponível
+export function ThemeProviderWrapper({ children }: { children: React.ReactNode }) {
+  return (
+    <ThemeProvider>
+      {children}
+    </ThemeProvider>
+  );
+}
+
+// Hook que funciona em qualquer lugar, com ou sem ThemeProvider
+export function useThemeAnywhere() {
+  try {
+    return useThemeSafe();
+  } catch (error) {
+    console.warn('Theme context error, using fallback:', error);
+    return defaultThemeContext;
+  }
 }

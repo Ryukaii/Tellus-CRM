@@ -1,6 +1,6 @@
 import React from 'react';
 import { Sun, Moon } from 'lucide-react';
-import { useTheme } from '../../contexts/ThemeContext';
+import { useThemeSafe } from '../../contexts/ThemeContext';
 
 interface ThemeToggleProps {
   size?: 'sm' | 'md' | 'lg';
@@ -13,7 +13,7 @@ export function ThemeToggle({
   variant = 'icon',
   className = '' 
 }: ThemeToggleProps) {
-  const { theme, toggleTheme } = useTheme();
+  const { theme, toggleTheme } = useThemeSafe();
 
   const sizeClasses = {
     sm: 'h-8 w-8',

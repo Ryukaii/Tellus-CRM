@@ -2,7 +2,7 @@ import React from 'react'
 import ReactDOM from 'react-dom/client'
 import App from './App.tsx'
 import PublicApp from './PublicApp.tsx'
-import { ThemeProvider } from './contexts/ThemeContext'
+import { ThemeProviderWrapper } from './contexts/ThemeContext'
 import { ErrorBoundary } from './components/ErrorBoundary'
 import './index.css'
 
@@ -42,9 +42,9 @@ if (isPublic) {
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
     <ErrorBoundary>
-      <ThemeProvider>
+      <ThemeProviderWrapper>
         {isPublic ? <PublicApp /> : <App />}
-      </ThemeProvider>
+      </ThemeProviderWrapper>
     </ErrorBoundary>
   </React.StrictMode>,
 )
