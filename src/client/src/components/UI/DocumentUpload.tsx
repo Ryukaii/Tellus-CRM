@@ -22,7 +22,7 @@ export const DocumentUpload: React.FC<DocumentUploadProps> = ({
   description,
   onUploadComplete,
   onUploadError,
-  maxFiles = 5,
+  maxFiles = 999,
   className = '',
   userCpf
 }) => {

@@ -294,14 +294,12 @@ export const CustomerDocumentManager: React.FC<CustomerDocumentManagerProps> = (
               description="Adicione documentos relacionados ao cliente (RG, CPF, comprovantes, etc.)"
               onUploadComplete={handleUploadComplete}
               onUploadError={handleUploadError}
-              maxFiles={10}
               userCpf={customerCpf}
             />
           ) : (
             <LocalDocumentUpload
               onUploadComplete={handleLocalUploadComplete}
               onUploadError={handleUploadError}
-              maxFiles={10}
             />
           )}
         </div>

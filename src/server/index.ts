@@ -10,6 +10,7 @@ import leadsRouter from './routes/leads.js';
 import preRegistrationRouter from './routes/preRegistration.js';
 import sharingRouter from './routes/sharing.js';
 import dashboardRouter from './routes/dashboard.js';
+import externalRouter from './routes/external.js';
 import { database } from './database/database.js';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -53,6 +54,7 @@ app.use('/api/leads', leadsRouter);
 app.use('/api/pre-registration', preRegistrationRouter);
 app.use('/api/sharing', sharingRouter);
 app.use('/api/dashboard', dashboardRouter);
+app.use('/api/external', externalRouter);
 
 // Health check
 app.get('/api/health', (_req, res) => {

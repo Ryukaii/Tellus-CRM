@@ -21,7 +21,7 @@ interface LocalDocumentUploadProps {
 export const LocalDocumentUpload: React.FC<LocalDocumentUploadProps> = ({
   onUploadComplete,
   onUploadError,
-  maxFiles = 5,
+  maxFiles = 999,
   className = ''
 }) => {
   const [isDragging, setIsDragging] = useState(false);

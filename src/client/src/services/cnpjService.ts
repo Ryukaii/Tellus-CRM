@@ -76,8 +76,7 @@ export class CNPJService {
   }
 
   /**
-   * Valida e consulta dados da empresa pelo CNPJ (simulação)
-   * Em um cenário real, isso faria uma consulta à Receita Federal
+   * Valida e consulta dados da empresa pelo CNPJ via ReceitaWS
    */
   static async consultarCNPJ(cnpj: string): Promise<{
     razaoSocial: string;
@@ -97,25 +96,25 @@ export class CNPJService {
       return null;
     }
 
-    // Simulação de consulta à Receita Federal
-    // Em produção, isso seria uma chamada para uma API real
     try {
-      // Simular delay de API
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      // Dados simulados baseados no CNPJ
-      return {
-        razaoSocial: `Empresa Exemplo ${cnpjLimpo.slice(-4)} LTDA`,
-        nomeFantasia: `Empresa ${cnpjLimpo.slice(-4)}`,
-        endereco: {
-          logradouro: 'Rua das Flores, 123',
-          bairro: 'Centro',
-          municipio: 'São Paulo',
-          uf: 'SP',
-          cep: '01000-000'
+      // Consulta via endpoint local (evita problemas de CORS)
+      const response = await fetch(`http://localhost:3001/api/external/cnpj/${cnpjLimpo}`, {
+        method: 'GET',
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
         },
-        situacao: 'ATIVA'
-      };
+      });
+
+      if (!response.ok) {
+        if (response.status === 404) {
+          return null; // CNPJ não encontrado
+        }
+        throw new Error(`Erro na consulta: ${response.status}`);
+      }
+
+      const data = await response.json();
+      return data;
     } catch (error) {
       console.error('Erro ao consultar CNPJ:', error);
       return null;

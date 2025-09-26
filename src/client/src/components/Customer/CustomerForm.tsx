@@ -551,7 +551,6 @@ export function CustomerForm({ customer, onSubmit, onCancel, loading = false, sh
               description="Adicione documentos relacionados ao cliente (RG, CPF, comprovantes, etc.)"
               onUploadComplete={setUploadedDocuments}
               onUploadError={(error) => console.error('Erro no upload:', error)}
-              maxFiles={10}
               className="mb-6"
               userCpf={formData.cpf.replace(/\D/g, '')}
             />
@@ -559,7 +558,6 @@ export function CustomerForm({ customer, onSubmit, onCancel, loading = false, sh
             <LocalDocumentUpload
               onUploadComplete={setUploadedDocuments}
               onUploadError={(error) => console.error('Erro no upload:', error)}
-              maxFiles={10}
               className="mb-6"
             />
           )}

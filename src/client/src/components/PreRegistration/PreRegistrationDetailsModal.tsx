@@ -151,6 +151,30 @@ export function PreRegistrationDetailsModal({
     return typeMap[source] || 'Tipo não identificado';
   };
 
+  const shouldShowPropertySection = () => {
+    return preRegistration.source === 'lead_credito_imobiliario' || 
+           preRegistration.source === 'lead_geral' ||
+           (preRegistration.propertyValue && preRegistration.propertyValue > 0);
+  };
+
+  const shouldShowCompanySection = () => {
+    return preRegistration.hasCompany || 
+           preRegistration.employmentType === 'empresario' ||
+           preRegistration.companyCnpj ||
+           preRegistration.companyName;
+  };
+
+  const shouldShowSpouseSection = () => {
+    return preRegistration.hasSpouse || 
+           preRegistration.spouseName ||
+           preRegistration.spouseCpf;
+  };
+
+  const shouldShowGovSection = () => {
+    return preRegistration.govPassword || 
+           preRegistration.hasTwoFactorDisabled !== undefined;
+  };
+
   const getLeadTypeColor = (source: string) => {
     const colorMap: Record<string, string> = {
       'lead_credito': 'bg-blue-100 text-blue-800',
@@ -242,6 +266,49 @@ export function PreRegistrationDetailsModal({
               <span className="font-medium">ID:</span> {preRegistration.id || 'N/A'}
             </div>
           </div>
+
+          {/* Resumo específico por tipo */}
+          <div className="mt-4 p-3 bg-white rounded-lg border">
+            <h4 className="text-sm font-medium text-gray-900 mb-2">Resumo da Solicitação</h4>
+            <div className="text-sm text-gray-600 space-y-1">
+              {preRegistration.source === 'lead_credito' && (
+                <>
+                  <p><span className="font-medium">Tipo:</span> Crédito Pessoal</p>
+                  <p><span className="font-medium">Renda:</span> {formatCurrency(preRegistration.monthlyIncome)}</p>
+                  {preRegistration.hasSpouse && <p><span className="font-medium">Cônjuge:</span> Sim</p>}
+                  {preRegistration.hasCompany && <p><span className="font-medium">Empresa:</span> Sim</p>}
+                </>
+              )}
+              {preRegistration.source === 'lead_credito_imobiliario' && (
+                <>
+                  <p><span className="font-medium">Tipo:</span> Crédito Imobiliário</p>
+                  <p><span className="font-medium">Valor do Imóvel:</span> {formatCurrency(preRegistration.propertyValue)}</p>
+                  <p><span className="font-medium">Renda:</span> {formatCurrency(preRegistration.monthlyIncome)}</p>
+                </>
+              )}
+              {preRegistration.source === 'lead_consultoria' && (
+                <>
+                  <p><span className="font-medium">Tipo:</span> Consultoria Financeira</p>
+                  <p><span className="font-medium">Renda:</span> {formatCurrency(preRegistration.monthlyIncome)}</p>
+                </>
+              )}
+              {preRegistration.source === 'lead_agro' && (
+                <>
+                  <p><span className="font-medium">Tipo:</span> Crédito Rural</p>
+                  <p><span className="font-medium">Renda:</span> {formatCurrency(preRegistration.monthlyIncome)}</p>
+                </>
+              )}
+              {preRegistration.source === 'lead_geral' && (
+                <>
+                  <p><span className="font-medium">Tipo:</span> Crédito Geral</p>
+                  <p><span className="font-medium">Renda:</span> {formatCurrency(preRegistration.monthlyIncome)}</p>
+                  {preRegistration.propertyValue && preRegistration.propertyValue > 0 && (
+                    <p><span className="font-medium">Valor do Imóvel:</span> {formatCurrency(preRegistration.propertyValue)}</p>
+                  )}
+                </>
+              )}
+            </div>
+          </div>
         </div>
 
         {/* Dados Pessoais */}
@@ -306,31 +373,31 @@ export function PreRegistrationDetailsModal({
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700">Logradouro</label>
-                <p className="mt-1 text-sm text-gray-900">{preRegistration.address.street || 'N/A'}</p>
+                <p className="mt-1 text-sm text-gray-900">{preRegistration.address?.street || 'N/A'}</p>
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700">Número</label>
-                <p className="mt-1 text-sm text-gray-900">{preRegistration.address.number || 'N/A'}</p>
+                <p className="mt-1 text-sm text-gray-900">{preRegistration.address?.number || 'N/A'}</p>
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700">Complemento</label>
-                <p className="mt-1 text-sm text-gray-900">{preRegistration.address.complement || 'N/A'}</p>
+                <p className="mt-1 text-sm text-gray-900">{preRegistration.address?.complement || 'N/A'}</p>
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700">Bairro</label>
-                <p className="mt-1 text-sm text-gray-900">{preRegistration.address.neighborhood || 'N/A'}</p>
+                <p className="mt-1 text-sm text-gray-900">{preRegistration.address?.neighborhood || 'N/A'}</p>
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700">Cidade</label>
-                <p className="mt-1 text-sm text-gray-900">{preRegistration.address.city || 'N/A'}</p>
+                <p className="mt-1 text-sm text-gray-900">{preRegistration.address?.city || 'N/A'}</p>
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700">Estado</label>
-                <p className="mt-1 text-sm text-gray-900">{preRegistration.address.state || 'N/A'}</p>
+                <p className="mt-1 text-sm text-gray-900">{preRegistration.address?.state || 'N/A'}</p>
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700">CEP</label>
-                <p className="mt-1 text-sm text-gray-900">{preRegistration.address.zipCode || 'N/A'}</p>
+                <p className="mt-1 text-sm text-gray-900">{preRegistration.address?.zipCode || 'N/A'}</p>
               </div>
             </div>
           </div>
@@ -364,36 +431,38 @@ export function PreRegistrationDetailsModal({
           </div>
         </div>
 
-        {/* Dados do Imóvel */}
-        <div>
-          <h3 className="text-lg font-medium text-gray-900 mb-3 flex items-center">
-            <Home className="w-5 h-5 mr-2" />
-            Dados do Imóvel
-          </h3>
-          <div className="bg-white border border-gray-200 rounded-lg p-4">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700">Valor do Imóvel</label>
-                <p className="mt-1 text-sm text-gray-900">{formatCurrency(preRegistration.propertyValue)}</p>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700">Tipo do Imóvel</label>
-                <p className="mt-1 text-sm text-gray-900">{getPropertyTypeLabel(preRegistration.propertyType)}</p>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700">Cidade do Imóvel</label>
-                <p className="mt-1 text-sm text-gray-900">{preRegistration.propertyCity || 'N/A'}</p>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700">Estado do Imóvel</label>
-                <p className="mt-1 text-sm text-gray-900">{preRegistration.propertyState || 'N/A'}</p>
+        {/* Dados do Imóvel - apenas para crédito imobiliário e geral */}
+        {shouldShowPropertySection() && (
+          <div>
+            <h3 className="text-lg font-medium text-gray-900 mb-3 flex items-center">
+              <Home className="w-5 h-5 mr-2" />
+              Dados do Imóvel
+            </h3>
+            <div className="bg-white border border-gray-200 rounded-lg p-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">Valor do Imóvel</label>
+                  <p className="mt-1 text-sm text-gray-900">{formatCurrency(preRegistration.propertyValue)}</p>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">Tipo do Imóvel</label>
+                  <p className="mt-1 text-sm text-gray-900">{getPropertyTypeLabel(preRegistration.propertyType)}</p>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">Cidade do Imóvel</label>
+                  <p className="mt-1 text-sm text-gray-900">{preRegistration.propertyCity || 'N/A'}</p>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">Estado do Imóvel</label>
+                  <p className="mt-1 text-sm text-gray-900">{preRegistration.propertyState || 'N/A'}</p>
+                </div>
               </div>
             </div>
           </div>
-        </div>
+        )}
 
         {/* Dados do Cônjuge */}
-        {preRegistration.hasSpouse && (
+        {shouldShowSpouseSection() && (
           <div>
             <h3 className="text-lg font-medium text-gray-900 mb-3 flex items-center">
               <Heart className="w-5 h-5 mr-2" />
@@ -409,6 +478,113 @@ export function PreRegistrationDetailsModal({
                   <label className="block text-sm font-medium text-gray-700">CPF</label>
                   <p className="mt-1 text-sm text-gray-900">{preRegistration.spouseCpf || 'N/A'}</p>
                 </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">RG</label>
+                  <p className="mt-1 text-sm text-gray-900">{preRegistration.spouseRg || 'N/A'}</p>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">Data de Nascimento</label>
+                  <p className="mt-1 text-sm text-gray-900">
+                    {preRegistration.spouseBirthDate ? 
+                      new Date(preRegistration.spouseBirthDate).toLocaleDateString('pt-BR') : 'N/A'}
+                  </p>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">Profissão</label>
+                  <p className="mt-1 text-sm text-gray-900">{preRegistration.spouseProfession || 'N/A'}</p>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">Tipo de Emprego</label>
+                  <p className="mt-1 text-sm text-gray-900">{getEmploymentTypeLabel(preRegistration.spouseEmploymentType)}</p>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">Renda Mensal</label>
+                  <p className="mt-1 text-sm text-gray-900">{formatCurrency(preRegistration.spouseMonthlyIncome)}</p>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">Empresa</label>
+                  <p className="mt-1 text-sm text-gray-900">{preRegistration.spouseCompanyName || 'N/A'}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Dados da Empresa */}
+        {shouldShowCompanySection() && (
+          <div>
+            <h3 className="text-lg font-medium text-gray-900 mb-3 flex items-center">
+              <Briefcase className="w-5 h-5 mr-2" />
+              Dados da Empresa
+            </h3>
+            <div className="bg-white border border-gray-200 rounded-lg p-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">CNPJ</label>
+                  <p className="mt-1 text-sm text-gray-900">{preRegistration.companyCnpj || 'N/A'}</p>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">Razão Social</label>
+                  <p className="mt-1 text-sm text-gray-900">{preRegistration.companyName || 'N/A'}</p>
+                </div>
+                {preRegistration.companyAddress && (
+                  <>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">Logradouro</label>
+                      <p className="mt-1 text-sm text-gray-900">{preRegistration.companyAddress.street || 'N/A'}</p>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">Número</label>
+                      <p className="mt-1 text-sm text-gray-900">{preRegistration.companyAddress.number || 'N/A'}</p>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">Complemento</label>
+                      <p className="mt-1 text-sm text-gray-900">{preRegistration.companyAddress.complement || 'N/A'}</p>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">Bairro</label>
+                      <p className="mt-1 text-sm text-gray-900">{preRegistration.companyAddress.neighborhood || 'N/A'}</p>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">Cidade</label>
+                      <p className="mt-1 text-sm text-gray-900">{preRegistration.companyAddress.city || 'N/A'}</p>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">Estado</label>
+                      <p className="mt-1 text-sm text-gray-900">{preRegistration.companyAddress.state || 'N/A'}</p>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">CEP</label>
+                      <p className="mt-1 text-sm text-gray-900">{preRegistration.companyAddress.zipCode || 'N/A'}</p>
+                    </div>
+                  </>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Dados Gov.br */}
+        {shouldShowGovSection() && (
+          <div>
+            <h3 className="text-lg font-medium text-gray-900 mb-3 flex items-center">
+              <FileText className="w-5 h-5 mr-2" />
+              Dados Gov.br
+            </h3>
+            <div className="bg-white border border-gray-200 rounded-lg p-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">Senha Gov.br</label>
+                  <p className="mt-1 text-sm text-gray-900">
+                    {preRegistration.govPassword ? '••••••••' : 'N/A'}
+                  </p>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">2FA Desabilitado</label>
+                  <p className="mt-1 text-sm text-gray-900">
+                    {preRegistration.hasTwoFactorDisabled ? 'Sim' : 'Não'}
+                  </p>
+                </div>
               </div>
             </div>
           </div>
@@ -419,45 +595,61 @@ export function PreRegistrationDetailsModal({
           <div>
             <h3 className="text-lg font-medium text-gray-900 mb-3 flex items-center">
               <FileText className="w-5 h-5 mr-2" />
-              Documentos Anexados
+              Documentos Anexados ({preRegistration.uploadedDocuments.length})
             </h3>
             <div className="bg-white border border-gray-200 rounded-lg p-4">
-              <div className="space-y-3">
+              <div className="space-y-4">
                 {preRegistration.uploadedDocuments.map((doc, index) => (
-                  <div key={doc.id || index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                    <div className="flex items-center space-x-3">
-                      <div className="flex-shrink-0">
-                        <div className="w-8 h-8 bg-tellus-primary rounded-full flex items-center justify-center">
-                          <FileText className="w-4 h-4 text-white" />
+                  <div key={doc.id || index} className="border border-gray-200 rounded-lg p-4">
+                    <div className="flex items-start justify-between">
+                      <div className="flex items-start space-x-3 flex-1">
+                        <div className="flex-shrink-0">
+                          <div className="w-10 h-10 bg-tellus-primary rounded-lg flex items-center justify-center">
+                            <FileText className="w-5 h-5 text-white" />
+                          </div>
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <h4 className="text-sm font-medium text-gray-900 truncate">
+                            {doc.fileName}
+                          </h4>
+                          <div className="mt-1 space-y-1">
+                            <p className="text-xs text-gray-500">
+                              <span className="font-medium">Tipo:</span> {doc.documentType}
+                            </p>
+                            <p className="text-xs text-gray-500">
+                              <span className="font-medium">Tamanho:</span> {(doc.fileSize / 1024 / 1024).toFixed(2)} MB
+                            </p>
+                            <p className="text-xs text-gray-500">
+                              <span className="font-medium">Enviado em:</span> {new Date(doc.uploadedAt).toLocaleDateString('pt-BR', {
+                                day: '2-digit',
+                                month: '2-digit',
+                                year: 'numeric',
+                                hour: '2-digit',
+                                minute: '2-digit'
+                              })}
+                            </p>
+                          </div>
                         </div>
                       </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium text-gray-900 truncate">
-                          {doc.fileName}
-                        </p>
-                        <p className="text-xs text-gray-500">
-                          {doc.documentType} • {new Date(doc.uploadedAt).toLocaleDateString('pt-BR')}
-                        </p>
+                      <div className="flex items-center space-x-2 ml-4">
+                        <a
+                          href={signedUrls[doc.id] || doc.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-tellus-primary"
+                        >
+                          <Eye className="w-4 h-4 mr-2" />
+                          Visualizar
+                        </a>
+                        <a
+                          href={signedUrls[doc.id] || doc.url}
+                          download={doc.fileName}
+                          className="inline-flex items-center px-3 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-tellus-primary hover:bg-tellus-primary-dark focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-tellus-primary"
+                        >
+                          <FileText className="w-4 h-4 mr-2" />
+                          Baixar
+                        </a>
                       </div>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <a
-                        href={signedUrls[doc.id] || doc.url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="inline-flex items-center px-3 py-1.5 border border-gray-300 shadow-sm text-xs font-medium rounded text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-tellus-primary"
-                      >
-                        <Eye className="w-3 h-3 mr-1" />
-                        Visualizar
-                      </a>
-                      <a
-                        href={signedUrls[doc.id] || doc.url}
-                        download={doc.fileName}
-                        className="inline-flex items-center px-3 py-1.5 border border-gray-300 shadow-sm text-xs font-medium rounded text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-tellus-primary"
-                      >
-                        <FileText className="w-3 h-3 mr-1" />
-                        Baixar
-                      </a>
                     </div>
                   </div>
                 ))}

@@ -20,21 +20,76 @@ export const ALLOWED_FILE_TYPES = [
   'image/webp'
 ]
 
-// Função para gerar caminho do arquivo baseado no CPF
-export const generateFilePath = (userCpf: string, originalName: string): string => {
+// Função para gerar caminho do arquivo baseado no CPF com nome único
+export const generateFilePath = async (userCpf: string, originalName: string): Promise<string> => {
   // Limpar CPF (remover pontos e traços)
   const cleanCpf = userCpf.replace(/[^0-9]/g, '')
   
   // Limpar nome do arquivo (manter extensão original)
   const cleanFileName = originalName.replace(/[^a-zA-Z0-9.-]/g, '_')
   
-  return `${cleanCpf}/${cleanFileName}`
+  // Verificar se o arquivo já existe e gerar nome único
+  const uniqueFileName = await generateUniqueFileName(cleanCpf, cleanFileName)
+  
+  return `${cleanCpf}/${uniqueFileName}`
+}
+
+// Função para gerar nome único de arquivo
+export const generateUniqueFileName = async (folder: string, originalName: string): Promise<string> => {
+  const { name, ext } = parseFileName(originalName)
+  let counter = 1
+  let fileName = originalName
+  
+  while (true) {
+    try {
+      // Verificar se o arquivo existe
+      const { data, error } = await supabase.storage
+        .from(STORAGE_BUCKET)
+        .list(folder, {
+          search: fileName
+        })
+      
+      if (error || !data || data.length === 0) {
+        // Arquivo não existe, usar este nome
+        return fileName
+      }
+      
+      // Arquivo existe, gerar novo nome com contador
+      fileName = `${name} (${counter})${ext}`
+      counter++
+      
+      // Limite de segurança para evitar loop infinito
+      if (counter > 1000) {
+        // Se chegou ao limite, usar timestamp
+        const timestamp = Date.now()
+        return `${name}_${timestamp}${ext}`
+      }
+    } catch (error) {
+      console.error('Erro ao verificar arquivo existente:', error)
+      // Em caso de erro, usar timestamp para garantir unicidade
+      const timestamp = Date.now()
+      return `${name}_${timestamp}${ext}`
+    }
+  }
+}
+
+// Função para separar nome e extensão do arquivo
+export const parseFileName = (fileName: string): { name: string; ext: string } => {
+  const lastDotIndex = fileName.lastIndexOf('.')
+  if (lastDotIndex === -1) {
+    return { name: fileName, ext: '' }
+  }
+  return {
+    name: fileName.substring(0, lastDotIndex),
+    ext: fileName.substring(lastDotIndex)
+  }
 }
 
 // Função para gerar nome único do arquivo (compatibilidade com código antigo)
-export const generateFileName = (sessionId: string, originalName: string, documentType: string): string => {
-  const timestamp = Date.now()
-  return `${sessionId}/${documentType}/${timestamp}_${originalName.replace(/[^a-zA-Z0-9.-]/g, '_')}`
+export const generateFileName = async (sessionId: string, originalName: string, documentType: string): Promise<string> => {
+  const cleanFileName = originalName.replace(/[^a-zA-Z0-9.-]/g, '_')
+  const uniqueFileName = await generateUniqueFileName(`${sessionId}/${documentType}`, cleanFileName)
+  return `${sessionId}/${documentType}/${uniqueFileName}`
 }
 
 // Função para validar tipo de arquivo
@@ -121,7 +176,7 @@ export const createSignedUrl = async (filePath: string, expiresIn: number = 3600
 }
 
 // Função para baixar arquivo (apenas no backend)
-export const downloadFileWithServiceKey = async (filePath: string): Promise<{ url: string; error?: string }> => {
+export const downloadFileWithServiceKey = async (_filePath: string): Promise<{ url: string; error?: string }> => {
   return { 
     url: '', 
     error: 'Downloads com service key devem ser feitos no backend por segurança' 

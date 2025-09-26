@@ -57,8 +57,8 @@ export class DocumentService {
 
       // Gerar caminho do arquivo baseado no CPF (se disponível) ou sessionId
       const filePath = userCpf 
-        ? generateFilePath(userCpf, file.name)
-        : generateFileName(sessionId, file.name, documentType)
+        ? await generateFilePath(userCpf, file.name)
+        : await generateFileName(sessionId, file.name, documentType)
       
       console.log('Caminho do arquivo gerado:', filePath);
       

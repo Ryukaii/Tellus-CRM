@@ -56,8 +56,9 @@ interface FormData {
   spouseBirthDate: string;
   spouseProfession: string;
   spouseEmploymentType: string;
-  spouseMonthlyIncome: number;
+  spouseMonthlyIncome: number | null;
   spouseCompanyName: string;
+  hasSpouseIncome: boolean;
   
   // Documentos Pessoais
   hasRG: boolean;
@@ -144,7 +145,7 @@ export function LeadFormAgro() {
     },
     profession: '',
     employmentType: 'clt',
-    monthlyIncome: 0,
+    monthlyIncome: null,
     companyName: '',
     propertyValue: 0,
     propertyType: 'apartamento',
@@ -159,8 +160,9 @@ export function LeadFormAgro() {
     spouseBirthDate: '',
     spouseProfession: '',
     spouseEmploymentType: 'clt',
-    spouseMonthlyIncome: 0,
+    spouseMonthlyIncome: null,
     spouseCompanyName: '',
+    hasSpouseIncome: false,
     hasRG: true,
     hasCPF: true,
     hasAddressProof: false,
@@ -392,6 +394,13 @@ export function LeadFormAgro() {
 
   const consultarCPFConjuge = async (cpf: string) => {
     const cpfLimpo = cpf.replace(/\D/g, '');
+    const cpfTitularLimpo = formData.cpf.replace(/\D/g, '');
+    
+    // Verificar se é o mesmo CPF do titular
+    if (cpfLimpo === cpfTitularLimpo) {
+      setError('O CPF do cônjuge não pode ser igual ao CPF do titular');
+      return;
+    }
     
     // Só consultar se tiver 11 dígitos
     if (cpfLimpo.length === 11) {
@@ -843,14 +852,23 @@ export function LeadFormAgro() {
       case 5:
         // Se tem cônjuge, valida os campos obrigatórios do cônjuge
         if (formData.hasSpouse) {
-          return formData.spouseName.trim().length >= 2 && 
+          const baseValidation = formData.spouseName.trim().length >= 2 && 
                  validateCPF(formData.spouseCpf) && 
                  formData.spouseRg.trim().length >= 1 && 
                  formData.spouseBirthDate && 
-                 validateAge(formData.spouseBirthDate) &&
-                 formData.spouseProfession.trim().length >= 2 && 
-                 formData.spouseMonthlyIncome > 0 &&
-                 formData.spouseMonthlyIncome >= 1000;
+                 validateAge(formData.spouseBirthDate);
+          
+          // Se tem fonte de renda, validar campos de renda
+          if (formData.hasSpouseIncome) {
+            return baseValidation &&
+                   formData.spouseProfession.trim().length >= 2 && 
+                   formData.spouseMonthlyIncome !== null &&
+                   formData.spouseMonthlyIncome > 0 &&
+                   formData.spouseMonthlyIncome >= 1000;
+          }
+          
+          // Se não tem fonte de renda, só validar campos básicos
+          return baseValidation;
         }
         return true; // Se não tem cônjuge, etapa é válida
       case 6:
@@ -1639,7 +1657,7 @@ export function LeadFormAgro() {
                   <Input
                     label="Renda Mensal *"
                     type="text"
-                    value={formData.monthlyIncome ? new Intl.NumberFormat('pt-BR', { 
+                    value={formData.monthlyIncome && formData.monthlyIncome > 0 ? new Intl.NumberFormat('pt-BR', { 
                       style: 'currency', 
                       currency: 'BRL' 
                     }).format(formData.monthlyIncome) : ''}
@@ -1770,21 +1788,9 @@ export function LeadFormAgro() {
                         </p>
                       </div>
 
+                      {/* CPF primeiro - para puxar dados automaticamente */}
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div className="sm:col-span-2">
-                          <Input
-                            label="Nome Completo do Cônjuge *"
-                            value={formData.spouseName}
-                            onChange={(e) => handleChange('spouseName', e.target.value)}
-                            placeholder="Digite o nome completo do cônjuge"
-                            maxLength={100}
-                          />
-                          {formData.spouseName && formData.spouseName.trim().length < 2 && (
-                            <p className="text-red-500 text-xs mt-1">Nome deve ter pelo menos 2 caracteres</p>
-                          )}
-                        </div>
-
-                        <div>
                           <div className="relative">
                             <Input
                               label="CPF do Cônjuge *"
@@ -1809,8 +1815,27 @@ export function LeadFormAgro() {
                           {formData.spouseCpf && !validateCPF(formData.spouseCpf) && (
                             <p className="text-red-500 text-xs mt-1">CPF inválido</p>
                           )}
+                          {formData.spouseCpf && formData.cpf && formData.spouseCpf.replace(/\D/g, '') === formData.cpf.replace(/\D/g, '') && (
+                            <p className="text-red-500 text-xs mt-1">O CPF do cônjuge não pode ser igual ao CPF do titular</p>
+                          )}
                           {cpfConsulted && (
                             <p className="text-green-600 text-xs mt-1">✓ Dados preenchidos automaticamente</p>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Campos bloqueados até CPF válido */}
+                      <div className={`grid grid-cols-1 sm:grid-cols-2 gap-4 ${!cpfValid ? 'opacity-50 pointer-events-none' : ''}`}>
+                        <div className="sm:col-span-2">
+                          <Input
+                            label="Nome Completo do Cônjuge *"
+                            value={formData.spouseName}
+                            onChange={(e) => handleChange('spouseName', e.target.value)}
+                            placeholder="Digite o nome completo do cônjuge"
+                            maxLength={100}
+                          />
+                          {formData.spouseName && formData.spouseName.trim().length < 2 && (
+                            <p className="text-red-500 text-xs mt-1">Nome deve ter pelo menos 2 caracteres</p>
                           )}
                         </div>
 
@@ -1839,56 +1864,85 @@ export function LeadFormAgro() {
                           )}
                         </div>
 
-                        <div>
-                          <Input
-                            label="Profissão do Cônjuge *"
-                            value={formData.spouseProfession}
-                            onChange={(e) => handleChange('spouseProfession', e.target.value)}
-                            placeholder="Ex: Engenheiro, Professor, etc."
-                            maxLength={50}
-                          />
-                          {formData.spouseProfession && formData.spouseProfession.trim().length < 2 && (
-                            <p className="text-red-500 text-xs mt-1">Profissão deve ter pelo menos 2 caracteres</p>
-                          )}
+                        {/* Checkbox para fonte de renda */}
+                        <div className="sm:col-span-2">
+                          <div className="flex items-center space-x-3 p-4 bg-gray-50 border border-gray-200 rounded-lg">
+                            <input
+                              type="checkbox"
+                              id="hasSpouseIncome"
+                              checked={formData.hasSpouseIncome}
+                              onChange={(e) => handleChange('hasSpouseIncome', e.target.checked)}
+                              className="w-4 h-4 text-tellus-primary bg-gray-100 border-gray-300 rounded focus:ring-tellus-primary focus:ring-2"
+                            />
+                            <label htmlFor="hasSpouseIncome" className="text-sm font-medium text-gray-700">
+                              Tem fonte de renda?
+                            </label>
+                          </div>
                         </div>
 
-                        <div className="space-y-1">
-                          <label className="text-sm font-medium text-gray-700">Tipo de Emprego do Cônjuge *</label>
-                          <select
-                            value={formData.spouseEmploymentType}
-                            onChange={(e) => handleChange('spouseEmploymentType', e.target.value)}
-                            className="input"
-                          >
-                            <option value="clt">CLT</option>
-                            <option value="servidor_publico">Servidor Público</option>
-                            <option value="autonomo">Autônomo</option>
-                            <option value="empresario">Empresário</option>
-                            <option value="aposentado">Aposentado</option>
-                          </select>
-                        </div>
+                        {/* Campos de renda - condicionais */}
+                        {formData.hasSpouseIncome && (
+                          <>
+                            <div>
+                              <Input
+                                label="Profissão do Cônjuge *"
+                                value={formData.spouseProfession}
+                                onChange={(e) => handleChange('spouseProfession', e.target.value)}
+                                placeholder="Ex: Engenheiro, Professor, etc."
+                                maxLength={50}
+                              />
+                              {formData.spouseProfession && formData.spouseProfession.trim().length < 2 && (
+                                <p className="text-red-500 text-xs mt-1">Profissão deve ter pelo menos 2 caracteres</p>
+                              )}
+                            </div>
 
-                        <div>
-                          <Input
-                            label="Renda Mensal do Cônjuge *"
-                            type="number"
-                            value={formData.spouseMonthlyIncome > 0 ? formData.spouseMonthlyIncome : ''}
-                            onChange={(e) => handleChange('spouseMonthlyIncome', parseFloat(e.target.value) || 0)}
-                            placeholder="5000"
-                            min="1000"
-                            max="999999"
-                          />
-                          {formData.spouseMonthlyIncome && formData.spouseMonthlyIncome < 1000 && (
-                            <p className="text-red-500 text-xs mt-1">Renda mínima de R$ 1.000</p>
-                          )}
-                        </div>
+                            <div className="space-y-1">
+                              <label className="text-sm font-medium text-gray-700">Tipo de Emprego do Cônjuge *</label>
+                              <select
+                                value={formData.spouseEmploymentType}
+                                onChange={(e) => handleChange('spouseEmploymentType', e.target.value)}
+                                className="input"
+                              >
+                                <option value="clt">CLT</option>
+                                <option value="servidor_publico">Servidor Público</option>
+                                <option value="autonomo">Autônomo</option>
+                                <option value="empresario">Empresário</option>
+                                <option value="aposentado">Aposentado</option>
+                              </select>
+                            </div>
 
-                        <Input
-                          label="Empresa do Cônjuge (se aplicável)"
-                          value={formData.spouseCompanyName}
-                          onChange={(e) => handleChange('spouseCompanyName', e.target.value)}
-                          placeholder="Nome da empresa"
-                          maxLength={100}
-                        />
+                            <div>
+                              <Input
+                                label="Renda Mensal do Cônjuge *"
+                                type="text"
+                                value={formData.spouseMonthlyIncome && formData.spouseMonthlyIncome > 0 ? new Intl.NumberFormat('pt-BR', { 
+                                  style: 'currency', 
+                                  currency: 'BRL' 
+                                }).format(formData.spouseMonthlyIncome) : ''}
+                                onChange={(e) => {
+                                  const rawValue = e.target.value.replace(/[^\d]/g, '');
+                                  const numericValue = rawValue ? parseFloat(rawValue) / 100 : null;
+                                  handleChange('spouseMonthlyIncome', numericValue);
+                                }}
+                                placeholder="R$ 5.000,00"
+                                maxLength={15}
+                              />
+                              {formData.spouseMonthlyIncome && formData.spouseMonthlyIncome < 1000 && (
+                                <p className="text-red-500 text-xs mt-1">Renda mínima de R$ 1.000</p>
+                              )}
+                            </div>
+
+                            <div>
+                              <Input
+                                label="Empresa do Cônjuge (se aplicável)"
+                                value={formData.spouseCompanyName}
+                                onChange={(e) => handleChange('spouseCompanyName', e.target.value)}
+                                placeholder="Nome da empresa"
+                                maxLength={100}
+                              />
+                            </div>
+                          </>
+                        )}
                       </div>
                     </div>
                   )}

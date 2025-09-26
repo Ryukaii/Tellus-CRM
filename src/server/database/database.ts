@@ -303,7 +303,7 @@ class MongoDatabase {
   }
 
   // Pre-registration methods
-  async createPreRegistration(sessionId: string): Promise<any> {
+  async createPreRegistration(sessionId: string, additionalData?: any): Promise<any> {
     this.ensureConnected();
     const collection = this.getCollection('preRegistrations');
     
@@ -313,7 +313,8 @@ class MongoDatabase {
       isCompleted: false,
       createdAt: new Date(),
       updatedAt: new Date(),
-      lastAccessedAt: new Date()
+      lastAccessedAt: new Date(),
+      ...additionalData
     };
 
     const result = await collection.insertOne(preRegistration);
@@ -327,22 +328,36 @@ class MongoDatabase {
   }
 
   async updatePreRegistration(sessionId: string, updateData: any): Promise<any | null> {
-    this.ensureConnected();
-    const collection = this.getCollection('preRegistrations');
-    
-    const result = await collection.findOneAndUpdate(
-      { sessionId },
-      { 
-        $set: { 
-          ...updateData, 
-          updatedAt: new Date(),
-          lastAccessedAt: new Date()
-        } 
-      },
-      { returnDocument: 'after' }
-    );
-    
-    return result?.value || null;
+    try {
+      console.log(`[DEBUG] Database updatePreRegistration called for sessionId: ${sessionId}`);
+      console.log(`[DEBUG] Update data:`, updateData);
+      
+      this.ensureConnected();
+      const collection = this.getCollection('preRegistrations');
+      
+      const result = await collection.findOneAndUpdate(
+        { sessionId },
+        { 
+          $set: { 
+            ...updateData, 
+            updatedAt: new Date(),
+            lastAccessedAt: new Date()
+          } 
+        },
+        { returnDocument: 'after' }
+      );
+      
+      console.log(`[DEBUG] MongoDB result:`, result);
+      console.log(`[DEBUG] Result value:`, result?.value);
+      console.log(`[DEBUG] Result document:`, result?.document);
+      
+      // MongoDB 6+ retorna o documento diretamente, não em .value
+      return result?.document || result?.value || null;
+    } catch (error) {
+      console.error('[DEBUG] Database updatePreRegistration error:', error);
+      console.error('[DEBUG] Error stack:', error instanceof Error ? error.stack : 'No stack trace');
+      throw error;
+    }
   }
 
   async deletePreRegistration(sessionId: string): Promise<boolean> {

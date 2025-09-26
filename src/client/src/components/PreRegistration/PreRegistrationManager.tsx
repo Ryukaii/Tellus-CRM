@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { PreRegistration } from '../../../../shared/types/preRegistration';
+import { Lead } from '../../../../shared/types/lead';
 import { usePreRegistrations } from '../../hooks/usePreRegistrations';
 import { PreRegistrationList } from './PreRegistrationList';
 import { PreRegistrationDetailsModal } from './PreRegistrationDetailsModal';
@@ -17,7 +17,7 @@ export function PreRegistrationManager({ className = '' }: PreRegistrationManage
     type: 'all' as 'all' | 'credito' | 'consultoria' | 'agro' | 'geral' | 'credito_imobiliario'
   });
 
-  const [selectedPreRegistration, setSelectedPreRegistration] = useState<PreRegistration | null>(null);
+  const [selectedPreRegistration, setSelectedPreRegistration] = useState<Lead | null>(null);
   const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
 
   const {
@@ -65,8 +65,8 @@ export function PreRegistrationManager({ className = '' }: PreRegistrationManage
     }));
   };
 
-  const handleViewDetails = (preRegistration: PreRegistration) => {
-    setSelectedPreRegistration(preRegistration);
+  const handleViewDetails = (lead: Lead) => {
+    setSelectedPreRegistration(lead);
     setIsDetailsModalOpen(true);
   };
 
@@ -75,39 +75,39 @@ export function PreRegistrationManager({ className = '' }: PreRegistrationManage
     setIsDetailsModalOpen(false);
   };
 
-  const handleApprove = async (sessionId: string) => {
+  const handleApprove = async (leadId: string) => {
     try {
-      const success = await approvePreRegistration(sessionId);
+      const success = await approvePreRegistration(leadId);
       if (success) {
         // Mostrar notificação de sucesso
-        console.log('Pré-cadastro aprovado com sucesso!');
+        console.log('Lead aprovado com sucesso!');
       }
     } catch (error) {
-      console.error('Erro ao aprovar pré-cadastro:', error);
+      console.error('Erro ao aprovar lead:', error);
     }
   };
 
-  const handleReject = async (sessionId: string, reason?: string) => {
+  const handleReject = async (leadId: string, reason?: string) => {
     try {
-      const success = await rejectPreRegistration(sessionId, reason);
+      const success = await rejectPreRegistration(leadId, reason);
       if (success) {
         // Mostrar notificação de sucesso
-        console.log('Pré-cadastro rejeitado com sucesso!');
+        console.log('Lead rejeitado com sucesso!');
       }
     } catch (error) {
-      console.error('Erro ao rejeitar pré-cadastro:', error);
+      console.error('Erro ao rejeitar lead:', error);
     }
   };
 
-  const handleDelete = async (sessionId: string) => {
+  const handleDelete = async (leadId: string) => {
     try {
-      const success = await deletePreRegistration(sessionId);
+      const success = await deletePreRegistration(leadId);
       if (success) {
         // Mostrar notificação de sucesso
-        console.log('Pré-cadastro excluído com sucesso!');
+        console.log('Lead excluído com sucesso!');
       }
     } catch (error) {
-      console.error('Erro ao excluir pré-cadastro:', error);
+      console.error('Erro ao excluir lead:', error);
     }
   };
 

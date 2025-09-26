@@ -18,6 +18,8 @@ import { Lead } from '../../../../shared/types/lead';
 import { Button } from '../UI/Button';
 import { Input } from '../UI/Input';
 import { LoadingSpinner } from '../UI/LoadingSpinner';
+import { ConfirmationModal } from '../UI/ConfirmationModal';
+import { RejectConfirmationModal } from '../UI/RejectConfirmationModal';
 
 interface PreRegistrationListProps {
   preRegistrations: Lead[];
@@ -54,6 +56,29 @@ export function PreRegistrationList({
   const [filter, setFilter] = useState<'all' | 'approved' | 'pending'>('all');
   const [typeFilter, setTypeFilter] = useState<'all' | 'credito' | 'consultoria' | 'agro' | 'geral' | 'credito_imobiliario'>('all');
   const [processingActions, setProcessingActions] = useState<Set<string>>(new Set());
+  
+  // Estados para modais de confirmação
+  const [confirmationModal, setConfirmationModal] = useState<{
+    isOpen: boolean;
+    type: 'approve' | 'delete';
+    leadId: string;
+    leadName: string;
+  }>({
+    isOpen: false,
+    type: 'approve',
+    leadId: '',
+    leadName: ''
+  });
+
+  const [rejectModal, setRejectModal] = useState<{
+    isOpen: boolean;
+    leadId: string;
+    leadName: string;
+  }>({
+    isOpen: false,
+    leadId: '',
+    leadName: ''
+  });
 
   const handleSearch = (value: string) => {
     setSearchTerm(value);
@@ -83,6 +108,69 @@ export function PreRegistrationList({
         newSet.delete(leadId);
         return newSet;
       });
+    }
+  };
+
+  const openConfirmationModal = (type: 'approve' | 'delete', leadId: string, leadName: string) => {
+    setConfirmationModal({
+      isOpen: true,
+      type,
+      leadId,
+      leadName
+    });
+  };
+
+  const openRejectModal = (leadId: string, leadName: string) => {
+    setRejectModal({
+      isOpen: true,
+      leadId,
+      leadName
+    });
+  };
+
+  const closeConfirmationModal = () => {
+    setConfirmationModal({
+      isOpen: false,
+      type: 'approve',
+      leadId: '',
+      leadName: ''
+    });
+  };
+
+  const closeRejectModal = () => {
+    setRejectModal({
+      isOpen: false,
+      leadId: '',
+      leadName: ''
+    });
+  };
+
+  const handleConfirmAction = async () => {
+    const { type, leadId } = confirmationModal;
+    
+    try {
+      switch (type) {
+        case 'approve':
+          await handleAction(leadId, () => onApprove(leadId));
+          break;
+        case 'delete':
+          await handleAction(leadId, () => onDelete(leadId));
+          break;
+      }
+      closeConfirmationModal();
+    } catch (error) {
+      console.error('Erro ao executar ação:', error);
+    }
+  };
+
+  const handleRejectAction = async (reason?: string) => {
+    const { leadId } = rejectModal;
+    
+    try {
+      await handleAction(leadId, () => onReject(leadId, reason));
+      closeRejectModal();
+    } catch (error) {
+      console.error('Erro ao rejeitar lead:', error);
     }
   };
 
@@ -320,7 +408,7 @@ export function PreRegistrationList({
                           <Button
                             variant="outline"
                             size="sm"
-                            onClick={() => handleAction(lead.id!, () => onApprove(lead.id!))}
+                            onClick={() => openConfirmationModal('approve', lead.id!, lead.name || 'Lead')}
                             disabled={isProcessing}
                             className="text-green-600 border-green-200 hover:bg-green-50"
                           >
@@ -330,7 +418,7 @@ export function PreRegistrationList({
                           <Button
                             variant="outline"
                             size="sm"
-                            onClick={() => handleAction(lead.id!, () => onReject(lead.id!))}
+                            onClick={() => openRejectModal(lead.id!, lead.name || 'Lead')}
                             disabled={isProcessing}
                             className="text-red-600 border-red-200 hover:bg-red-50"
                           >
@@ -342,7 +430,7 @@ export function PreRegistrationList({
                       <Button
                         variant="outline"
                         size="sm"
-                        onClick={() => handleAction(lead.id!, () => onDelete(lead.id!))}
+                        onClick={() => openConfirmationModal('delete', lead.id!, lead.name || 'Lead')}
                         disabled={isProcessing}
                         className="text-red-600 border-red-200 hover:bg-red-50"
                       >
@@ -426,6 +514,72 @@ export function PreRegistrationList({
           </div>
         </div>
       )}
+
+      {/* Modal de Confirmação */}
+      <ConfirmationModal
+        isOpen={confirmationModal.isOpen}
+        onClose={closeConfirmationModal}
+        onConfirm={handleConfirmAction}
+        title={getConfirmationTitle()}
+        message={getConfirmationMessage()}
+        confirmText={getConfirmationButtonText()}
+        type={getConfirmationType()}
+        isLoading={processingActions.has(confirmationModal.leadId)}
+      />
+
+      {/* Modal de Rejeição */}
+      <RejectConfirmationModal
+        isOpen={rejectModal.isOpen}
+        onClose={closeRejectModal}
+        onConfirm={handleRejectAction}
+        leadName={rejectModal.leadName}
+        isLoading={processingActions.has(rejectModal.leadId)}
+      />
     </div>
   );
+
+  function getConfirmationTitle() {
+    switch (confirmationModal.type) {
+      case 'approve':
+        return 'Aprovar Lead';
+      case 'delete':
+        return 'Excluir Lead';
+      default:
+        return 'Confirmar Ação';
+    }
+  }
+
+  function getConfirmationMessage() {
+    const leadName = confirmationModal.leadName;
+    switch (confirmationModal.type) {
+      case 'approve':
+        return `Tem certeza que deseja aprovar o lead "${leadName}"? Esta ação irá converter o lead em cliente.`;
+      case 'delete':
+        return `Tem certeza que deseja excluir permanentemente o lead "${leadName}"? Esta ação não pode ser desfeita.`;
+      default:
+        return 'Tem certeza que deseja executar esta ação?';
+    }
+  }
+
+  function getConfirmationButtonText() {
+    switch (confirmationModal.type) {
+      case 'approve':
+        return 'Aprovar';
+      case 'delete':
+        return 'Excluir';
+      default:
+        return 'Confirmar';
+    }
+  }
+
+  function getConfirmationType() {
+    switch (confirmationModal.type) {
+      case 'approve':
+        return 'success';
+      case 'delete':
+        return 'danger';
+      default:
+        return 'warning';
+    }
+  }
 }

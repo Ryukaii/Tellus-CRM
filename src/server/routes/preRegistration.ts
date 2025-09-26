@@ -8,6 +8,41 @@ const router = Router();
 
 // ========== ROTAS PÚBLICAS (sem autenticação) ==========
 
+// Criar pré-cadastro diretamente (para formulários públicos)
+router.post('/', async (req, res) => {
+  try {
+    const formData = req.body;
+    
+    if (!formData) {
+      return res.status(400).json({ error: 'Dados do formulário são obrigatórios' });
+    }
+
+    // Gerar um novo sessionId
+    const sessionId = PreRegistrationService.generateSessionId();
+    
+    // Criar o pré-cadastro com os dados fornecidos (já como completo)
+    const preRegistration = await PreRegistrationService.createPreRegistrationFromForm(sessionId, formData);
+    
+    // Finalizar o pré-cadastro (converter para lead)
+    const lead = await PreRegistrationService.completePreRegistration(sessionId, formData.source || 'website');
+    
+    res.json({
+      success: true,
+      data: {
+        sessionId,
+        preRegistration,
+        lead
+      }
+    });
+  } catch (error) {
+    console.error('Error creating pre-registration:', error);
+    res.status(500).json({ 
+      success: false, 
+      error: error instanceof Error ? error.message : 'Erro interno do servidor' 
+    });
+  }
+});
+
 // Criar ou buscar pré-cadastro por sessão
 router.get('/session/:sessionId', async (req, res) => {
   try {
@@ -86,19 +121,24 @@ router.post('/session/:sessionId/next', async (req, res) => {
 router.post('/session/:sessionId/previous', async (req, res) => {
   try {
     const { sessionId } = req.params;
+    console.log(`[DEBUG] Route previousStep called for sessionId: ${sessionId}`);
     
     if (!sessionId) {
+      console.log(`[DEBUG] SessionId is missing`);
       return res.status(400).json({ error: 'ID da sessão é obrigatório' });
     }
 
+    console.log(`[DEBUG] Calling PreRegistrationService.previousStep`);
     const preRegistration = await PreRegistrationService.previousStep(sessionId);
+    console.log(`[DEBUG] PreRegistrationService.previousStep result:`, preRegistration ? 'SUCCESS' : 'FAILED');
     
     res.json({
       success: true,
       data: preRegistration
     });
   } catch (error) {
-    console.error('Error going to previous step:', error);
+    console.error('[DEBUG] Route Error going to previous step:', error);
+    console.error('[DEBUG] Error stack:', error instanceof Error ? error.stack : 'No stack trace');
     res.status(500).json({ 
       success: false, 
       error: error instanceof Error ? error.message : 'Erro interno do servidor' 
@@ -209,18 +249,19 @@ router.get('/', authenticateToken, async (req, res) => {
     
     // Mapear tipos para sources
     const typeToSourceMap: Record<string, string[]> = {
-      'credito': ['lead_credito'],
-      'consultoria': ['lead_consultoria'],
-      'agro': ['lead_agro'],
-      'geral': ['lead_geral'],
-      'credito_imobiliario': ['lead_credito_imobiliario'],
+      'credito': ['lead_credito', 'website'],
+      'consultoria': ['lead_consultoria', 'website'],
+      'agro': ['lead_agro', 'website'],
+      'geral': ['lead_geral', 'website'],
+      'credito_imobiliario': ['lead_credito_imobiliario', 'website'],
       'all': [
         'formulario_publico',
         'lead_credito',
         'lead_consultoria', 
         'lead_agro',
         'lead_geral',
-        'lead_credito_imobiliario'
+        'lead_credito_imobiliario',
+        'website'
       ]
     };
 
@@ -263,7 +304,8 @@ router.get('/', authenticateToken, async (req, res) => {
       'lead_consultoria', 
       'lead_agro',
       'lead_geral',
-      'lead_credito_imobiliario'
+      'lead_credito_imobiliario',
+      'website'
     ];
     const filteredLeads = result.leads.filter(lead => leadSources.includes(lead.source));
     

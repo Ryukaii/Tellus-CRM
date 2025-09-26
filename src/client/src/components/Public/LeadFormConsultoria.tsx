@@ -58,8 +58,9 @@ interface FormData {
   spouseBirthDate: string;
   spouseProfession: string;
   spouseEmploymentType: string;
-  spouseMonthlyIncome: number;
+  spouseMonthlyIncome: number | null;
   spouseCompanyName: string;
+  hasSpouseIncome: boolean;
   
   // Documentos Pessoais
   hasRG: boolean;
@@ -146,7 +147,7 @@ export function LeadFormConsultoria() {
     },
     profession: '',
     employmentType: 'clt',
-    monthlyIncome: 0,
+    monthlyIncome: null,
     companyName: '',
     propertyValue: 0,
     propertyType: 'apartamento',
@@ -161,8 +162,9 @@ export function LeadFormConsultoria() {
     spouseBirthDate: '',
     spouseProfession: '',
     spouseEmploymentType: 'clt',
-    spouseMonthlyIncome: 0,
+    spouseMonthlyIncome: null,
     spouseCompanyName: '',
+    hasSpouseIncome: false,
     hasRG: true,
     hasCPF: true,
     hasAddressProof: false,
@@ -394,6 +396,13 @@ export function LeadFormConsultoria() {
 
   const consultarCPFConjuge = async (cpf: string) => {
     const cpfLimpo = cpf.replace(/\D/g, '');
+    const cpfTitularLimpo = formData.cpf.replace(/\D/g, '');
+    
+    // Verificar se é o mesmo CPF do titular
+    if (cpfLimpo === cpfTitularLimpo) {
+      setError('O CPF do cônjuge não pode ser igual ao CPF do titular');
+      return;
+    }
     
     // Só consultar se tiver 11 dígitos
     if (cpfLimpo.length === 11) {
@@ -1641,7 +1650,7 @@ export function LeadFormConsultoria() {
                   <Input
                     label="Renda Mensal *"
                     type="text"
-                    value={formData.monthlyIncome ? new Intl.NumberFormat('pt-BR', { 
+                    value={formData.monthlyIncome && formData.monthlyIncome > 0 ? new Intl.NumberFormat('pt-BR', { 
                       style: 'currency', 
                       currency: 'BRL' 
                     }).format(formData.monthlyIncome) : ''}
@@ -1772,21 +1781,9 @@ export function LeadFormConsultoria() {
                         </p>
                       </div>
 
+                      {/* CPF primeiro - para puxar dados automaticamente */}
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div className="sm:col-span-2">
-                          <Input
-                            label="Nome Completo do Cônjuge *"
-                            value={formData.spouseName}
-                            onChange={(e) => handleChange('spouseName', e.target.value)}
-                            placeholder="Digite o nome completo do cônjuge"
-                            maxLength={100}
-                          />
-                          {formData.spouseName && formData.spouseName.trim().length < 2 && (
-                            <p className="text-red-500 text-xs mt-1">Nome deve ter pelo menos 2 caracteres</p>
-                          )}
-                        </div>
-
-                        <div>
                           <div className="relative">
                             <Input
                               label="CPF do Cônjuge *"
@@ -1811,8 +1808,27 @@ export function LeadFormConsultoria() {
                           {formData.spouseCpf && !validateCPF(formData.spouseCpf) && (
                             <p className="text-red-500 text-xs mt-1">CPF inválido</p>
                           )}
+                          {formData.spouseCpf && formData.cpf && formData.spouseCpf.replace(/\D/g, '') === formData.cpf.replace(/\D/g, '') && (
+                            <p className="text-red-500 text-xs mt-1">O CPF do cônjuge não pode ser igual ao CPF do titular</p>
+                          )}
                           {cpfConsulted && (
                             <p className="text-green-600 text-xs mt-1">✓ Dados preenchidos automaticamente</p>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Campos bloqueados até CPF válido */}
+                      <div className={`grid grid-cols-1 sm:grid-cols-2 gap-4 ${!cpfValid ? 'opacity-50 pointer-events-none' : ''}`}>
+                        <div className="sm:col-span-2">
+                          <Input
+                            label="Nome Completo do Cônjuge *"
+                            value={formData.spouseName}
+                            onChange={(e) => handleChange('spouseName', e.target.value)}
+                            placeholder="Digite o nome completo do cônjuge"
+                            maxLength={100}
+                          />
+                          {formData.spouseName && formData.spouseName.trim().length < 2 && (
+                            <p className="text-red-500 text-xs mt-1">Nome deve ter pelo menos 2 caracteres</p>
                           )}
                         </div>
 
@@ -1870,15 +1886,21 @@ export function LeadFormConsultoria() {
                         </div>
 
                         <div>
-                          <Input
-                            label="Renda Mensal do Cônjuge *"
-                            type="number"
-                            value={formData.spouseMonthlyIncome > 0 ? formData.spouseMonthlyIncome : ''}
-                            onChange={(e) => handleChange('spouseMonthlyIncome', parseFloat(e.target.value) || 0)}
-                            placeholder="5000"
-                            min="1000"
-                            max="999999"
-                          />
+                              <Input
+                                label="Renda Mensal do Cônjuge *"
+                                type="text"
+                                value={formData.spouseMonthlyIncome && formData.spouseMonthlyIncome > 0 ? new Intl.NumberFormat('pt-BR', { 
+                                  style: 'currency', 
+                                  currency: 'BRL' 
+                                }).format(formData.spouseMonthlyIncome) : ''}
+                                onChange={(e) => {
+                                  const rawValue = e.target.value.replace(/[^\d]/g, '');
+                                  const numericValue = rawValue ? parseFloat(rawValue) / 100 : null;
+                                  handleChange('spouseMonthlyIncome', numericValue);
+                                }}
+                                placeholder="R$ 5.000,00"
+                                maxLength={15}
+                              />
                           {formData.spouseMonthlyIncome && formData.spouseMonthlyIncome < 1000 && (
                             <p className="text-red-500 text-xs mt-1">Renda mínima de R$ 1.000</p>
                           )}

@@ -9,6 +9,7 @@ import { PreRegistration } from '../../../shared/types/preRegistration';
 import { DocumentService } from '../../services/documentService';
 import { CPFService } from '../../services/cpfService';
 import { CepService } from '../../services/cepService';
+import { CNPJService } from '../../services/cnpjService';
 import { StateSelect } from '../UI/StateSelect';
 import { CPFValidationService, ExistingCustomerData } from '../../services/cpfValidationService';
 import { ExistingCustomerModal } from '../UI/ExistingCustomerModal';
@@ -39,6 +40,7 @@ interface FormData {
   employmentType: string;
   monthlyIncome: number;
   companyName: string;
+  companyCnpj: string;
   
   // Dados do Imóvel
   propertyValue: number;
@@ -58,8 +60,9 @@ interface FormData {
   spouseBirthDate: string;
   spouseProfession: string;
   spouseEmploymentType: string;
-  spouseMonthlyIncome: number;
+  spouseMonthlyIncome: number | null;
   spouseCompanyName: string;
+  hasSpouseIncome: boolean;
   
   // Documentos Pessoais
   hasRG: boolean;
@@ -116,6 +119,11 @@ export function LeadForm() {
   const [isAnimating, setIsAnimating] = useState(false);
   const [consultingCPF, setConsultingCPF] = useState(false);
   const [cpfConsulted, setCpfConsulted] = useState(false);
+  
+  // Estados para validação de CNPJ
+  const [consultingCNPJ, setConsultingCNPJ] = useState(false);
+  const [cnpjConsulted, setCnpjConsulted] = useState(false);
+  const [cnpjNotFound, setCnpjNotFound] = useState(false);
   const [cpfValid, setCpfValid] = useState(false);
   const [cpfNotFound, setCpfNotFound] = useState(false);
   const [consultingCEP, setConsultingCEP] = useState(false);
@@ -146,8 +154,9 @@ export function LeadForm() {
     },
     profession: '',
     employmentType: 'clt',
-    monthlyIncome: 0,
+    monthlyIncome: null,
     companyName: '',
+    companyCnpj: '',
     propertyValue: 0,
     propertyType: 'apartamento',
     propertyCity: '',
@@ -161,8 +170,9 @@ export function LeadForm() {
     spouseBirthDate: '',
     spouseProfession: '',
     spouseEmploymentType: 'clt',
-    spouseMonthlyIncome: 0,
+    spouseMonthlyIncome: null,
     spouseCompanyName: '',
+    hasSpouseIncome: false,
     hasRG: true,
     hasCPF: true,
     hasAddressProof: false,
@@ -343,6 +353,19 @@ export function LeadForm() {
       }
     }
 
+    // Se for o campo CNPJ, verificar validação e consultar
+    if (field === 'companyCnpj') {
+      const cnpjLimpo = value.replace(/\D/g, '');
+      const isValid = cnpjLimpo.length === 14 && validateCNPJ(value);
+      
+      if (isValid) {
+        consultarCNPJ(value);
+      } else {
+        setCnpjConsulted(false);
+        setCnpjNotFound(false);
+      }
+    }
+
     // Se for o campo CEP, verificar validação e consultar
     if (field === 'address.zipCode') {
       const cepLimpo = value.replace(/\D/g, '');
@@ -394,6 +417,13 @@ export function LeadForm() {
 
   const consultarCPFConjuge = async (cpf: string) => {
     const cpfLimpo = cpf.replace(/\D/g, '');
+    const cpfTitularLimpo = formData.cpf.replace(/\D/g, '');
+    
+    // Verificar se é o mesmo CPF do titular
+    if (cpfLimpo === cpfTitularLimpo) {
+      setError('O CPF do cônjuge não pode ser igual ao CPF do titular');
+      return;
+    }
     
     // Só consultar se tiver 11 dígitos
     if (cpfLimpo.length === 11) {
@@ -457,6 +487,47 @@ export function LeadForm() {
         setError('Erro ao consultar CEP. Preencha os dados manualmente.');
       } finally {
         setConsultingCEP(false);
+      }
+    }
+  };
+
+  const consultarCNPJ = async (cnpj: string) => {
+    const cnpjLimpo = cnpj.replace(/\D/g, '');
+    
+    // Só consultar se tiver 14 dígitos
+    if (cnpjLimpo.length === 14) {
+      setConsultingCNPJ(true);
+      setError(null);
+      setCnpjNotFound(false);
+      
+      try {
+        const dadosCNPJ = await CNPJService.consultarCNPJ(cnpj);
+        
+        if (dadosCNPJ) {
+          setFormData(prev => ({
+            ...prev,
+            companyName: dadosCNPJ.razaoSocial,
+            address: {
+              ...prev.address,
+              street: dadosCNPJ.endereco.logradouro,
+              neighborhood: dadosCNPJ.endereco.bairro,
+              city: dadosCNPJ.endereco.municipio,
+              state: dadosCNPJ.endereco.uf,
+              zipCode: dadosCNPJ.endereco.cep
+            }
+          }));
+          setCnpjConsulted(true);
+          setCnpjNotFound(false);
+        } else {
+          setCnpjNotFound(true);
+          setCnpjConsulted(false);
+        }
+      } catch (error) {
+        console.error('Erro ao consultar CNPJ:', error);
+        setCnpjNotFound(true);
+        setError('Erro ao consultar CNPJ. Preencha os dados manualmente.');
+      } finally {
+        setConsultingCNPJ(false);
       }
     }
   };
@@ -525,6 +596,49 @@ export function LeadForm() {
     return numbers.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4');
     }
     return value.slice(0, 14); // Limitar a 14 caracteres
+  };
+
+  const formatCNPJ = (value: string) => {
+    const numbers = value.replace(/\D/g, '');
+    if (numbers.length <= 14) {
+      return numbers.replace(/(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})/, '$1.$2.$3/$4-$5');
+    }
+    return value.slice(0, 18); // Limitar a 18 caracteres
+  };
+
+  const validateCNPJ = (cnpj: string): boolean => {
+    const numbers = cnpj.replace(/\D/g, '');
+    if (numbers.length !== 14) return false;
+    
+    // Verificar se todos os dígitos são iguais
+    if (/^(\d)\1{13}$/.test(numbers)) return false;
+    
+    // Validar dígitos verificadores
+    let sum = 0;
+    let weight = 5;
+    
+    for (let i = 0; i < 12; i++) {
+      sum += parseInt(numbers[i]) * weight;
+      weight = weight === 2 ? 9 : weight - 1;
+    }
+    
+    let remainder = sum % 11;
+    let digit1 = remainder < 2 ? 0 : 11 - remainder;
+    
+    if (parseInt(numbers[12]) !== digit1) return false;
+    
+    sum = 0;
+    weight = 6;
+    
+    for (let i = 0; i < 13; i++) {
+      sum += parseInt(numbers[i]) * weight;
+      weight = weight === 2 ? 9 : weight - 1;
+    }
+    
+    remainder = sum % 11;
+    let digit2 = remainder < 2 ? 0 : 11 - remainder;
+    
+    return parseInt(numbers[13]) === digit2;
   };
 
   const formatPhone = (value: string) => {
@@ -1641,7 +1755,7 @@ export function LeadForm() {
                   <Input
                     label="Renda Mensal *"
                     type="text"
-                    value={formData.monthlyIncome ? new Intl.NumberFormat('pt-BR', { 
+                    value={formData.monthlyIncome && formData.monthlyIncome > 0 ? new Intl.NumberFormat('pt-BR', { 
                       style: 'currency', 
                       currency: 'BRL' 
                     }).format(formData.monthlyIncome) : ''}
@@ -1665,6 +1779,33 @@ export function LeadForm() {
                     placeholder="Nome da empresa"
                     maxLength={100}
                   />
+
+                  {/* Campo CNPJ para empresários */}
+                  {formData.employmentType === 'empresario' && (
+                    <div className="relative">
+                      <Input
+                        label="CNPJ da Empresa *"
+                        value={formatCNPJ(formData.companyCnpj)}
+                        onChange={(e) => handleChange('companyCnpj', e.target.value)}
+                        placeholder="00.000.000/0000-00"
+                        maxLength={18}
+                      />
+                      {consultingCNPJ && (
+                        <div className="absolute right-3 top-8">
+                          <LoadingSpinner size="sm" />
+                        </div>
+                      )}
+                      {formData.companyCnpj && !validateCNPJ(formData.companyCnpj) && (
+                        <p className="text-red-500 text-xs mt-1">CNPJ inválido</p>
+                      )}
+                      {cnpjConsulted && (
+                        <p className="text-green-600 text-xs mt-1">✓ Dados preenchidos automaticamente</p>
+                      )}
+                      {cnpjNotFound && (
+                        <p className="text-yellow-600 text-xs mt-1">⚠️ CNPJ válido mas não encontrado. Preencha os dados manualmente.</p>
+                      )}
+                    </div>
+                  )}
                 </div>
               </div>
             )}
@@ -1772,21 +1913,9 @@ export function LeadForm() {
                         </p>
                       </div>
 
+                      {/* CPF primeiro - para puxar dados automaticamente */}
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div className="sm:col-span-2">
-                          <Input
-                            label="Nome Completo do Cônjuge *"
-                            value={formData.spouseName}
-                            onChange={(e) => handleChange('spouseName', e.target.value)}
-                            placeholder="Digite o nome completo do cônjuge"
-                            maxLength={100}
-                          />
-                          {formData.spouseName && formData.spouseName.trim().length < 2 && (
-                            <p className="text-red-500 text-xs mt-1">Nome deve ter pelo menos 2 caracteres</p>
-                          )}
-                        </div>
-
-                        <div>
                           <div className="relative">
                             <Input
                               label="CPF do Cônjuge *"
@@ -1813,6 +1942,22 @@ export function LeadForm() {
                           )}
                           {cpfConsulted && (
                             <p className="text-green-600 text-xs mt-1">✓ Dados preenchidos automaticamente</p>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Campos bloqueados até CPF válido */}
+                      <div className={`grid grid-cols-1 sm:grid-cols-2 gap-4 ${!cpfValid ? 'opacity-50 pointer-events-none' : ''}`}>
+                        <div className="sm:col-span-2">
+                          <Input
+                            label="Nome Completo do Cônjuge *"
+                            value={formData.spouseName}
+                            onChange={(e) => handleChange('spouseName', e.target.value)}
+                            placeholder="Digite o nome completo do cônjuge"
+                            maxLength={100}
+                          />
+                          {formData.spouseName && formData.spouseName.trim().length < 2 && (
+                            <p className="text-red-500 text-xs mt-1">Nome deve ter pelo menos 2 caracteres</p>
                           )}
                         </div>
 
@@ -1870,15 +2015,21 @@ export function LeadForm() {
                         </div>
 
                         <div>
-                          <Input
-                            label="Renda Mensal do Cônjuge *"
-                            type="number"
-                            value={formData.spouseMonthlyIncome > 0 ? formData.spouseMonthlyIncome : ''}
-                            onChange={(e) => handleChange('spouseMonthlyIncome', parseFloat(e.target.value) || 0)}
-                            placeholder="5000"
-                            min="1000"
-                            max="999999"
-                          />
+                              <Input
+                                label="Renda Mensal do Cônjuge *"
+                                type="text"
+                                value={formData.spouseMonthlyIncome && formData.spouseMonthlyIncome > 0 ? new Intl.NumberFormat('pt-BR', { 
+                                  style: 'currency', 
+                                  currency: 'BRL' 
+                                }).format(formData.spouseMonthlyIncome) : ''}
+                                onChange={(e) => {
+                                  const rawValue = e.target.value.replace(/[^\d]/g, '');
+                                  const numericValue = rawValue ? parseFloat(rawValue) / 100 : null;
+                                  handleChange('spouseMonthlyIncome', numericValue);
+                                }}
+                                placeholder="R$ 5.000,00"
+                                maxLength={15}
+                              />
                           {formData.spouseMonthlyIncome && formData.spouseMonthlyIncome < 1000 && (
                             <p className="text-red-500 text-xs mt-1">Renda mínima de R$ 1.000</p>
                           )}
