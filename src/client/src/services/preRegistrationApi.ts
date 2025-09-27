@@ -194,6 +194,7 @@ export class AdminPreRegistrationApi {
 
   private static getAuthHeaders() {
     const token = localStorage.getItem('tellus_token');
+    console.log('[AUTH DEBUG] Token from localStorage:', token ? 'Present' : 'Missing');
     return {
       'Content-Type': 'application/json',
       'Authorization': token ? `Bearer ${token}` : ''
@@ -223,12 +224,20 @@ export class AdminPreRegistrationApi {
       if (params.search) queryParams.append('search', params.search);
       if (params.type && params.type !== 'all') queryParams.append('type', params.type);
 
+      console.log('[AUTH DEBUG] Making request to:', `${this.API_BASE_URL}/pre-registration?${queryParams}`);
+      console.log('[AUTH DEBUG] Headers:', this.getAuthHeaders());
+      
       const response = await fetch(`${this.API_BASE_URL}/pre-registration?${queryParams}`, {
         method: 'GET',
         headers: this.getAuthHeaders(),
       });
 
+      console.log('[AUTH DEBUG] Response status:', response.status);
+      console.log('[AUTH DEBUG] Response ok:', response.ok);
+
       if (!response.ok) {
+        const errorText = await response.text();
+        console.log('[AUTH DEBUG] Error response:', errorText);
         throw new Error('Erro ao buscar pré-cadastros');
       }
 

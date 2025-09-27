@@ -21,7 +21,12 @@ export const authenticateToken = async (req: Request, res: Response, next: NextF
     const authHeader = req.headers.authorization;
     const token = authHeader && authHeader.split(' ')[1]; // Bearer TOKEN
 
+    console.log(`[AUTH DEBUG] Request to ${req.path}`);
+    console.log(`[AUTH DEBUG] Auth header present: ${!!authHeader}`);
+    console.log(`[AUTH DEBUG] Token present: ${!!token}`);
+
     if (!token) {
+      console.log(`[AUTH DEBUG] No token provided for ${req.path}`);
       const response: ApiResponse = {
         success: false,
         error: 'Token de acesso requerido'
@@ -32,6 +37,7 @@ export const authenticateToken = async (req: Request, res: Response, next: NextF
     const user = await authService.verifyToken(token);
     
     if (!user) {
+      console.log(`[AUTH DEBUG] Token verification failed for ${req.path}`);
       const response: ApiResponse = {
         success: false,
         error: 'Token inválido ou expirado'
@@ -39,11 +45,12 @@ export const authenticateToken = async (req: Request, res: Response, next: NextF
       return res.status(401).json(response);
     }
 
+    console.log(`[AUTH DEBUG] Authentication successful for user: ${user.email}`);
     // Add user to request object
     req.user = user;
     next();
   } catch (error) {
-    console.error('Authentication middleware error:', error);
+    console.error(`[AUTH DEBUG] Authentication middleware error for ${req.path}:`, error);
     const response: ApiResponse = {
       success: false,
       error: 'Erro de autenticação'

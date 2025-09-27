@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { AdminPreRegistrationApi } from '../services/preRegistrationApi';
 import { PreRegistration } from '../../../shared/types/preRegistration';
 import { Lead } from '../../../shared/types/lead';
+import { useAuth } from '../contexts/AuthContext';
 
 interface UsePreRegistrationsParams {
   page?: number;
@@ -33,12 +34,20 @@ export function usePreRegistrations(params: UsePreRegistrationsParams = {}): Use
   const [totalPages, setTotalPages] = useState(0);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const { isAuthenticated, token } = useAuth();
 
   const fetchPreRegistrations = async () => {
     setLoading(true);
     setError(null);
     
     try {
+      console.log('[AUTH DEBUG] usePreRegistrations - isAuthenticated:', isAuthenticated);
+      console.log('[AUTH DEBUG] usePreRegistrations - token present:', !!token);
+      
+      if (!isAuthenticated || !token) {
+        throw new Error('Usuário não autenticado');
+      }
+      
       const result = await AdminPreRegistrationApi.getPreRegistrations({
         page: params.page || 1,
         limit: params.limit || 20,
