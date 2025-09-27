@@ -65,7 +65,7 @@ export function LoginPage() {
                 value={credentials.email}
                 onChange={(e) => handleChange('email', e.target.value)}
                 className="w-full h-10 sm:h-12 px-3 sm:px-4 border border-tellus-charcoal-300 dark:border-dark-border dark:bg-dark-surfaceLight dark:text-dark-text rounded-lg focus:ring-2 focus:ring-tellus-primary focus:border-transparent transition-all duration-200 text-sm sm:text-base"
-                placeholder="admin@tellus.com"
+                placeholder="seu@email.com"
                 required
               />
             </div>
@@ -82,7 +82,7 @@ export function LoginPage() {
                   value={credentials.password}
                   onChange={(e) => handleChange('password', e.target.value)}
                   className="w-full h-10 sm:h-12 px-3 sm:px-4 pr-10 sm:pr-12 border border-tellus-charcoal-300 dark:border-dark-border dark:bg-dark-surfaceLight dark:text-dark-text rounded-lg focus:ring-2 focus:ring-tellus-primary focus:border-transparent transition-all duration-200 text-sm sm:text-base"
-                  placeholder="Digite sua senha"
+                  placeholder="••••••••"
                   required
                 />
                 <button

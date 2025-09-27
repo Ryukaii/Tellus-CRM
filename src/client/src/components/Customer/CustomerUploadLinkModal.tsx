@@ -22,18 +22,18 @@ export const CustomerUploadLinkModal: React.FC<CustomerUploadLinkModalProps> = (
   const [copied, setCopied] = useState(false);
   const [existingLinks, setExistingLinks] = useState<CustomerUploadLink[]>([]);
 
-  // Configurações do link
-  const [expiresInHours, setExpiresInHours] = useState(72); // 3 dias
-  const [maxAccess, setMaxAccess] = useState<number | undefined>(undefined);
-  const [maxFileSize, setMaxFileSize] = useState(10); // 10MB
-  const [maxFiles, setMaxFiles] = useState(20);
-  const [allowedDocumentTypes, setAllowedDocumentTypes] = useState([
+  // Configurações fixas do link
+  const expiresInHours = 72; // 72 horas
+  const maxAccess = undefined; // Sem limite de acesso
+  const maxFileSize = 10; // 10MB
+  const maxFiles = 20; // 20 arquivos
+  const allowedDocumentTypes = [
     'application/pdf',
     'image/jpeg',
     'image/jpg',
     'image/png',
     'image/webp'
-  ]);
+  ];
 
   useEffect(() => {
     if (isOpen) {
@@ -207,68 +207,36 @@ export const CustomerUploadLinkModal: React.FC<CustomerUploadLinkModalProps> = (
               Criar Novo Link
             </h3>
             
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-dark-textMuted mb-2">
-                  Expira em (horas)
-                </label>
-                <input
-                  type="number"
-                  value={expiresInHours}
-                  onChange={(e) => setExpiresInHours(Number(e.target.value))}
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-dark-border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-dark-surfaceLight dark:text-dark-text"
-                  min="1"
-                  max="720"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-dark-textMuted mb-2">
-                  Máximo de acessos (opcional)
-                </label>
-                <input
-                  type="number"
-                  value={maxAccess || ''}
-                  onChange={(e) => setMaxAccess(e.target.value ? Number(e.target.value) : undefined)}
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-dark-border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-dark-surfaceLight dark:text-dark-text"
-                  min="1"
-                  placeholder="Ilimitado"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-dark-textMuted mb-2">
-                  Tamanho máximo por arquivo (MB)
-                </label>
-                <input
-                  type="number"
-                  value={maxFileSize}
-                  onChange={(e) => setMaxFileSize(Number(e.target.value))}
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-dark-border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-dark-surfaceLight dark:text-dark-text"
-                  min="1"
-                  max="100"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-dark-textMuted mb-2">
-                  Máximo de arquivos
-                </label>
-                <input
-                  type="number"
-                  value={maxFiles}
-                  onChange={(e) => setMaxFiles(Number(e.target.value))}
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-dark-border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-dark-surfaceLight dark:text-dark-text"
-                  min="1"
-                  max="100"
-                />
+            {/* Configurações do Link */}
+            <div className="bg-gray-50 dark:bg-dark-surfaceLight rounded-lg p-4 mb-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                <div className="flex items-center space-x-2">
+                  <Clock className="w-4 h-4 text-gray-500 dark:text-dark-textMuted" />
+                  <span className="text-gray-700 dark:text-dark-textMuted">Expira em:</span>
+                  <span className="font-medium text-gray-900 dark:text-dark-text">72 horas</span>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <Users className="w-4 h-4 text-gray-500 dark:text-dark-textMuted" />
+                  <span className="text-gray-700 dark:text-dark-textMuted">Acessos:</span>
+                  <span className="font-medium text-gray-900 dark:text-dark-text">Ilimitado</span>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <FileText className="w-4 h-4 text-gray-500 dark:text-dark-textMuted" />
+                  <span className="text-gray-700 dark:text-dark-textMuted">Tamanho máximo:</span>
+                  <span className="font-medium text-gray-900 dark:text-dark-text">10 MB por arquivo</span>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <Settings className="w-4 h-4 text-gray-500 dark:text-dark-textMuted" />
+                  <span className="text-gray-700 dark:text-dark-textMuted">Máximo de arquivos:</span>
+                  <span className="font-medium text-gray-900 dark:text-dark-text">20 arquivos</span>
+                </div>
               </div>
             </div>
 
             <button
               onClick={handleCreateLink}
               disabled={loading}
-              className="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              className="w-full bg-blue-600 text-white py-3 px-4 rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium"
             >
               {loading ? 'Criando...' : 'Criar Link de Upload'}
             </button>
