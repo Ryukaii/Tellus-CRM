@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Users, FileText, TrendingUp, Calendar, DollarSign, CheckCircle, Clock, AlertCircle, XCircle, Plus } from 'lucide-react';
+import { Users, FileText, TrendingUp, Calendar, DollarSign, CheckCircle, Clock, AlertCircle, XCircle, Plus, Link } from 'lucide-react';
 import { useDashboard } from '../../hooks/useDashboard';
 import { Modal } from '../UI/Modal';
 import { CustomerForm } from '../Customer/CustomerForm';
+import { CopyRegistrationLinks } from '../UI/CopyRegistrationLinks';
 import { useCustomers } from '../../hooks/useCustomers';
 
 export function Dashboard() {
@@ -11,6 +12,7 @@ export function Dashboard() {
   const { data, loading, error, refetch } = useDashboard();
   const { createCustomer } = useCustomers();
   const [showCreateModal, setShowCreateModal] = useState(false);
+  const [showLinksModal, setShowLinksModal] = useState(false);
 
   const stats = data?.stats || {
     totalCustomers: 0,
@@ -91,6 +93,9 @@ export function Dashboard() {
         break;
       case 'customers':
         navigate('/customers');
+        break;
+      case 'registration-links':
+        setShowLinksModal(true);
         break;
       case 'reports':
         console.log('Abrir relatórios');
@@ -298,6 +303,19 @@ export function Dashboard() {
                   <p className="text-xs text-tellus-charcoal-500 dark:text-dark-textSecondary">Gerenciar leads pendentes</p>
                 </div>
               </button>
+
+              <button 
+                onClick={() => handleQuickAction('registration-links')}
+                className="w-full flex items-center space-x-3 p-3 text-left rounded-lg hover:bg-tellus-gold-50 transition-colors border border-transparent hover:border-tellus-gold-200 dark:hover:bg-dark-surfaceLight dark:hover:border-dark-border"
+              >
+                <div className="bg-gradient-to-br from-tellus-gold-500 to-tellus-gold-600 rounded-lg p-2 shadow-md">
+                  <Link className="w-5 h-5 text-white" />
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-tellus-charcoal-900 dark:text-dark-text">Links de Cadastro</p>
+                  <p className="text-xs text-tellus-charcoal-500 dark:text-dark-textSecondary">Copiar links dos formulários</p>
+                </div>
+              </button>
               
               <button 
                 onClick={() => handleQuickAction('reports')}
@@ -332,6 +350,12 @@ export function Dashboard() {
           loading={loading}
         />
       </Modal>
+
+      {/* Modal de Links de Cadastro */}
+      <CopyRegistrationLinks
+        isOpen={showLinksModal}
+        onClose={() => setShowLinksModal(false)}
+      />
     </div>
   );
 }
