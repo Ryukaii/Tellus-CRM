@@ -98,7 +98,8 @@ export class CNPJService {
 
     try {
       // Consulta via endpoint local (evita problemas de CORS)
-      const response = await fetch(`http://localhost:3001/api/external/cnpj/${cnpjLimpo}`, {
+      const API_BASE_URL = import.meta.env.VITE_API_URL || (import.meta.env.PROD ? '/api' : 'http://localhost:3001/api');
+      const response = await fetch(`${API_BASE_URL}/external/cnpj/${cnpjLimpo}`, {
         method: 'GET',
         headers: {
           'Accept': 'application/json',

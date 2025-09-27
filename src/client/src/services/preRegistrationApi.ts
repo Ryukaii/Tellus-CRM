@@ -1,7 +1,7 @@
 import { PreRegistration } from '../../../shared/types/preRegistration';
 import { Lead } from '../../../shared/types/lead';
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
+const API_BASE_URL = import.meta.env.VITE_API_URL || (import.meta.env.PROD ? '/api' : 'http://localhost:3001/api');
 
 export class PreRegistrationApi {
   private static SESSION_KEY = 'tellus_pre_registration_session';
@@ -190,7 +190,7 @@ export class PreRegistrationApi {
 // ========== API ADMINISTRATIVA (para CRM) ==========
 
 export class AdminPreRegistrationApi {
-  private static API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
+  private static API_BASE_URL = import.meta.env.VITE_API_URL || (import.meta.env.PROD ? '/api' : 'http://localhost:3001/api');
 
   private static getAuthHeaders() {
     const token = localStorage.getItem('tellus_token');
