@@ -194,7 +194,13 @@ export function LeadForm() {
     notes: ''
   });
 
-  const totalSteps = 7;
+  const totalSteps = 7; // 1-Dados Pessoais, 2-Endereço, 3-Profissional, 4-Imóvel, 5-Cônjuge, 6-Gov.br, 7-Documentos
+
+  // Determinar qual é realmente a última etapa (documentos)
+  const isLastStep = React.useMemo(() => {
+    // A última etapa é sempre documentos (etapa 7)
+    return currentStep === 7;
+  }, [currentStep]);
 
   // Corrigir etapa inválida
   useEffect(() => {
@@ -741,7 +747,7 @@ export function LeadForm() {
   };
 
   const nextStep = async () => {
-    if (currentStep < totalSteps) {
+    if (!isLastStep) {
       try {
         setLoading(true);
         
@@ -775,8 +781,8 @@ export function LeadForm() {
       } finally {
         setLoading(false);
       }
-    } else if (currentStep === totalSteps) {
-      // Se está na última etapa, finalizar
+    } else {
+      // Se está na última etapa (documentos), finalizar
       handleSubmit();
     }
   };
@@ -2421,6 +2427,33 @@ export function LeadForm() {
                     )}
                   </div>
 
+                  {/* Outros Documentos */}
+                  <div className="bg-white border border-gray-200 rounded-lg p-6">
+                    <h4 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+                      <FileText className="w-5 h-5 mr-2 text-tellus-primary" />
+                      Outros Documentos
+                    </h4>
+                    <p className="text-sm text-gray-600 mb-4">
+                      Envie documentos adicionais que possam ser relevantes para a análise de crédito imobiliário (até 10 documentos)
+                    </p>
+                    
+                    <DocumentUpload
+                      sessionId={sessionId || ''}
+                      documentType="other_documents"
+                      label="Outros Documentos"
+                      description="Documentos adicionais que considere importantes"
+                      onUploadComplete={(documents) => {
+                        setFormData(prev => ({
+                          ...prev,
+                          documents: [...prev.documents, ...documents]
+                        }));
+                      }}
+                      onUploadError={(error) => setError(error)}
+                      maxFiles={10}
+                      userCpf={formData.cpf}
+                    />
+                  </div>
+
                   {/* Observações Finais */}
                   <div className="bg-white border border-gray-200 rounded-lg p-6">
                     <h4 className="text-base font-semibold text-gray-900 mb-3 flex items-center">
@@ -2481,7 +2514,7 @@ export function LeadForm() {
                 Voltar
               </Button>
 
-              {currentStep < totalSteps ? (
+              {!isLastStep ? (
                 <Button 
                   onClick={nextStep} 
                   disabled={!validateCurrentStep() || loading}

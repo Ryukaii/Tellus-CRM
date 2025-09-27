@@ -14,7 +14,7 @@ export const supabaseAdmin = supabaseUrl && supabaseServiceKey
   : null;
 
 // Configurações do Storage
-export const STORAGE_BUCKET = 'user-documents';
+export const STORAGE_BUCKET = process.env.SUPABASE_STORAGE_BUCKET || 'user-documents';
 
 /**
  * Gerar URL assinada para um arquivo
@@ -180,4 +180,158 @@ export const getPublicUrl = (filePath: string): string => {
     .getPublicUrl(filePath);
 
   return data.publicUrl;
+};
+
+/**
+ * Deletar arquivo do Supabase Storage
+ */
+export const deleteFile = async (
+  filePath: string, 
+  bucket: string = STORAGE_BUCKET
+): Promise<{ success: boolean; error?: string }> => {
+  try {
+    if (!supabaseAdmin) {
+      return { 
+        success: false, 
+        error: 'Supabase não configurado no backend' 
+      };
+    }
+
+    console.log('Deletando arquivo do Supabase:', filePath, 'bucket:', bucket);
+    
+    const { error } = await supabaseAdmin.storage
+      .from(bucket)
+      .remove([filePath]);
+    
+    if (error) {
+      console.error('Erro ao deletar arquivo:', error);
+      return { 
+        success: false, 
+        error: error.message 
+      };
+    }
+    
+    console.log('Arquivo deletado com sucesso:', filePath);
+    
+    return {
+      success: true
+    };
+  } catch (error) {
+    console.error('Erro na função deleteFile:', error);
+    return { 
+      success: false, 
+      error: error instanceof Error ? error.message : 'Erro desconhecido' 
+    };
+  }
+};
+
+/**
+ * Deletar múltiplos arquivos do Supabase Storage
+ */
+export const deleteFiles = async (
+  filePaths: string[], 
+  bucket: string = STORAGE_BUCKET
+): Promise<{ success: boolean; deletedCount: number; errors: string[] }> => {
+  try {
+    if (!supabaseAdmin) {
+      return { 
+        success: false, 
+        deletedCount: 0,
+        errors: ['Supabase não configurado no backend'] 
+      };
+    }
+
+    console.log('Deletando múltiplos arquivos do Supabase:', filePaths.length, 'arquivos');
+    
+    const { data, error } = await supabaseAdmin.storage
+      .from(bucket)
+      .remove(filePaths);
+    
+    if (error) {
+      console.error('Erro ao deletar arquivos:', error);
+      return { 
+        success: false, 
+        deletedCount: 0,
+        errors: [error.message]
+      };
+    }
+    
+    const deletedCount = data?.length || 0;
+    console.log(`${deletedCount} arquivos deletados com sucesso`);
+    
+    return {
+      success: true,
+      deletedCount,
+      errors: []
+    };
+  } catch (error) {
+    console.error('Erro na função deleteFiles:', error);
+    return { 
+      success: false, 
+      deletedCount: 0,
+      errors: [error instanceof Error ? error.message : 'Erro desconhecido']
+    };
+  }
+};
+
+/**
+ * Extrair caminhos de arquivos dos documentos uploadados
+ */
+export const extractFilePathsFromDocuments = (uploadedDocuments: any[]): string[] => {
+  if (!uploadedDocuments || !Array.isArray(uploadedDocuments)) {
+    return [];
+  }
+
+  return uploadedDocuments
+    .map(doc => {
+      // Tentar extrair o caminho de diferentes formatos de URL
+      if (typeof doc === 'string') {
+        // Se for uma string, pode ser uma URL ou caminho direto
+        return extractFilePathFromUrl(doc);
+      } else if (doc && typeof doc === 'object') {
+        // Se for um objeto, procurar por propriedades que contenham o caminho
+        return doc.url ? extractFilePathFromUrl(doc.url) : 
+               doc.filePath ? doc.filePath :
+               doc.path ? doc.path : null;
+      }
+      return null;
+    })
+    .filter(Boolean) as string[];
+};
+
+/**
+ * Extrair caminho do arquivo de uma URL do Supabase
+ */
+const extractFilePathFromUrl = (url: string): string | null => {
+  try {
+    // URLs do Supabase Storage geralmente seguem o padrão:
+    // https://[project].supabase.co/storage/v1/object/[bucket]/[filePath]
+    // ou URLs assinadas que contêm o caminho como parâmetro
+    
+    if (url.includes('/storage/v1/object/')) {
+      const parts = url.split('/storage/v1/object/');
+      if (parts.length > 1) {
+        // Remover o bucket name do início
+        const pathWithBucket = parts[1];
+        const pathParts = pathWithBucket.split('/');
+        if (pathParts.length > 1) {
+          // Remover o primeiro elemento (bucket name) e juntar o resto
+          return pathParts.slice(1).join('/');
+        }
+      }
+    }
+    
+    // Para URLs assinadas, tentar extrair do parâmetro
+    const urlObj = new URL(url);
+    const pathParam = urlObj.searchParams.get('path');
+    if (pathParam) {
+      return pathParam;
+    }
+    
+    // Fallback: assumir que a URL já é o caminho
+    return url;
+  } catch (error) {
+    console.warn('Erro ao extrair caminho do arquivo da URL:', url, error);
+    return null;
+  }
 };

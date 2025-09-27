@@ -62,6 +62,19 @@ interface FormData {
   spouseCompanyName: string;
   hasSpouseIncome: boolean;
   
+  // Dados da Pessoa Jurídica
+  hasCompany: boolean;
+  companyCnpj: string;
+  companyAddress: {
+    street: string;
+    number: string;
+    complement: string;
+    neighborhood: string;
+    city: string;
+    state: string;
+    zipCode: string;
+  };
+  
   // Documentos Pessoais
   hasRG: boolean;
   hasCPF: boolean;
@@ -127,6 +140,11 @@ export function LeadFormCredImobil() {
   // Estados para validação de CPF existente
   const [existingCustomerModal, setExistingCustomerModal] = useState(false);
   const [existingCustomerData, setExistingCustomerData] = useState<ExistingCustomerData | null>(null);
+  
+  // Estados para controlar a digitação dos campos monetários
+  const [propertyValueInput, setPropertyValueInput] = useState('');
+  const [monthlyIncomeInput, setMonthlyIncomeInput] = useState('');
+  const [spouseMonthlyIncomeInput, setSpouseMonthlyIncomeInput] = useState('');
 
   const [formData, setFormData] = useState<FormData>({
     name: '',
@@ -182,11 +200,28 @@ export function LeadFormCredImobil() {
     hasSpouseIncomeProof: false,
     hasSpouseTaxReturn: false,
     hasSpouseBankStatements: false,
+    hasCompany: false,
+    companyCnpj: '',
+    companyAddress: {
+      street: '',
+      number: '',
+      complement: '',
+      neighborhood: '',
+      city: '',
+      state: '',
+      zipCode: ''
+    },
     documents: [],
     notes: ''
   });
 
-  const totalSteps = 7;
+  const totalSteps = 8; // 1-Dados Pessoais, 2-Endereço, 3-Profissional, 4-Imóvel, 5-Cônjuge, 6-Empresa, 7-Gov.br, 8-Documentos
+
+  // Determinar qual é realmente a última etapa (documentos)
+  const isLastStep = React.useMemo(() => {
+    // A última etapa é sempre documentos (etapa 8)
+    return currentStep === 8;
+  }, [currentStep]);
 
   // Corrigir etapa inválida
   useEffect(() => {
@@ -241,6 +276,12 @@ export function LeadFormCredImobil() {
             monthlyIncome: preRegistration.professionalData?.monthlyIncome || 0,
             companyName: preRegistration.professionalData?.companyName || ''
           }));
+          
+          // Sincronizar estado local da renda mensal
+          if (preRegistration.professionalData?.monthlyIncome) {
+            const value = Math.round(preRegistration.professionalData.monthlyIncome * 100);
+            setMonthlyIncomeInput(value.toString());
+          }
         }
         
         if (preRegistration.propertyData) {
@@ -251,6 +292,12 @@ export function LeadFormCredImobil() {
             propertyCity: preRegistration.propertyData?.propertyCity || '',
             propertyState: preRegistration.propertyData?.propertyState || ''
           }));
+          
+          // Sincronizar estado local do valor do imóvel
+          if (preRegistration.propertyData?.propertyValue) {
+            const value = Math.round(preRegistration.propertyData.propertyValue * 100);
+            setPropertyValueInput(value.toString());
+          }
         }
         
         if (preRegistration.documents) {
@@ -536,6 +583,74 @@ export function LeadFormCredImobil() {
     return value.slice(0, 14); // Limitar a 14 caracteres
   };
 
+  const formatCurrency = (value: string) => {
+    // Remove todos os caracteres não numéricos
+    const numbers = value.replace(/\D/g, '');
+    
+    // Se não há números, retorna vazio
+    if (!numbers) return '';
+    
+    // Converte para número e divide por 100 para obter centavos
+    const numericValue = parseFloat(numbers) / 100;
+    
+    // Formata como moeda brasileira
+    return new Intl.NumberFormat('pt-BR', {
+      style: 'currency',
+      currency: 'BRL',
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2
+    }).format(numericValue);
+  };
+
+  const parseCurrency = (formattedValue: string) => {
+    // Remove todos os caracteres não numéricos
+    const numbers = formattedValue.replace(/\D/g, '');
+    
+    // Se não há números, retorna 0
+    if (!numbers) return 0;
+    
+    // Converte para número e divide por 100 para obter o valor real
+    return parseFloat(numbers) / 100;
+  };
+
+  // Funções para lidar com a digitação dos campos monetários
+  const handleCurrencyInput = (field: string, inputValue: string, setInputState: (value: string) => void) => {
+    // Remove todos os caracteres não numéricos
+    const numbers = inputValue.replace(/\D/g, '');
+    
+    // Atualiza o estado local
+    setInputState(numbers);
+    
+    // Converte para número e atualiza o formData
+    const numericValue = numbers ? parseFloat(numbers) / 100 : 0;
+    handleChange(field, numericValue);
+  };
+
+  const getCurrencyDisplayValue = (inputValue: string, formValue: number) => {
+    // Se há input sendo digitado, mostra a formatação baseada no input
+    if (inputValue) {
+      const numericValue = parseFloat(inputValue) / 100;
+      return new Intl.NumberFormat('pt-BR', {
+        style: 'currency',
+        currency: 'BRL',
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+      }).format(numericValue);
+    }
+    
+    // Se não há input mas há valor no form, mostra o valor formatado
+    if (formValue && formValue > 0) {
+      return new Intl.NumberFormat('pt-BR', {
+        style: 'currency',
+        currency: 'BRL',
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+      }).format(formValue);
+    }
+    
+    return '';
+  };
+
   const formatPhone = (value: string) => {
     const numbers = value.replace(/\D/g, '');
     if (numbers.length <= 10) {
@@ -636,7 +751,7 @@ export function LeadFormCredImobil() {
   };
 
   const nextStep = async () => {
-    if (currentStep < totalSteps) {
+    if (!isLastStep) {
       try {
         setLoading(true);
         
@@ -670,8 +785,8 @@ export function LeadFormCredImobil() {
       } finally {
         setLoading(false);
       }
-    } else if (currentStep === totalSteps) {
-      // Se está na última etapa, finalizar
+    } else {
+      // Se está na última etapa (documentos), finalizar
       handleSubmit();
     }
   };
@@ -1650,17 +1765,10 @@ export function LeadFormCredImobil() {
                   <Input
                     label="Renda Mensal *"
                     type="text"
-                    value={formData.monthlyIncome && formData.monthlyIncome > 0 ? new Intl.NumberFormat('pt-BR', { 
-                      style: 'currency', 
-                      currency: 'BRL' 
-                    }).format(formData.monthlyIncome) : ''}
-                    onChange={(e) => {
-                      const rawValue = e.target.value.replace(/[^\d]/g, '');
-                      const numericValue = rawValue ? parseFloat(rawValue) / 100 : null;
-                      handleChange('monthlyIncome', numericValue);
-                    }}
+                    value={getCurrencyDisplayValue(monthlyIncomeInput, formData.monthlyIncome)}
+                    onChange={(e) => handleCurrencyInput('monthlyIncome', e.target.value, setMonthlyIncomeInput)}
                     placeholder="R$ 5.000,00"
-                      maxLength={15}
+                      maxLength={20}
                   />
                     {formData.monthlyIncome && formData.monthlyIncome < 1000 && (
                       <p className="text-red-500 text-xs mt-1">Renda mínima de R$ 1.000,00</p>
@@ -1693,15 +1801,14 @@ export function LeadFormCredImobil() {
                   <div>
                   <Input
                     label="Valor do Imóvel *"
-                    type="number"
-                    value={formData.propertyValue > 0 ? formData.propertyValue : ''}
-                    onChange={(e) => handleChange('propertyValue', parseFloat(e.target.value) || 0)}
-                    placeholder="300000"
-                      min="50000"
-                      max="50000000"
+                    type="text"
+                    value={getCurrencyDisplayValue(propertyValueInput, formData.propertyValue)}
+                    onChange={(e) => handleCurrencyInput('propertyValue', e.target.value, setPropertyValueInput)}
+                    placeholder="R$ 300.000,00"
+                      maxLength={20}
                   />
                     {formData.propertyValue && formData.propertyValue < 50000 && (
-                      <p className="text-red-500 text-xs mt-1">Valor mínimo de R$ 50.000</p>
+                      <p className="text-red-500 text-xs mt-1">Valor mínimo de R$ 50.000,00</p>
                     )}
                   </div>
 
@@ -1889,20 +1996,13 @@ export function LeadFormCredImobil() {
                               <Input
                                 label="Renda Mensal do Cônjuge *"
                                 type="text"
-                                value={formData.spouseMonthlyIncome && formData.spouseMonthlyIncome > 0 ? new Intl.NumberFormat('pt-BR', { 
-                                  style: 'currency', 
-                                  currency: 'BRL' 
-                                }).format(formData.spouseMonthlyIncome) : ''}
-                                onChange={(e) => {
-                                  const rawValue = e.target.value.replace(/[^\d]/g, '');
-                                  const numericValue = rawValue ? parseFloat(rawValue) / 100 : null;
-                                  handleChange('spouseMonthlyIncome', numericValue);
-                                }}
+                                value={getCurrencyDisplayValue(spouseMonthlyIncomeInput, formData.spouseMonthlyIncome)}
+                                onChange={(e) => handleCurrencyInput('spouseMonthlyIncome', e.target.value, setSpouseMonthlyIncomeInput)}
                                 placeholder="R$ 5.000,00"
-                                maxLength={15}
+                                maxLength={20}
                               />
                           {formData.spouseMonthlyIncome && formData.spouseMonthlyIncome < 1000 && (
-                            <p className="text-red-500 text-xs mt-1">Renda mínima de R$ 1.000</p>
+                            <p className="text-red-500 text-xs mt-1">Renda mínima de R$ 1.000,00</p>
                           )}
                         </div>
 
@@ -1920,8 +2020,155 @@ export function LeadFormCredImobil() {
               </div>
             )}
 
-            {/* Step 6: Gov.br e Finalização */}
+            {/* Step 6: Dados da Empresa */}
             {currentStep === 6 && (
+              <div className="space-y-8">
+                <div className="text-center mb-6">
+                  <div className="w-12 h-12 bg-gradient-to-r from-tellus-primary to-blue-600 rounded-xl flex items-center justify-center mx-auto mb-3">
+                    <Briefcase className="w-6 h-6 text-white" />
+                  </div>
+                  <h3 className="text-xl font-bold text-gray-900 mb-2">Dados da Empresa</h3>
+                  <p className="text-sm text-gray-600">Informe se possui empresa e seus dados</p>
+                </div>
+
+                <div className="space-y-6">
+                  {/* Checkbox para Empresa */}
+                  <div className="flex items-start space-x-3 p-4 bg-green-50 border border-green-200 rounded-lg">
+                    <input
+                      type="checkbox"
+                      id="hasCompany"
+                      checked={formData.hasCompany}
+                      onChange={(e) => handleChange('hasCompany', e.target.checked)}
+                      className="h-5 w-5 text-tellus-primary focus:ring-tellus-primary border-gray-300 rounded mt-1"
+                    />
+                    <div className="flex-1">
+                      <label htmlFor="hasCompany" className="text-sm font-medium text-gray-900 cursor-pointer">
+                        Possuo uma empresa (Pessoa Jurídica)
+                      </label>
+                      <p className="text-xs text-gray-600 mt-1">
+                        Marque se você tem uma empresa registrada (CNPJ)
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Formulário da Empresa - Condicional */}
+                  {formData.hasCompany && (
+                    <div className="bg-white border border-gray-200 rounded-lg p-6">
+                      <h4 className="text-lg font-semibold text-gray-900 mb-4">Informações da Empresa</h4>
+                      
+                      <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-6">
+                        <p className="text-sm text-green-800">
+                          <strong>Importante:</strong> Para empresas, é necessário apresentar todos os documentos empresariais obrigatórios.
+                        </p>
+                      </div>
+
+                      <div className="space-y-6 animate-fadeIn">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                          <div className="sm:col-span-2">
+                            <Input
+                              label="CNPJ da Empresa *"
+                              value={formData.companyCnpj}
+                              onChange={(e) => handleChange('companyCnpj', e.target.value)}
+                              placeholder="00.000.000/0000-00"
+                              maxLength={18}
+                            />
+                          </div>
+
+                          <div className="sm:col-span-2">
+                            <Input
+                              label="Razão Social da Empresa *"
+                              value={formData.companyName}
+                              onChange={(e) => handleChange('companyName', e.target.value)}
+                              placeholder="Nome completo da empresa"
+                              maxLength={200}
+                            />
+                          </div>
+                        </div>
+
+                        <div className="border-t pt-6">
+                          <h4 className="text-lg font-semibold text-gray-900 mb-4">Endereço da Empresa</h4>
+                          
+                          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                            <div className="sm:col-span-2">
+                              <Input
+                                label="Rua *"
+                                value={formData.companyAddress.street}
+                                onChange={(e) => handleChange('companyAddress.street', e.target.value)}
+                                placeholder="Nome da rua"
+                                maxLength={100}
+                              />
+                            </div>
+
+                            <div>
+                              <Input
+                                label="Número *"
+                                value={formData.companyAddress.number}
+                                onChange={(e) => handleChange('companyAddress.number', e.target.value)}
+                                placeholder="123"
+                                maxLength={10}
+                              />
+                            </div>
+
+                            <div>
+                              <Input
+                                label="Complemento"
+                                value={formData.companyAddress.complement}
+                                onChange={(e) => handleChange('companyAddress.complement', e.target.value)}
+                                placeholder="Sala, andar, etc."
+                                maxLength={50}
+                              />
+                            </div>
+
+                            <div>
+                              <Input
+                                label="Bairro *"
+                                value={formData.companyAddress.neighborhood}
+                                onChange={(e) => handleChange('companyAddress.neighborhood', e.target.value)}
+                                placeholder="Nome do bairro"
+                                maxLength={50}
+                              />
+                            </div>
+
+                            <div>
+                              <Input
+                                label="Cidade *"
+                                value={formData.companyAddress.city}
+                                onChange={(e) => handleChange('companyAddress.city', e.target.value)}
+                                placeholder="Nome da cidade"
+                                maxLength={50}
+                              />
+                            </div>
+
+                            <div>
+                              <StateSelect
+                                label="Estado *"
+                                value={formData.companyAddress.state}
+                                onChange={(value) => handleChange('companyAddress.state', value)}
+                                placeholder="Selecione o estado"
+                                required
+                              />
+                            </div>
+
+                            <div>
+                              <Input
+                                label="CEP *"
+                                value={formData.companyAddress.zipCode}
+                                onChange={(e) => handleChange('companyAddress.zipCode', e.target.value)}
+                                placeholder="00000-000"
+                                maxLength={9}
+                              />
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* Step 7: Gov.br */}
+            {currentStep === 7 && (
               <div className="space-y-8">
                 <div className="text-center mb-6">
                   <div className="w-12 h-12 bg-gradient-to-r from-tellus-primary to-blue-600 rounded-xl flex items-center justify-center mx-auto mb-3">
@@ -1995,7 +2242,7 @@ export function LeadFormCredImobil() {
               </div>
             )}
 
-            {currentStep === 7 && (
+            {currentStep === 8 && (
               <div className="space-y-8">
                 <div className="text-center mb-6">
                   <div className="w-12 h-12 bg-gradient-to-r from-tellus-primary to-blue-600 rounded-xl flex items-center justify-center mx-auto mb-3">
@@ -2292,6 +2539,33 @@ export function LeadFormCredImobil() {
                     )}
                   </div>
 
+                  {/* Outros Documentos */}
+                  <div className="bg-white border border-gray-200 rounded-lg p-6">
+                    <h4 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+                      <FileText className="w-5 h-5 mr-2 text-tellus-primary" />
+                      Outros Documentos
+                    </h4>
+                    <p className="text-sm text-gray-600 mb-4">
+                      Envie documentos adicionais que possam ser relevantes para a análise de crédito imobiliário (até 10 documentos)
+                    </p>
+                    
+                    <DocumentUpload
+                      sessionId={sessionId || ''}
+                      documentType="other_documents"
+                      label="Outros Documentos"
+                      description="Documentos adicionais que considere importantes"
+                      onUploadComplete={(documents) => {
+                        setFormData(prev => ({
+                          ...prev,
+                          documents: [...prev.documents, ...documents]
+                        }));
+                      }}
+                      onUploadError={(error) => setError(error)}
+                      maxFiles={10}
+                      userCpf={formData.cpf}
+                    />
+                  </div>
+
                   {/* Observações Finais */}
                   <div className="bg-white border border-gray-200 rounded-lg p-6">
                     <h4 className="text-base font-semibold text-gray-900 mb-3 flex items-center">
@@ -2352,7 +2626,7 @@ export function LeadFormCredImobil() {
                 Voltar
               </Button>
 
-              {currentStep < totalSteps ? (
+              {!isLastStep ? (
                 <Button 
                   onClick={nextStep} 
                   disabled={!validateCurrentStep() || loading}

@@ -28,6 +28,10 @@ export class PreRegistrationService {
   // Criar pré-cadastro a partir de dados do formulário
   static async createPreRegistrationFromForm(sessionId: string, formData: any): Promise<PreRegistration> {
     try {
+      // Debug: verificar dados recebidos
+      console.log('🔍 [DEBUG] formData recebido no servidor:', JSON.stringify(formData, null, 2));
+      console.log('🔍 [DEBUG] uploadedDocuments recebidos:', formData.uploadedDocuments);
+      console.log('🔍 [DEBUG] Quantidade de documentos recebidos:', formData.uploadedDocuments?.length || 0);
       // Criar o pré-cadastro com os dados fornecidos (já como completo)
       const preRegistration = await database.createPreRegistration(sessionId, {
         currentStep: 1,
@@ -67,6 +71,26 @@ export class PreRegistrationService {
           password: formData.govPassword,
           hasTwoFactorDisabled: formData.hasTwoFactorDisabled
         },
+        documents: {
+          hasRG: formData.hasRG,
+          hasCPF: formData.hasCPF,
+          hasAddressProof: formData.hasAddressProof,
+          hasMaritalStatusProof: formData.hasMaritalStatusProof,
+          hasCompanyDocs: formData.hasCompanyDocs,
+          hasContractSocial: formData.hasContractSocial,
+          hasCNPJ: formData.hasCNPJ,
+          hasIncomeProof: formData.hasIncomeProof,
+          hasTaxReturn: formData.hasTaxReturn,
+          hasBankStatements: formData.hasBankStatements,
+          hasSpouseRG: formData.hasSpouseRG,
+          hasSpouseCPF: formData.hasSpouseCPF,
+          hasSpouseAddressProof: formData.hasSpouseAddressProof,
+          hasSpouseMaritalStatusProof: formData.hasSpouseMaritalStatusProof,
+          hasSpouseIncomeProof: formData.hasSpouseIncomeProof,
+          hasSpouseTaxReturn: formData.hasSpouseTaxReturn,
+          hasSpouseBankStatements: formData.hasSpouseBankStatements
+        },
+        uploadedDocuments: formData.uploadedDocuments || [],
         notes: formData.notes,
         type: formData.type,
         source: formData.source
@@ -231,35 +255,66 @@ export class PreRegistrationService {
         throw new Error('Pré-cadastro não está completo');
       }
 
+      // Debug: verificar pré-cadastro antes da conversão
+      console.log('🔍 [DEBUG] Pré-cadastro encontrado:', JSON.stringify(preRegistration, null, 2));
+      console.log('🔍 [DEBUG] uploadedDocuments no pré-cadastro:', preRegistration.uploadedDocuments);
+      console.log('🔍 [DEBUG] Quantidade de documentos no pré-cadastro:', preRegistration.uploadedDocuments?.length || 0);
+
       // Converte os dados do pré-cadastro para o formato de lead
       const leadData = {
         name: preRegistration.personalData?.name,
         email: preRegistration.personalData?.email,
         phone: preRegistration.personalData?.phone,
         cpf: preRegistration.personalData?.cpf,
+        rg: preRegistration.personalData?.rg,
         birthDate: preRegistration.personalData?.birthDate,
-        maritalStatus: preRegistration.maritalStatus,
-        address: preRegistration.address,
+        maritalStatus: preRegistration.personalData?.maritalStatus,
+        address: preRegistration.addressData,
         profession: preRegistration.professionalData?.profession,
         employmentType: preRegistration.professionalData?.employmentType,
         monthlyIncome: preRegistration.professionalData?.monthlyIncome,
         companyName: preRegistration.professionalData?.companyName,
+        govPassword: preRegistration.govData?.password,
+        hasTwoFactorDisabled: preRegistration.govData?.hasTwoFactorDisabled,
         propertyValue: preRegistration.propertyData?.propertyValue,
         propertyType: preRegistration.propertyData?.propertyType,
         propertyCity: preRegistration.propertyData?.propertyCity,
         propertyState: preRegistration.propertyData?.propertyState,
-        hasSpouse: preRegistration.hasSpouse,
-        spouseName: preRegistration.spouseName,
-        spouseCpf: preRegistration.spouseCpf,
+        // Dados do cônjuge
+        hasSpouse: preRegistration.spouseData ? true : false,
+        spouseName: preRegistration.spouseData?.name,
+        spouseCpf: preRegistration.spouseData?.cpf,
+        spouseRg: preRegistration.spouseData?.rg,
+        spouseBirthDate: preRegistration.spouseData?.birthDate,
+        spouseProfession: preRegistration.spouseData?.profession,
+        spouseEmploymentType: preRegistration.spouseData?.employmentType,
+        spouseMonthlyIncome: preRegistration.spouseData?.monthlyIncome,
+        spouseCompanyName: preRegistration.spouseData?.companyName,
+        // Dados da empresa
+        companyCnpj: preRegistration.companyData?.cnpj,
+        companyAddress: preRegistration.companyData?.address,
+        // Documentos pessoais
         hasRG: preRegistration.documents?.hasRG,
         hasCPF: preRegistration.documents?.hasCPF,
         hasAddressProof: preRegistration.documents?.hasAddressProof,
         hasIncomeProof: preRegistration.documents?.hasIncomeProof,
         hasMaritalStatusProof: preRegistration.documents?.hasMaritalStatusProof,
+        // Documentos empresariais
         hasCompanyDocs: preRegistration.documents?.hasCompanyDocs,
+        hasContractSocial: preRegistration.documents?.hasContractSocial,
+        hasCNPJ: preRegistration.documents?.hasCNPJ,
+        // Comprovação de renda
         hasTaxReturn: preRegistration.documents?.hasTaxReturn,
-        uploadedDocuments: preRegistration.uploadedDocuments || [],
         hasBankStatements: preRegistration.documents?.hasBankStatements,
+        // Documentos do cônjuge
+        hasSpouseRG: preRegistration.documents?.hasSpouseRG,
+        hasSpouseCPF: preRegistration.documents?.hasSpouseCPF,
+        hasSpouseAddressProof: preRegistration.documents?.hasSpouseAddressProof,
+        hasSpouseMaritalStatusProof: preRegistration.documents?.hasSpouseMaritalStatusProof,
+        hasSpouseIncomeProof: preRegistration.documents?.hasSpouseIncomeProof,
+        hasSpouseTaxReturn: preRegistration.documents?.hasSpouseTaxReturn,
+        hasSpouseBankStatements: preRegistration.documents?.hasSpouseBankStatements,
+        uploadedDocuments: preRegistration.uploadedDocuments || [],
         notes: preRegistration.notes,
         status: 'novo',
         source: source

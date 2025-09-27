@@ -1,7 +1,6 @@
 import React, { useState, useRef } from 'react'
 import { Upload, FileText, X, CheckCircle, AlertCircle, Loader2 } from 'lucide-react'
-import { DocumentService, DocumentUpload as DocumentUploadType, UploadProgress } from '../../services/documentService'
-import { PreRegistrationApi } from '../../services/preRegistrationApi'
+import { SecureDocumentService, DocumentUpload as DocumentUploadType, UploadProgress } from '../../services/secureDocumentService'
 
 interface DocumentUploadProps {
   sessionId: string
@@ -68,24 +67,21 @@ export const DocumentUpload: React.FC<DocumentUploadProps> = ({
     setUploadProgress([])
 
     try {
-      const results = await DocumentService.uploadMultipleDocuments(
-        sessionId,
+      const results = await SecureDocumentService.uploadMultipleDocuments(
         files,
         documentType,
-        (progress) => setUploadProgress([...progress]),
-        userCpf
+        {
+          userCpf,
+          sessionId,
+          onProgress: (progress) => setUploadProgress([...progress])
+        }
       )
 
       const allDocuments = [...uploadedDocuments, ...results]
       setUploadedDocuments(allDocuments)
       
-      // Salvar documentos no backend
-      try {
-        await PreRegistrationApi.saveDocuments(allDocuments)
-      } catch (error) {
-        console.error('Erro ao salvar documentos no backend:', error)
-        // Não bloquear a UI, apenas logar o erro
-      }
+      // Documentos são salvos automaticamente quando o formulário é enviado
+      // Não é necessário salvar individualmente durante o upload
       
       onUploadComplete(allDocuments)
     } catch (error) {
@@ -104,17 +100,12 @@ export const DocumentUpload: React.FC<DocumentUploadProps> = ({
 
   const performRemoveDocument = async (document: DocumentUploadType) => {
     try {
-      await DocumentService.deleteDocument(document.id)
+      await SecureDocumentService.deleteDocument(document.id)
       const remainingDocuments = uploadedDocuments.filter(doc => doc.id !== document.id)
       setUploadedDocuments(remainingDocuments)
       
-      // Atualizar documentos no backend
-      try {
-        await PreRegistrationApi.saveDocuments(remainingDocuments)
-      } catch (error) {
-        console.error('Erro ao atualizar documentos no backend:', error)
-        // Não bloquear a UI, apenas logar o erro
-      }
+      // Documentos são atualizados automaticamente quando o formulário é enviado
+      // Não é necessário salvar individualmente durante a remoção
       
       onUploadComplete(remainingDocuments)
     } catch (error) {

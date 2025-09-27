@@ -9,8 +9,8 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey)
 // Use apenas no backend para operações administrativas
 export const supabaseAdmin = null
 
-// Configurações do Storage
-export const STORAGE_BUCKET = 'user-documents'
+// Configurações do Storage (removido - agora usa backend seguro)
+// export const STORAGE_BUCKET = import.meta.env.VITE_SUPABASE_STORAGE_BUCKET || 'user-documents'
 export const MAX_FILE_SIZE = 10 * 1024 * 1024 // 10MB
 export const ALLOWED_FILE_TYPES = [
   'application/pdf',

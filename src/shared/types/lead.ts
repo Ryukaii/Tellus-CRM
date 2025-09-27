@@ -45,6 +45,12 @@ export const LeadSchema = z.object({
   hasSpouse: z.boolean(),
   spouseName: z.string().optional(),
   spouseCpf: z.string().optional(),
+  spouseRg: z.string().optional(),
+  spouseBirthDate: z.string().optional(),
+  spouseProfession: z.string().optional(),
+  spouseEmploymentType: z.enum(['clt', 'servidor_publico', 'autonomo', 'empresario', 'aposentado']).optional(),
+  spouseMonthlyIncome: z.number().optional(),
+  spouseCompanyName: z.string().optional(),
   
   // Documentos Disponíveis
   hasRG: z.boolean(),
@@ -55,8 +61,19 @@ export const LeadSchema = z.object({
   
   // Para empresários
   hasCompanyDocs: z.boolean().optional(),
+  hasContractSocial: z.boolean().optional(),
+  hasCNPJ: z.boolean().optional(),
   hasTaxReturn: z.boolean().optional(),
   hasBankStatements: z.boolean().optional(),
+  
+  // Documentos do cônjuge
+  hasSpouseRG: z.boolean().optional(),
+  hasSpouseCPF: z.boolean().optional(),
+  hasSpouseAddressProof: z.boolean().optional(),
+  hasSpouseMaritalStatusProof: z.boolean().optional(),
+  hasSpouseIncomeProof: z.boolean().optional(),
+  hasSpouseTaxReturn: z.boolean().optional(),
+  hasSpouseBankStatements: z.boolean().optional(),
   
   // Dados da Pessoa Jurídica
   hasCompany: z.boolean().optional(),

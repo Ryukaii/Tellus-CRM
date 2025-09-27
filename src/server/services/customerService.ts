@@ -305,8 +305,34 @@ class CustomerService {
 
   async deleteCustomer(id: string): Promise<boolean> {
     try {
+      // Primeiro, obter os dados do customer para acessar os documentos
+      const customer = await this.getCustomerById(id);
+      
+      if (customer && customer.uploadedDocuments && customer.uploadedDocuments.length > 0) {
+        // Importar funções do supabaseService
+        const { deleteFiles, extractFilePathsFromDocuments } = await import('./supabaseService.js');
+        
+        // Extrair caminhos dos arquivos
+        const filePaths = extractFilePathsFromDocuments(customer.uploadedDocuments);
+        
+        if (filePaths.length > 0) {
+          console.log(`Deletando ${filePaths.length} arquivos do customer ${id}`);
+          
+          // Deletar arquivos do bucket
+          const deleteResult = await deleteFiles(filePaths);
+          
+          if (deleteResult.success) {
+            console.log(`${deleteResult.deletedCount} arquivos deletados do bucket com sucesso`);
+          } else {
+            console.warn('Alguns arquivos não puderam ser deletados do bucket:', deleteResult.errors);
+          }
+        }
+      }
+      
+      // Deletar o customer do banco de dados
       return await database.deleteCustomer(id);
     } catch (error) {
+      console.error('Error deleting customer:', error);
       return false;
     }
   }

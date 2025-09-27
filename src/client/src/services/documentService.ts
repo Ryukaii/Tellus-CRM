@@ -1,4 +1,4 @@
-import { supabase, supabaseAdmin, STORAGE_BUCKET, generateFileName, generateFilePath, validateFileType, validateFileSize, createSignedUrl, downloadFileWithServiceKey } from '../lib/supabase'
+import { supabase, supabaseAdmin, generateFileName, generateFilePath, validateFileType, validateFileSize, createSignedUrl, downloadFileWithServiceKey } from '../lib/supabase'
 
 export interface DocumentUpload {
   id: string
@@ -72,7 +72,7 @@ export class DocumentService {
       // Fazer upload real para o Supabase Storage
       console.log('Fazendo upload para Supabase...');
       const { data, error } = await supabase.storage
-        .from(STORAGE_BUCKET)
+        .from('user-documents')
         .upload(filePath, file, {
           cacheControl: '3600',
           upsert: false
@@ -108,7 +108,7 @@ export class DocumentService {
             console.log('Erro ao baixar com service key:', downloadError)
             // Último fallback para URL pública (pode não funcionar)
             const { data: publicUrlData } = supabase.storage
-              .from(STORAGE_BUCKET)
+              .from('user-documents')
               .getPublicUrl(filePath)
             publicUrl = publicUrlData.publicUrl
           } else {
@@ -120,13 +120,13 @@ export class DocumentService {
       } else {
         // Usar URL pública normal (pode não funcionar devido ao RLS)
         const { data: publicUrlData } = supabase.storage
-          .from(STORAGE_BUCKET)
+          .from('user-documents')
           .getPublicUrl(filePath)
         publicUrl = publicUrlData.publicUrl
       }
 
       console.log('URL gerada:', publicUrl);
-      console.log('Bucket usado:', STORAGE_BUCKET);
+      console.log('Bucket usado:', 'user-documents');
       console.log('Caminho do arquivo:', filePath);
       console.log('Usando service key:', !!supabaseAdmin);
 
@@ -205,7 +205,7 @@ export class DocumentService {
   static async deleteDocument(filePath: string): Promise<void> {
     try {
       const { error } = await supabase.storage
-        .from(STORAGE_BUCKET)
+        .from('user-documents')
         .remove([filePath])
 
       if (error) {
@@ -222,7 +222,7 @@ export class DocumentService {
   // Listar documentos de uma sessão
   static async listSessionDocuments(sessionId: string): Promise<DocumentUpload[]> {
     const { data, error } = await supabase.storage
-      .from(STORAGE_BUCKET)
+      .from('user-documents')
       .list(sessionId, {
         limit: 100,
         offset: 0
@@ -246,7 +246,7 @@ export class DocumentService {
   // Obter URL de download
   static getDownloadUrl(filePath: string): string {
     const { data } = supabase.storage
-      .from(STORAGE_BUCKET)
+      .from('user-documents')
       .getPublicUrl(filePath)
 
     return data.publicUrl

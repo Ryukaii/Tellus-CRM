@@ -12,6 +12,7 @@ import sharingRouter from './routes/sharing.js';
 import dashboardRouter from './routes/dashboard.js';
 import externalRouter from './routes/external.js';
 import customerUploadRouter from './routes/customerUpload.js';
+import documentsRouter from './routes/documents.js';
 import { database } from './database/database.js';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -59,6 +60,7 @@ app.use('/api/sharing', sharingRouter);
 app.use('/api/dashboard', dashboardRouter);
 app.use('/api/external', externalRouter);
 app.use('/api/customer-upload', customerUploadRouter);
+app.use('/api/documents', documentsRouter);
 
 // Health check
 app.get('/api/health', (_req, res) => {

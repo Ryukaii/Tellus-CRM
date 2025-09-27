@@ -32,14 +32,39 @@ interface MongoLead {
   hasSpouse: boolean;
   spouseName?: string;
   spouseCpf?: string;
+  spouseRg?: string;
+  spouseBirthDate?: string;
+  spouseProfession?: string;
+  spouseEmploymentType?: string;
+  spouseMonthlyIncome?: number;
+  spouseCompanyName?: string;
+  companyCnpj?: string;
+  companyAddress?: {
+    street?: string;
+    number?: string;
+    complement?: string;
+    neighborhood?: string;
+    city?: string;
+    state?: string;
+    zipCode?: string;
+  };
   hasRG: boolean;
   hasCPF: boolean;
   hasAddressProof: boolean;
   hasIncomeProof: boolean;
   hasMaritalStatusProof: boolean;
   hasCompanyDocs?: boolean;
+  hasContractSocial?: boolean;
+  hasCNPJ?: boolean;
   hasTaxReturn?: boolean;
   hasBankStatements?: boolean;
+  hasSpouseRG?: boolean;
+  hasSpouseCPF?: boolean;
+  hasSpouseAddressProof?: boolean;
+  hasSpouseMaritalStatusProof?: boolean;
+  hasSpouseIncomeProof?: boolean;
+  hasSpouseTaxReturn?: boolean;
+  hasSpouseBankStatements?: boolean;
   uploadedDocuments?: Array<{
     id: string;
     fileName: string;
@@ -83,14 +108,31 @@ class LeadService {
       hasSpouse: mongoLead.hasSpouse,
       spouseName: mongoLead.spouseName,
       spouseCpf: mongoLead.spouseCpf,
+      spouseRg: mongoLead.spouseRg,
+      spouseBirthDate: mongoLead.spouseBirthDate,
+      spouseProfession: mongoLead.spouseProfession,
+      spouseEmploymentType: mongoLead.spouseEmploymentType as any,
+      spouseMonthlyIncome: mongoLead.spouseMonthlyIncome,
+      spouseCompanyName: mongoLead.spouseCompanyName,
+      companyCnpj: mongoLead.companyCnpj,
+      companyAddress: mongoLead.companyAddress,
       hasRG: mongoLead.hasRG,
       hasCPF: mongoLead.hasCPF,
       hasAddressProof: mongoLead.hasAddressProof,
       hasIncomeProof: mongoLead.hasIncomeProof,
       hasMaritalStatusProof: mongoLead.hasMaritalStatusProof,
       hasCompanyDocs: mongoLead.hasCompanyDocs,
+      hasContractSocial: mongoLead.hasContractSocial,
+      hasCNPJ: mongoLead.hasCNPJ,
       hasTaxReturn: mongoLead.hasTaxReturn,
       hasBankStatements: mongoLead.hasBankStatements,
+      hasSpouseRG: mongoLead.hasSpouseRG,
+      hasSpouseCPF: mongoLead.hasSpouseCPF,
+      hasSpouseAddressProof: mongoLead.hasSpouseAddressProof,
+      hasSpouseMaritalStatusProof: mongoLead.hasSpouseMaritalStatusProof,
+      hasSpouseIncomeProof: mongoLead.hasSpouseIncomeProof,
+      hasSpouseTaxReturn: mongoLead.hasSpouseTaxReturn,
+      hasSpouseBankStatements: mongoLead.hasSpouseBankStatements,
       uploadedDocuments: mongoLead.uploadedDocuments,
       notes: mongoLead.notes,
       status: mongoLead.status as any,
@@ -125,14 +167,31 @@ class LeadService {
       hasSpouse: leadData.hasSpouse,
       spouseName: leadData.spouseName,
       spouseCpf: leadData.spouseCpf,
+      spouseRg: leadData.spouseRg,
+      spouseBirthDate: leadData.spouseBirthDate,
+      spouseProfession: leadData.spouseProfession,
+      spouseEmploymentType: leadData.spouseEmploymentType,
+      spouseMonthlyIncome: leadData.spouseMonthlyIncome,
+      spouseCompanyName: leadData.spouseCompanyName,
+      companyCnpj: leadData.companyCnpj,
+      companyAddress: leadData.companyAddress,
       hasRG: leadData.hasRG,
       hasCPF: leadData.hasCPF,
       hasAddressProof: leadData.hasAddressProof,
       hasIncomeProof: leadData.hasIncomeProof,
       hasMaritalStatusProof: leadData.hasMaritalStatusProof,
       hasCompanyDocs: leadData.hasCompanyDocs,
+      hasContractSocial: leadData.hasContractSocial,
+      hasCNPJ: leadData.hasCNPJ,
       hasTaxReturn: leadData.hasTaxReturn,
       hasBankStatements: leadData.hasBankStatements,
+      hasSpouseRG: leadData.hasSpouseRG,
+      hasSpouseCPF: leadData.hasSpouseCPF,
+      hasSpouseAddressProof: leadData.hasSpouseAddressProof,
+      hasSpouseMaritalStatusProof: leadData.hasSpouseMaritalStatusProof,
+      hasSpouseIncomeProof: leadData.hasSpouseIncomeProof,
+      hasSpouseTaxReturn: leadData.hasSpouseTaxReturn,
+      hasSpouseBankStatements: leadData.hasSpouseBankStatements,
       uploadedDocuments: leadData.uploadedDocuments,
       notes: leadData.notes,
       status: leadData.status,
@@ -239,8 +298,34 @@ class LeadService {
 
   async deleteLead(id: string): Promise<boolean> {
     try {
+      // Primeiro, obter os dados do lead para acessar os documentos
+      const lead = await this.getLeadById(id);
+      
+      if (lead && lead.uploadedDocuments && lead.uploadedDocuments.length > 0) {
+        // Importar funções do supabaseService
+        const { deleteFiles, extractFilePathsFromDocuments } = await import('./supabaseService.js');
+        
+        // Extrair caminhos dos arquivos
+        const filePaths = extractFilePathsFromDocuments(lead.uploadedDocuments);
+        
+        if (filePaths.length > 0) {
+          console.log(`Deletando ${filePaths.length} arquivos do lead ${id}`);
+          
+          // Deletar arquivos do bucket
+          const deleteResult = await deleteFiles(filePaths);
+          
+          if (deleteResult.success) {
+            console.log(`${deleteResult.deletedCount} arquivos deletados do bucket com sucesso`);
+          } else {
+            console.warn('Alguns arquivos não puderam ser deletados do bucket:', deleteResult.errors);
+          }
+        }
+      }
+      
+      // Deletar o lead do banco de dados
       return await database.deleteLead(id);
     } catch (error) {
+      console.error('Error deleting lead:', error);
       return false;
     }
   }

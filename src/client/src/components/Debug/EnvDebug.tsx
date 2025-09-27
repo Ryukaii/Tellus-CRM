@@ -47,7 +47,8 @@ export const EnvDebug: React.FC = () => {
     setLoading(true);
     
     // Extrair o caminho do arquivo da URL
-    const urlParts = testUrl.split('/storage/v1/object/public/user-documents/');
+    const bucket = import.meta.env.VITE_SUPABASE_STORAGE_BUCKET || 'user-documents';
+    const urlParts = testUrl.split(`/storage/v1/object/public/${bucket}/`);
     if (urlParts.length < 2) {
       setDownloadTest({ success: false, error: 'URL inválida' });
       setLoading(false);
@@ -69,7 +70,8 @@ export const EnvDebug: React.FC = () => {
     setLoading(true);
     
     // Extrair o caminho do arquivo da URL
-    const urlParts = testUrl.split('/storage/v1/object/public/user-documents/');
+    const bucket = import.meta.env.VITE_SUPABASE_STORAGE_BUCKET || 'user-documents';
+    const urlParts = testUrl.split(`/storage/v1/object/public/${bucket}/`);
     if (urlParts.length < 2) {
       setSignedUrlTest({ success: false, error: 'URL inválida' });
       setLoading(false);
@@ -126,7 +128,7 @@ export const EnvDebug: React.FC = () => {
           </span>
         </div>
         <div>
-          <strong>Bucket 'user-documents':</strong>
+          <strong>Bucket '{import.meta.env.VITE_SUPABASE_STORAGE_BUCKET || 'user-documents'}':</strong>
           {loading ? (
             <span className="ml-2 text-blue-600">Verificando...</span>
           ) : (

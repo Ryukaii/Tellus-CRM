@@ -228,7 +228,7 @@ router.post('/:linkId/upload', upload.single('file'), async (req, res) => {
       const { uploadFile } = await import('../services/supabaseService.js');
       
       // Upload para Supabase
-      const uploadResult = await uploadFile(uploadedFile.buffer, fileName, 'user-documents');
+      const uploadResult = await uploadFile(uploadedFile.buffer, fileName, process.env.SUPABASE_STORAGE_BUCKET || 'user-documents');
       
       if (uploadResult.success && uploadResult.filePath && uploadResult.url) {
         filePath = uploadResult.filePath;

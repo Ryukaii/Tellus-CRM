@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { 
   X, 
   User, 
@@ -8,7 +8,6 @@ import {
   Briefcase, 
   Home, 
   FileText, 
-  Calendar,
   CheckCircle,
   XCircle,
   Clock,
@@ -51,13 +50,37 @@ export function PreRegistrationDetailsModal({
         for (const doc of preRegistration.uploadedDocuments) {
           try {
             // Extrair o caminho do arquivo da URL do Supabase
-            // URL format: https://xxx.supabase.co/storage/v1/object/public/user-documents/path/file.pdf
-            const urlParts = doc.url.split('/');
-            const bucketIndex = urlParts.findIndex(part => part === 'user-documents');
+            let filePath = '';
             
-            if (bucketIndex !== -1 && bucketIndex < urlParts.length - 1) {
-              // Pega tudo após 'user-documents'
-              const filePath = urlParts.slice(bucketIndex + 1).join('/');
+            if (doc.url.includes('/storage/v1/object/sign/')) {
+              // URL assinada: https://xxx.supabase.co/storage/v1/object/sign/user-documents/path/file.pdf?token=...
+              const urlParts = doc.url.split('/storage/v1/object/sign/');
+              if (urlParts.length > 1) {
+                const pathWithQuery = urlParts[1];
+                // Remover query parameters (token)
+                const pathOnly = pathWithQuery.split('?')[0];
+                // Remover o bucket name do início
+                const pathParts = pathOnly.split('/');
+                if (pathParts.length > 1) {
+                  filePath = pathParts.slice(1).join('/');
+                }
+              }
+            } else if (doc.url.includes('/storage/v1/object/public/')) {
+              // URL pública: https://xxx.supabase.co/storage/v1/object/public/user-documents/path/file.pdf
+              const urlParts = doc.url.split('/storage/v1/object/public/');
+              if (urlParts.length > 1) {
+                const pathWithBucket = urlParts[1];
+                const pathParts = pathWithBucket.split('/');
+                if (pathParts.length > 1) {
+                  filePath = pathParts.slice(1).join('/');
+                }
+              }
+            } else if (doc.id && typeof doc.id === 'string' && !doc.id.startsWith('http')) {
+              // Se doc.id já é o caminho do arquivo (não uma URL)
+              filePath = doc.id;
+            }
+            
+            if (filePath) {
               console.log('Gerando URL assinada para:', filePath);
               
               const result = await DocumentViewerService.getSignedDocumentUrl(filePath);
@@ -66,12 +89,18 @@ export function PreRegistrationDetailsModal({
                 console.log('URL assinada gerada:', result.signedUrl);
               } else {
                 console.error('Falha ao gerar URL assinada:', result.error);
+                // Usar a URL original como fallback
+                urls[doc.id] = doc.url;
               }
             } else {
-              console.error('Não foi possível extrair o caminho do arquivo da URL:', doc.url);
+              console.warn('Não foi possível extrair o caminho do arquivo da URL:', doc.url);
+              // Usar a URL original como fallback
+              urls[doc.id] = doc.url;
             }
           } catch (error) {
             console.error('Erro ao gerar URL assinada para documento:', doc.fileName, error);
+            // Usar a URL original como fallback
+            urls[doc.id] = doc.url;
           }
         }
         
@@ -187,9 +216,6 @@ export function PreRegistrationDetailsModal({
     return colorMap[source] || 'bg-gray-100 text-gray-800';
   };
 
-  const getProgressPercentage = (currentStep: number) => {
-    return Math.min((currentStep / 7) * 100, 100);
-  };
 
   const handleApprove = async () => {
     setProcessing(true);
@@ -632,15 +658,69 @@ export function PreRegistrationDetailsModal({
                         </div>
                       </div>
                       <div className="flex items-center space-x-2 ml-4">
-                        <a
-                          href={signedUrls[doc.id] || doc.url}
-                          target="_blank"
-                          rel="noopener noreferrer"
+                        <button
+                          onClick={async () => {
+                            try {
+                              // Usar a mesma abordagem do CustomerDocumentManager
+                              const { DocumentViewerService } = await import('../../services/documentViewerService');
+                              
+                              // Se já temos uma URL assinada, usar ela
+                              if (signedUrls[doc.id]) {
+                                window.open(signedUrls[doc.id], '_blank');
+                                return;
+                              }
+                              
+                              // Se não, gerar uma nova URL assinada
+                              let filePath = '';
+                              
+                              // Extrair o caminho do arquivo da URL
+                              if (doc.url.includes('/storage/v1/object/sign/')) {
+                                const urlParts = doc.url.split('/storage/v1/object/sign/');
+                                if (urlParts.length > 1) {
+                                  const pathWithQuery = urlParts[1];
+                                  const pathOnly = pathWithQuery.split('?')[0];
+                                  const pathParts = pathOnly.split('/');
+                                  if (pathParts.length > 1) {
+                                    filePath = pathParts.slice(1).join('/');
+                                  }
+                                }
+                              } else if (doc.url.includes('/storage/v1/object/public/')) {
+                                const urlParts = doc.url.split('/storage/v1/object/public/');
+                                if (urlParts.length > 1) {
+                                  const pathWithBucket = urlParts[1];
+                                  const pathParts = pathWithBucket.split('/');
+                                  if (pathParts.length > 1) {
+                                    filePath = pathParts.slice(1).join('/');
+                                  }
+                                }
+                              } else if (doc.id && typeof doc.id === 'string' && !doc.id.startsWith('http')) {
+                                filePath = doc.id;
+                              }
+                              
+                              if (filePath) {
+                                const result = await DocumentViewerService.getSignedDocumentUrl(filePath);
+                                if (result.signedUrl) {
+                                  window.open(result.signedUrl, '_blank');
+                                } else {
+                                  console.error('Falha ao gerar URL assinada:', result.error);
+                                  // Fallback: usar URL original
+                                  window.open(doc.url, '_blank');
+                                }
+                              } else {
+                                // Fallback: usar URL original
+                                window.open(doc.url, '_blank');
+                              }
+                            } catch (error) {
+                              console.error('Erro ao abrir documento:', error);
+                              // Fallback: usar URL original
+                              window.open(doc.url, '_blank');
+                            }
+                          }}
                           className="inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-tellus-primary"
                         >
                           <Eye className="w-4 h-4 mr-2" />
                           Visualizar
-                        </a>
+                        </button>
                         <a
                           href={signedUrls[doc.id] || doc.url}
                           download={doc.fileName}
@@ -696,7 +776,7 @@ export function PreRegistrationDetailsModal({
                 </Button>
                 <Button
                   onClick={() => setShowRejectForm(false)}
-                  variant="outline"
+                  variant="secondary"
                   disabled={processing}
                 >
                   Cancelar
@@ -722,7 +802,7 @@ export function PreRegistrationDetailsModal({
               <Button
                 onClick={() => setShowRejectForm(!showRejectForm)}
                 disabled={processing}
-                variant="outline"
+                variant="secondary"
                 className="text-red-600 border-red-200 hover:bg-red-50"
               >
                 <XCircle className="w-4 h-4 mr-2" />
@@ -743,14 +823,14 @@ export function PreRegistrationDetailsModal({
           <Button
             onClick={handleDelete}
             disabled={processing}
-            variant="outline"
+            variant="secondary"
             className="text-red-600 border-red-200 hover:bg-red-50"
           >
             <X className="w-4 h-4 mr-2" />
             Excluir
           </Button>
           
-          <Button onClick={onClose} variant="outline">
+          <Button onClick={onClose} variant="secondary">
             Fechar
           </Button>
         </div>

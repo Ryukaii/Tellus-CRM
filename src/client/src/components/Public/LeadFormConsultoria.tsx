@@ -186,7 +186,13 @@ export function LeadFormConsultoria() {
     notes: ''
   });
 
-  const totalSteps = 7;
+  const totalSteps = 8; // 1-Dados Pessoais, 2-Endereço, 3-Profissional, 4-Imóvel, 5-Cônjuge, 6-Empresa, 7-Gov.br, 8-Documentos
+
+  // Determinar qual é realmente a última etapa (documentos)
+  const isLastStep = React.useMemo(() => {
+    // A última etapa é sempre documentos (etapa 8)
+    return currentStep === 8;
+  }, [currentStep]);
 
   // Corrigir etapa inválida
   useEffect(() => {
