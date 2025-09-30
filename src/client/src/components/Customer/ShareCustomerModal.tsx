@@ -63,6 +63,21 @@ export const ShareCustomerModal: React.FC<ShareCustomerModalProps> = ({
     );
   };
 
+  const handleSelectAllDocuments = () => {
+    if (!customer.uploadedDocuments) return;
+    
+    const allDocumentIds = customer.uploadedDocuments.map(doc => doc.id);
+    const allSelected = allDocumentIds.every(id => selectedDocuments.includes(id));
+    
+    if (allSelected) {
+      // Desmarcar todos
+      setSelectedDocuments([]);
+    } else {
+      // Marcar todos
+      setSelectedDocuments(allDocumentIds);
+    }
+  };
+
   const handleCreateShare = async () => {
     setLoading(true);
 
@@ -263,6 +278,24 @@ export const ShareCustomerModal: React.FC<ShareCustomerModalProps> = ({
                 <h3 className="font-medium text-gray-900 mb-3 dark:text-dark-text">
                   Selecionar Documentos
                 </h3>
+                
+                {/* Opção para selecionar/deselecionar todos */}
+                <div className="mb-3 p-2 bg-gray-50 rounded-lg dark:bg-dark-surfaceLight">
+                  <label className="flex items-center space-x-3">
+                    <input
+                      type="checkbox"
+                      checked={customer.uploadedDocuments.every(doc => selectedDocuments.includes(doc.id))}
+                      onChange={handleSelectAllDocuments}
+                      className="rounded border-gray-300 dark:border-dark-inputBorder dark:bg-dark-input"
+                    />
+                    <FileText className="w-4 h-4 text-gray-400 dark:text-dark-textMuted" />
+                    <span className="text-sm font-medium dark:text-dark-text">
+                      {customer.uploadedDocuments.every(doc => selectedDocuments.includes(doc.id)) 
+                        ? 'Desmarcar todos' 
+                        : 'Marcar todos'}
+                    </span>
+                  </label>
+                </div>
                 
                 <div className="max-h-40 overflow-y-auto space-y-2">
                   {customer.uploadedDocuments.map((doc) => (
