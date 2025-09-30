@@ -2159,6 +2159,32 @@ export function LeadFormConsultoria() {
                     </div>
                   )}
 
+                  {/* Outros Documentos */}
+                  <div className="bg-white border border-gray-200 rounded-lg p-6">
+                    <h4 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+                      <FileText className="w-5 h-5 mr-2 text-tellus-primary" />
+                      Outros Documentos
+                    </h4>
+                    <p className="text-sm text-gray-600 mb-4">
+                      Envie outros documentos que considere relevantes para a análise (máximo 15 documentos)
+                    </p>
+                    <DocumentUpload
+                      sessionId=""
+                      documentType="other_documents"
+                      label="Outros Documentos"
+                      description="Documentos adicionais relevantes para análise"
+                      onUploadComplete={(documents) => {
+                        setFormData(prev => ({
+                          ...prev,
+                          documents: [...prev.documents, ...documents]
+                        }));
+                      }}
+                      onUploadError={(error) => setError(error)}
+                      maxFiles={15}
+                      userCpf={formData.cpf}
+                    />
+                  </div>
+
                   {/* Resumo dos Documentos Enviados */}
                   <div className="bg-tellus-gold-50 border border-tellus-gold-200 rounded-lg p-6">
                     <h4 className="font-semibold text-tellus-charcoal-900 mb-3 flex items-center">
@@ -2173,10 +2199,10 @@ export function LeadFormConsultoria() {
                         {formData.documents.map((doc, index) => (
                           <div key={index} className="flex items-center justify-between bg-white rounded-lg p-3">
                             <div className="flex items-center space-x-2">
-                              <FileText className="w-4 h-4 text-blue-600" />
+                              <FileText className="w-4 h-4 text-tellus-primary" />
                               <span className="text-sm text-tellus-charcoal-800">{doc.fileName}</span>
                             </div>
-                            <span className="text-xs text-blue-600 bg-tellus-gold-100 px-2 py-1 rounded">
+                            <span className="text-xs text-tellus-primary bg-tellus-gold-100 px-2 py-1 rounded">
                               {doc.documentType}
                             </span>
                           </div>
