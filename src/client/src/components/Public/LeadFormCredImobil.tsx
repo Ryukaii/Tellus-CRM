@@ -4,14 +4,9 @@ import { Button } from '../UI/Button';
 import { Input } from '../UI/Input';
 import { LoadingSpinner } from '../UI/LoadingSpinner';
 import { DocumentUpload } from '../UI/DocumentUpload';
-import { PreRegistrationApi } from '../../services/preRegistrationApi';
-import { PreRegistration } from '../../../shared/types/preRegistration';
-import { DocumentService } from '../../services/documentService';
 import { CPFService } from '../../services/cpfService';
 import { CepService } from '../../services/cepService';
 import { StateSelect } from '../UI/StateSelect';
-import { CPFValidationService, ExistingCustomerData } from '../../services/cpfValidationService';
-import { ExistingCustomerModal } from '../UI/ExistingCustomerModal';
 
 interface FormData {
   // Dados Pessoais
@@ -118,11 +113,9 @@ interface FormData {
 export function LeadFormCredImobil() {
   const [currentStep, setCurrentStep] = useState(1);
   const [loading, setLoading] = useState(false);
-  const [initialLoading, setInitialLoading] = useState(true);
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [showGovPassword, setShowGovPassword] = useState(false);
-  const [sessionId, setSessionId] = useState<string | null>(null);
   const [showInstructions, setShowInstructions] = useState(true);
   const [acceptedTerms, setAcceptedTerms] = useState(false);
   const [activeTab, setActiveTab] = useState(0);
@@ -136,15 +129,6 @@ export function LeadFormCredImobil() {
   const [cepConsulted, setCepConsulted] = useState(false);
   const [cepValid, setCepValid] = useState(false);
   const [cepNotFound, setCepNotFound] = useState(false);
-  
-  // Estados para validação de CPF existente
-  const [existingCustomerModal, setExistingCustomerModal] = useState(false);
-  const [existingCustomerData, setExistingCustomerData] = useState<ExistingCustomerData | null>(null);
-  
-  // Estados para controlar a digitação dos campos monetários
-  const [propertyValueInput, setPropertyValueInput] = useState('');
-  const [monthlyIncomeInput, setMonthlyIncomeInput] = useState('');
-  const [spouseMonthlyIncomeInput, setSpouseMonthlyIncomeInput] = useState('');
 
   const [formData, setFormData] = useState<FormData>({
     name: '',
@@ -231,133 +215,9 @@ export function LeadFormCredImobil() {
     }
   }, [currentStep, totalSteps]);
 
-  // Carregar progresso salvo ao inicializar
+  // Inicialização simples - sempre começa do zero
   useEffect(() => {
-    const loadProgress = async () => {
-      try {
-        setInitialLoading(true);
-        const preRegistration = await PreRegistrationApi.getOrCreatePreRegistration();
-        
-        setSessionId(preRegistration.sessionId);
-        setCurrentStep(preRegistration.currentStep || 1);
-        
-        // Se já há progresso salvo, não mostrar instruções
-        if (preRegistration.currentStep && preRegistration.currentStep > 1) {
-          setShowInstructions(false);
-        }
-        
-        // Carregar dados salvos se existirem
-        if (preRegistration.personalData) {
-          setFormData(prev => ({
-            ...prev,
-            name: preRegistration.personalData?.name || '',
-            email: preRegistration.personalData?.email || '',
-            phone: preRegistration.personalData?.phone || '',
-            cpf: preRegistration.personalData?.cpf || '',
-            birthDate: preRegistration.personalData?.birthDate || ''
-          }));
-        }
-        
-        if (preRegistration.address) {
-          setFormData(prev => ({
-            ...prev,
-            address: {
-              ...prev.address,
-              ...preRegistration.address
-            }
-          }));
-        }
-        
-        if (preRegistration.professionalData) {
-          setFormData(prev => ({
-            ...prev,
-            profession: preRegistration.professionalData?.profession || '',
-            employmentType: preRegistration.professionalData?.employmentType || 'clt',
-            monthlyIncome: preRegistration.professionalData?.monthlyIncome || 0,
-            companyName: preRegistration.professionalData?.companyName || ''
-          }));
-          
-          // Sincronizar estado local da renda mensal
-          if (preRegistration.professionalData?.monthlyIncome) {
-            const value = Math.round(preRegistration.professionalData.monthlyIncome * 100);
-            setMonthlyIncomeInput(value.toString());
-          }
-        }
-        
-        if (preRegistration.propertyData) {
-          setFormData(prev => ({
-            ...prev,
-            propertyValue: preRegistration.propertyData?.propertyValue || 0,
-            propertyType: preRegistration.propertyData?.propertyType || 'apartamento',
-            propertyCity: preRegistration.propertyData?.propertyCity || '',
-            propertyState: preRegistration.propertyData?.propertyState || ''
-          }));
-          
-          // Sincronizar estado local do valor do imóvel
-          if (preRegistration.propertyData?.propertyValue) {
-            const value = Math.round(preRegistration.propertyData.propertyValue * 100);
-            setPropertyValueInput(value.toString());
-          }
-        }
-        
-        if (preRegistration.documents) {
-          setFormData(prev => ({
-            ...prev,
-            hasRG: preRegistration.documents?.hasRG || true,
-            hasCPF: preRegistration.documents?.hasCPF || true,
-            hasAddressProof: preRegistration.documents?.hasAddressProof || false,
-            hasIncomeProof: preRegistration.documents?.hasIncomeProof || false,
-            hasMaritalStatusProof: preRegistration.documents?.hasMaritalStatusProof || false,
-            hasCompanyDocs: preRegistration.documents?.hasCompanyDocs || false,
-            hasTaxReturn: preRegistration.documents?.hasTaxReturn || false,
-            hasBankStatements: preRegistration.documents?.hasBankStatements || false
-          }));
-        }
-        
-        if (preRegistration.maritalStatus) {
-          setFormData(prev => ({
-            ...prev,
-            maritalStatus: preRegistration.maritalStatus
-          }));
-        }
-        
-        if (preRegistration.hasSpouse !== undefined) {
-          setFormData(prev => ({
-            ...prev,
-            hasSpouse: preRegistration.hasSpouse
-          }));
-        }
-        
-        if (preRegistration.spouseName) {
-          setFormData(prev => ({
-            ...prev,
-            spouseName: preRegistration.spouseName
-          }));
-        }
-        
-        if (preRegistration.spouseCpf) {
-          setFormData(prev => ({
-            ...prev,
-            spouseCpf: preRegistration.spouseCpf
-          }));
-        }
-        
-        if (preRegistration.notes) {
-          setFormData(prev => ({
-            ...prev,
-            notes: preRegistration.notes
-          }));
-        }
-        
-      } catch (error) {
-        console.error('Error loading progress:', error);
-        setError('Erro ao carregar progresso salvo');
-      } finally {
-        setInitialLoading(false);
-      }
-    };
-
-    loadProgress();
+    setCurrentStep(1);
   }, []);
 
   const handleChange = (field: string, value: any) => {
@@ -583,74 +443,6 @@ export function LeadFormCredImobil() {
     return value.slice(0, 14); // Limitar a 14 caracteres
   };
 
-  const formatCurrency = (value: string) => {
-    // Remove todos os caracteres não numéricos
-    const numbers = value.replace(/\D/g, '');
-    
-    // Se não há números, retorna vazio
-    if (!numbers) return '';
-    
-    // Converte para número e divide por 100 para obter centavos
-    const numericValue = parseFloat(numbers) / 100;
-    
-    // Formata como moeda brasileira
-    return new Intl.NumberFormat('pt-BR', {
-      style: 'currency',
-      currency: 'BRL',
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2
-    }).format(numericValue);
-  };
-
-  const parseCurrency = (formattedValue: string) => {
-    // Remove todos os caracteres não numéricos
-    const numbers = formattedValue.replace(/\D/g, '');
-    
-    // Se não há números, retorna 0
-    if (!numbers) return 0;
-    
-    // Converte para número e divide por 100 para obter o valor real
-    return parseFloat(numbers) / 100;
-  };
-
-  // Funções para lidar com a digitação dos campos monetários
-  const handleCurrencyInput = (field: string, inputValue: string, setInputState: (value: string) => void) => {
-    // Remove todos os caracteres não numéricos
-    const numbers = inputValue.replace(/\D/g, '');
-    
-    // Atualiza o estado local
-    setInputState(numbers);
-    
-    // Converte para número e atualiza o formData
-    const numericValue = numbers ? parseFloat(numbers) / 100 : 0;
-    handleChange(field, numericValue);
-  };
-
-  const getCurrencyDisplayValue = (inputValue: string, formValue: number) => {
-    // Se há input sendo digitado, mostra a formatação baseada no input
-    if (inputValue) {
-      const numericValue = parseFloat(inputValue) / 100;
-      return new Intl.NumberFormat('pt-BR', {
-        style: 'currency',
-        currency: 'BRL',
-        minimumFractionDigits: 2,
-        maximumFractionDigits: 2
-      }).format(numericValue);
-    }
-    
-    // Se não há input mas há valor no form, mostra o valor formatado
-    if (formValue && formValue > 0) {
-      return new Intl.NumberFormat('pt-BR', {
-        style: 'currency',
-        currency: 'BRL',
-        minimumFractionDigits: 2,
-        maximumFractionDigits: 2
-      }).format(formValue);
-    }
-    
-    return '';
-  };
-
   const formatPhone = (value: string) => {
     const numbers = value.replace(/\D/g, '');
     if (numbers.length <= 10) {
@@ -671,237 +463,54 @@ export function LeadFormCredImobil() {
 
   // RG não tem formatação específica pois cada estado tem formato diferente
 
-  // Validar CPF e verificar se já existe no sistema
-  const validateCPFAndCheckExisting = async () => {
-    const cleanCPF = formData.cpf.replace(/\D/g, '');
-    
-    if (!validateCPF(cleanCPF)) {
-      return {
-        exists: false,
-        canProceed: false,
-        message: 'CPF inválido'
-      };
-    }
-
-    try {
-      const result = await CPFValidationService.validateCPF(cleanCPF, 'credito_imobiliario');
-      return result;
-    } catch (error) {
-      console.error('Error validating CPF:', error);
-      return {
-        exists: false,
-        canProceed: true,
-        message: 'Erro ao verificar CPF. Tente novamente.'
-      };
-    }
-  };
-
-  // Funções para lidar com o modal de cliente existente
-  const handleAddProcess = async () => {
-    if (!existingCustomerData) return;
-    
-    try {
-      setLoading(true);
-      const cleanCPF = formData.cpf.replace(/\D/g, '');
-      
-      // Adicionar processo ao cliente existente
-      await CPFValidationService.addProcessToExistingCustomer(cleanCPF, 'credito_imobiliario');
-      
-      // Preencher dados do cliente existente
-      setFormData(prev => ({
-        ...prev,
-        name: existingCustomerData.name,
-        email: existingCustomerData.email,
-        phone: existingCustomerData.phone
-      }));
-      
-      setExistingCustomerModal(false);
-      setExistingCustomerData(null);
-      
-      // Continuar para próxima etapa
-      const stepData = getCurrentStepData();
-      await PreRegistrationApi.nextStep(stepData);
-      setCurrentStep(currentStep + 1);
-      setError(null);
-    } catch (error) {
-      console.error('Error adding process:', error);
-      setError('Erro ao adicionar processo. Tente novamente.');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleContinueAnyway = async () => {
-    try {
-      setLoading(true);
-      setExistingCustomerModal(false);
-      setExistingCustomerData(null);
-      
-      // Continuar normalmente
-      const stepData = getCurrentStepData();
-      await PreRegistrationApi.nextStep(stepData);
-      setCurrentStep(currentStep + 1);
-      setError(null);
-    } catch (error) {
-      console.error('Error continuing:', error);
-      setError('Erro ao continuar. Tente novamente.');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const nextStep = async () => {
+  const nextStep = () => {
     if (!isLastStep) {
-      try {
-        setLoading(true);
-        
-        // Se está no passo 1 (dados pessoais), verificar CPF
-        if (currentStep === 1) {
-          const cpfValidation = await validateCPFAndCheckExisting();
-          if (!cpfValidation.canProceed) {
-            setError(cpfValidation.message || 'CPF já cadastrado');
-            setLoading(false);
-            return;
-          }
-          
-          // Se CPF existe mas pode adicionar processo, mostrar modal
-          if (cpfValidation.exists && cpfValidation.customerData) {
-            setExistingCustomerData(cpfValidation.customerData);
-            setExistingCustomerModal(true);
-            setLoading(false);
-            return;
-          }
+      // Validação básica antes de avançar
+      if (currentStep === 1) {
+        // Validar dados pessoais
+        if (!formData.name || !formData.email || !formData.phone || !formData.cpf || !validateCPF(formData.cpf)) {
+          setError('Por favor, preencha todos os campos obrigatórios corretamente');
+          return;
         }
-        
-        // Salvar dados da etapa atual
-        const stepData = getCurrentStepData();
-        await PreRegistrationApi.nextStep(stepData);
-        
-        setCurrentStep(currentStep + 1);
-        setError(null);
-      } catch (error) {
-        console.error('Error saving step:', error);
-        setError('Erro ao salvar progresso');
-      } finally {
-        setLoading(false);
       }
+      
+      setCurrentStep(currentStep + 1);
+      setError(null);
     } else {
       // Se está na última etapa (documentos), finalizar
       handleSubmit();
     }
   };
 
-  const prevStep = async () => {
+  const prevStep = () => {
     if (currentStep > 1) {
-      try {
-        setLoading(true);
-        await PreRegistrationApi.previousStep();
-        setCurrentStep(currentStep - 1);
-        setError(null);
-      } catch (error) {
-        console.error('Error going to previous step:', error);
-        setError('Erro ao voltar etapa');
-      } finally {
-        setLoading(false);
-      }
+      setCurrentStep(currentStep - 1);
+      setError(null);
     }
   };
 
-  const getCurrentStepData = () => {
-    switch (currentStep) {
-      case 1:
-        return {
-          personalData: {
-            name: formData.name,
-            email: formData.email,
-            phone: formData.phone,
-            cpf: formData.cpf,
-            rg: formData.rg,
-            birthDate: formData.birthDate
-          },
-          maritalStatus: formData.maritalStatus
-        };
-      case 2:
-        return {
-          address: formData.address
-        };
-      case 3:
-        return {
-          professionalData: {
-            profession: formData.profession,
-            employmentType: formData.employmentType,
-            monthlyIncome: formData.monthlyIncome,
-            companyName: formData.companyName
-          }
-        };
-      case 4:
-        return {
-          propertyData: {
-            propertyValue: formData.propertyValue,
-            propertyType: formData.propertyType,
-            propertyCity: formData.propertyCity,
-            propertyState: formData.propertyState
-          }
-        };
-      case 5:
-        return {
-          spouseData: {
-            hasSpouse: formData.hasSpouse,
-            spouseName: formData.spouseName,
-            spouseCpf: formData.spouseCpf,
-            spouseRg: formData.spouseRg,
-            spouseBirthDate: formData.spouseBirthDate,
-            spouseProfession: formData.spouseProfession,
-            spouseEmploymentType: formData.spouseEmploymentType,
-            spouseMonthlyIncome: formData.spouseMonthlyIncome,
-            spouseCompanyName: formData.spouseCompanyName
-          }
-        };
-      case 6:
-        return {
-          govCredentials: {
-          govPassword: formData.govPassword,
-          hasTwoFactorDisabled: formData.hasTwoFactorDisabled
-          }
-        };
-      case 7:
-        return {
-          documents: {
-            hasRG: formData.hasRG,
-            hasCPF: formData.hasCPF,
-            hasAddressProof: formData.hasAddressProof,
-            hasMaritalStatusProof: formData.hasMaritalStatusProof,
-            hasCompanyDocs: formData.hasCompanyDocs,
-            hasContractSocial: formData.hasContractSocial,
-            hasCNPJ: formData.hasCNPJ,
-            hasIncomeProof: formData.hasIncomeProof,
-            hasTaxReturn: formData.hasTaxReturn,
-            hasBankStatements: formData.hasBankStatements,
-            hasSpouseRG: formData.hasSpouseRG,
-            hasSpouseCPF: formData.hasSpouseCPF,
-            hasSpouseAddressProof: formData.hasSpouseAddressProof,
-            hasSpouseMaritalStatusProof: formData.hasSpouseMaritalStatusProof,
-            hasSpouseIncomeProof: formData.hasSpouseIncomeProof,
-            hasSpouseTaxReturn: formData.hasSpouseTaxReturn,
-            hasSpouseBankStatements: formData.hasSpouseBankStatements
-          },
-          spouseData: {
-          hasSpouse: formData.hasSpouse,
-          spouseName: formData.spouseName,
-          spouseCpf: formData.spouseCpf,
-            spouseRg: formData.spouseRg,
-            spouseBirthDate: formData.spouseBirthDate,
-            spouseProfession: formData.spouseProfession,
-            spouseEmploymentType: formData.spouseEmploymentType,
-            spouseMonthlyIncome: formData.spouseMonthlyIncome,
-            spouseCompanyName: formData.spouseCompanyName
-          },
-          uploadedDocuments: formData.documents,
-          notes: formData.notes
-        };
-      default:
-        return {};
-    }
+  // Função para atualizar campos boolean baseado nos documentos enviados
+  const updateDocumentFlags = (documents: any[]) => {
+    setFormData(prev => ({
+      ...prev,
+      hasRG: documents.some(doc => doc.documentType === 'identity') || prev.hasRG,
+      hasCPF: documents.some(doc => doc.documentType === 'identity') || prev.hasCPF,
+      hasAddressProof: documents.some(doc => doc.documentType === 'address_proof'),
+      hasMaritalStatusProof: documents.some(doc => doc.documentType === 'marital_status'),
+      hasIncomeProof: documents.some(doc => doc.documentType === 'income_proof'),
+      hasCompanyDocs: documents.some(doc => ['contract_social', 'cnpj'].includes(doc.documentType)),
+      hasContractSocial: documents.some(doc => doc.documentType === 'contract_social'),
+      hasCNPJ: documents.some(doc => doc.documentType === 'cnpj'),
+      hasTaxReturn: documents.some(doc => doc.documentType === 'tax_return'),
+      hasBankStatements: documents.some(doc => doc.documentType === 'bank_statements'),
+      hasSpouseRG: documents.some(doc => doc.documentType === 'spouse_identity'),
+      hasSpouseCPF: documents.some(doc => doc.documentType === 'spouse_identity'),
+      hasSpouseAddressProof: documents.some(doc => doc.documentType === 'spouse_address_proof'),
+      hasSpouseMaritalStatusProof: documents.some(doc => doc.documentType === 'spouse_marital_status'),
+      hasSpouseIncomeProof: documents.some(doc => doc.documentType === 'spouse_income_proof'),
+      hasSpouseTaxReturn: documents.some(doc => doc.documentType === 'spouse_tax_return'),
+      hasSpouseBankStatements: documents.some(doc => doc.documentType === 'spouse_bank_statements'),
+    }));
   };
 
   const handleStartForm = () => {
@@ -980,9 +589,12 @@ export function LeadFormCredImobil() {
         }
         return true; // Se não tem cônjuge, etapa é válida
       case 6:
+        // Dados da empresa são opcionais - sempre pode avançar
+        return true;
+      case 7:
         return formData.govPassword.trim().length >= 6 && 
                formData.hasTwoFactorDisabled;
-      case 7:
+      case 8:
         return true; // Documentos são opcionais
       default:
         return true;
@@ -994,37 +606,114 @@ export function LeadFormCredImobil() {
     setError(null);
 
     try {
-      // Primeiro salva os dados da última etapa
-      const stepData = getCurrentStepData();
-      await PreRegistrationApi.nextStep(stepData);
-      
-      // Depois finaliza o pré-cadastro (converte para lead)
-      await PreRegistrationApi.completePreRegistration('lead_credito_imobiliario');
+      // Validação final de todos os campos obrigatórios
+      if (!validateCurrentStep()) {
+        setError('Por favor, preencha todos os campos obrigatórios');
+        setLoading(false);
+        return;
+      }
+
+      // Calcular flags de documentos baseado nos documentos enviados
+      const documentFlags = {
+        hasRG: formData.documents.some(doc => doc.documentType === 'identity') || formData.hasRG,
+        hasCPF: formData.documents.some(doc => doc.documentType === 'identity') || formData.hasCPF,
+        hasAddressProof: formData.documents.some(doc => doc.documentType === 'address_proof'),
+        hasMaritalStatusProof: formData.documents.some(doc => doc.documentType === 'marital_status'),
+        hasIncomeProof: formData.documents.some(doc => doc.documentType === 'income_proof'),
+        hasCompanyDocs: formData.documents.some(doc => ['contract_social', 'cnpj'].includes(doc.documentType)),
+        hasContractSocial: formData.documents.some(doc => doc.documentType === 'contract_social'),
+        hasCNPJ: formData.documents.some(doc => doc.documentType === 'cnpj'),
+        hasTaxReturn: formData.documents.some(doc => doc.documentType === 'tax_return'),
+        hasBankStatements: formData.documents.some(doc => doc.documentType === 'bank_statements'),
+        hasSpouseRG: formData.documents.some(doc => doc.documentType === 'spouse_identity'),
+        hasSpouseCPF: formData.documents.some(doc => doc.documentType === 'spouse_identity'),
+        hasSpouseAddressProof: formData.documents.some(doc => doc.documentType === 'spouse_address_proof'),
+        hasSpouseMaritalStatusProof: formData.documents.some(doc => doc.documentType === 'spouse_marital_status'),
+        hasSpouseIncomeProof: formData.documents.some(doc => doc.documentType === 'spouse_income_proof'),
+        hasSpouseTaxReturn: formData.documents.some(doc => doc.documentType === 'spouse_tax_return'),
+        hasSpouseBankStatements: formData.documents.some(doc => doc.documentType === 'spouse_bank_statements'),
+      };
+
+      // Preparar dados do lead
+      const leadData = {
+        name: formData.name,
+        email: formData.email,
+        phone: formData.phone,
+        cpf: formData.cpf,
+        rg: formData.rg,
+        birthDate: formData.birthDate,
+        maritalStatus: formData.maritalStatus,
+        address: formData.address,
+        profession: formData.profession,
+        employmentType: formData.employmentType,
+        monthlyIncome: formData.monthlyIncome,
+        companyName: formData.companyName,
+        propertyValue: formData.propertyValue,
+        propertyType: formData.propertyType,
+        propertyCity: formData.propertyCity,
+        propertyState: formData.propertyState,
+        hasSpouse: formData.hasSpouse,
+        hasCompany: formData.hasCompany,
+        spouseName: formData.spouseName,
+        spouseCpf: formData.spouseCpf,
+        spouseRg: formData.spouseRg,
+        spouseBirthDate: formData.spouseBirthDate,
+        spouseProfession: formData.spouseProfession,
+        spouseEmploymentType: formData.spouseEmploymentType,
+        spouseMonthlyIncome: formData.spouseMonthlyIncome,
+        spouseCompanyName: formData.spouseCompanyName,
+        companyCnpj: formData.companyCnpj,
+        companyAddress: formData.companyAddress,
+        govPassword: formData.govPassword,
+        hasTwoFactorDisabled: formData.hasTwoFactorDisabled,
+        // Documentos pessoais
+        hasRG: documentFlags.hasRG,
+        hasCPF: documentFlags.hasCPF,
+        hasAddressProof: documentFlags.hasAddressProof,
+        hasMaritalStatusProof: documentFlags.hasMaritalStatusProof,
+        // Documentos empresariais
+        hasCompanyDocs: documentFlags.hasCompanyDocs,
+        hasContractSocial: documentFlags.hasContractSocial,
+        hasCNPJ: documentFlags.hasCNPJ,
+        // Comprovação de renda
+        hasIncomeProof: documentFlags.hasIncomeProof,
+        hasTaxReturn: documentFlags.hasTaxReturn,
+        hasBankStatements: documentFlags.hasBankStatements,
+        // Documentos do cônjuge
+        hasSpouseRG: documentFlags.hasSpouseRG,
+        hasSpouseCPF: documentFlags.hasSpouseCPF,
+        hasSpouseAddressProof: documentFlags.hasSpouseAddressProof,
+        hasSpouseMaritalStatusProof: documentFlags.hasSpouseMaritalStatusProof,
+        hasSpouseIncomeProof: documentFlags.hasSpouseIncomeProof,
+        hasSpouseTaxReturn: documentFlags.hasSpouseTaxReturn,
+        hasSpouseBankStatements: documentFlags.hasSpouseBankStatements,
+        uploadedDocuments: formData.documents,
+        notes: formData.notes,
+        type: 'credito_imobiliario',
+        source: 'lead_credito_imobiliario'
+      };
+
+      // Enviar pré-cadastro
+      const response = await fetch('/api/pre-registration', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(leadData),
+      });
+
+      if (!response.ok) {
+        throw new Error('Erro ao enviar formulário');
+      }
       
       setSuccess(true);
     } catch (err) {
-      console.error('Error completing pre-registration:', err);
+      console.error('Error submitting form:', err);
       setError('Erro ao finalizar cadastro. Tente novamente.');
     } finally {
       setLoading(false);
     }
   };
-
-  if (initialLoading) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
-        <div className="card max-w-md w-full text-center">
-          <div className="card-content">
-            <LoadingSpinner size="lg" />
-            <h2 className="text-xl font-bold text-gray-900 mt-4">Carregando...</h2>
-            <p className="text-gray-600 mt-2">
-              Recuperando seu progresso salvo...
-            </p>
-          </div>
-        </div>
-      </div>
-    );
-  }
 
   if (success) {
     return (
@@ -1060,22 +749,6 @@ export function LeadFormCredImobil() {
             <p className="text-blue-100 text-lg leading-relaxed mb-8">
               Processo rápido e seguro para análise de crédito imobiliário
             </p>
-            
-            {sessionId && (
-              <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-4 mb-6">
-                <p className="text-sm text-blue-100 mb-1">Número da Sessão</p>
-                <div className="space-y-2">
-                  <div className="bg-white/5 rounded-lg p-3">
-                    <p className="text-xs font-mono text-white font-bold break-all leading-tight text-center">
-                      {sessionId}
-                    </p>
-                  </div>
-                  <p className="text-xs text-blue-200/70 text-center">
-                    Guarde este número para referência
-                  </p>
-                </div>
-              </div>
-            )}
 
             <div className="space-y-4">
               <div className="flex items-center space-x-3 text-white/90">
@@ -1254,11 +927,6 @@ export function LeadFormCredImobil() {
                   <p className="text-xs text-blue-100">Crédito Imobiliário</p>
                 </div>
               </div>
-              {sessionId && (
-                <div className="bg-white/10 px-3 py-1 rounded-full max-w-32">
-                  <span className="text-xs font-mono text-white truncate block">{sessionId}</span>
-                </div>
-              )}
             </div>
           </div>
         </div>
@@ -1382,12 +1050,6 @@ export function LeadFormCredImobil() {
                 <p className="text-xs text-gray-500 font-medium">Crédito Imobiliário</p>
               </div>
             </div>
-            {sessionId && (
-              <div className="hidden sm:flex items-center space-x-2 bg-blue-50 px-3 py-1 rounded-full">
-                <Activity className="w-4 h-4 text-blue-600" />
-                <span className="text-sm font-mono text-blue-800">{sessionId}</span>
-              </div>
-            )}
           </div>
         </div>
       </div>
@@ -1418,18 +1080,6 @@ export function LeadFormCredImobil() {
             </div>
             
             {/* Status Info */}
-            <div className="flex items-center justify-between text-xs">
-              <div className="flex items-center space-x-2 text-green-600">
-                <CheckCircle className="w-3 h-3" />
-                <span>Progresso salvo</span>
-              </div>
-              {sessionId && (
-                <div className="flex items-center space-x-1 text-blue-600">
-                  <Activity className="w-3 h-3" />
-                  <span className="font-mono truncate max-w-24">{sessionId}</span>
-                </div>
-              )}
-            </div>
           </div>
         </div>
 
@@ -1765,10 +1415,17 @@ export function LeadFormCredImobil() {
                   <Input
                     label="Renda Mensal *"
                     type="text"
-                    value={getCurrencyDisplayValue(monthlyIncomeInput, formData.monthlyIncome)}
-                    onChange={(e) => handleCurrencyInput('monthlyIncome', e.target.value, setMonthlyIncomeInput)}
+                    value={formData.monthlyIncome && formData.monthlyIncome > 0 ? new Intl.NumberFormat('pt-BR', { 
+                      style: 'currency', 
+                      currency: 'BRL' 
+                    }).format(formData.monthlyIncome) : ''}
+                    onChange={(e) => {
+                      const rawValue = e.target.value.replace(/[^\d]/g, '');
+                      const numericValue = rawValue ? parseFloat(rawValue) / 100 : null;
+                      handleChange('monthlyIncome', numericValue);
+                    }}
                     placeholder="R$ 5.000,00"
-                      maxLength={20}
+                      maxLength={15}
                   />
                     {formData.monthlyIncome && formData.monthlyIncome < 1000 && (
                       <p className="text-red-500 text-xs mt-1">Renda mínima de R$ 1.000,00</p>
@@ -1802,10 +1459,17 @@ export function LeadFormCredImobil() {
                   <Input
                     label="Valor do Imóvel *"
                     type="text"
-                    value={getCurrencyDisplayValue(propertyValueInput, formData.propertyValue)}
-                    onChange={(e) => handleCurrencyInput('propertyValue', e.target.value, setPropertyValueInput)}
+                    value={formData.propertyValue && formData.propertyValue > 0 ? new Intl.NumberFormat('pt-BR', { 
+                      style: 'currency', 
+                      currency: 'BRL' 
+                    }).format(formData.propertyValue) : ''}
+                    onChange={(e) => {
+                      const rawValue = e.target.value.replace(/[^\d]/g, '');
+                      const numericValue = rawValue ? parseFloat(rawValue) / 100 : null;
+                      handleChange('propertyValue', numericValue);
+                    }}
                     placeholder="R$ 300.000,00"
-                      maxLength={20}
+                      maxLength={15}
                   />
                     {formData.propertyValue && formData.propertyValue < 50000 && (
                       <p className="text-red-500 text-xs mt-1">Valor mínimo de R$ 50.000,00</p>
@@ -1840,16 +1504,14 @@ export function LeadFormCredImobil() {
                   </div>
 
                   <div>
-                  <Input
-                    label="Estado do Imóvel *"
-                    value={formData.propertyState}
-                    onChange={(e) => handleChange('propertyState', e.target.value.toUpperCase())}
-                    placeholder="SP"
-                    maxLength={2}
-                  />
-                    {formData.propertyState && formData.propertyState.trim().length !== 2 && (
-                      <p className="text-red-500 text-xs mt-1">Estado deve ter 2 caracteres</p>
-                    )}
+                    <StateSelect
+                      label="Estado do Imóvel *"
+                      value={formData.propertyState}
+                      onChange={(value) => handleChange('propertyState', value)}
+                      placeholder="Selecione o estado"
+                      required
+                      error={formData.propertyState && formData.propertyState.trim().length !== 2 ? "Selecione um estado" : undefined}
+                    />
                   </div>
                 </div>
               </div>
@@ -1993,14 +1655,21 @@ export function LeadFormCredImobil() {
                         </div>
 
                         <div>
-                              <Input
-                                label="Renda Mensal do Cônjuge *"
-                                type="text"
-                                value={getCurrencyDisplayValue(spouseMonthlyIncomeInput, formData.spouseMonthlyIncome)}
-                                onChange={(e) => handleCurrencyInput('spouseMonthlyIncome', e.target.value, setSpouseMonthlyIncomeInput)}
-                                placeholder="R$ 5.000,00"
-                                maxLength={20}
-                              />
+                          <Input
+                            label="Renda Mensal do Cônjuge *"
+                            type="text"
+                            value={formData.spouseMonthlyIncome && formData.spouseMonthlyIncome > 0 ? new Intl.NumberFormat('pt-BR', { 
+                              style: 'currency', 
+                              currency: 'BRL' 
+                            }).format(formData.spouseMonthlyIncome) : ''}
+                            onChange={(e) => {
+                              const rawValue = e.target.value.replace(/[^\d]/g, '');
+                              const numericValue = rawValue ? parseFloat(rawValue) / 100 : null;
+                              handleChange('spouseMonthlyIncome', numericValue);
+                            }}
+                            placeholder="R$ 5.000,00"
+                            maxLength={15}
+                          />
                           {formData.spouseMonthlyIncome && formData.spouseMonthlyIncome < 1000 && (
                             <p className="text-red-500 text-xs mt-1">Renda mínima de R$ 1.000,00</p>
                           )}
@@ -2266,15 +1935,17 @@ export function LeadFormCredImobil() {
                         <h5 className="text-base font-medium text-gray-800 mb-2">1. Documento de Identidade (RG ou CNH)</h5>
                         <p className="text-sm text-gray-600 mb-3">Pode anexar mais de 1 documento</p>
                         <DocumentUpload
-                          sessionId={sessionId || ''}
+                          sessionId=""
                           documentType="identity"
                           label="Documentos de Identidade"
                           description="RG, CNH ou outros documentos de identificação"
                           onUploadComplete={(documents) => {
+                            const newDocuments = [...formData.documents, ...documents];
                             setFormData(prev => ({
                               ...prev,
-                              documents: [...prev.documents, ...documents]
+                              documents: newDocuments
                             }));
+                            updateDocumentFlags(newDocuments);
                           }}
                           onUploadError={(error) => setError(error)}
                           maxFiles={3}
@@ -2287,15 +1958,17 @@ export function LeadFormCredImobil() {
                         <h5 className="text-base font-medium text-gray-800 mb-2">2. Comprovante de Estado Civil</h5>
                         <p className="text-sm text-gray-600 mb-3">Certidão de nascimento, óbito, casamento ou pacto antenupcial (se houver). Pode anexar mais de 1 documento</p>
                         <DocumentUpload
-                          sessionId={sessionId || ''}
+                          sessionId=""
                           documentType="marital_status"
                           label="Comprovante de Estado Civil"
                           description="Certidão de nascimento, óbito, casamento ou pacto antenupcial"
                           onUploadComplete={(documents) => {
+                            const newDocuments = [...formData.documents, ...documents];
                             setFormData(prev => ({
                               ...prev,
-                              documents: [...prev.documents, ...documents]
+                              documents: newDocuments
                             }));
+                            updateDocumentFlags(newDocuments);
                           }}
                           onUploadError={(error) => setError(error)}
                           maxFiles={3}
@@ -2308,15 +1981,17 @@ export function LeadFormCredImobil() {
                         <h5 className="text-base font-medium text-gray-800 mb-2">3. Comprovante de Residência</h5>
                         <p className="text-sm text-gray-600 mb-3">Atualizado (últimos 3 meses)</p>
                         <DocumentUpload
-                          sessionId={sessionId || ''}
+                          sessionId=""
                           documentType="address_proof"
                           label="Comprovante de Residência"
                           description="Conta de luz, água, telefone, etc. (últimos 3 meses)"
                           onUploadComplete={(documents) => {
+                            const newDocuments = [...formData.documents, ...documents];
                             setFormData(prev => ({
                               ...prev,
-                              documents: [...prev.documents, ...documents]
+                              documents: newDocuments
                             }));
+                            updateDocumentFlags(newDocuments);
                           }}
                           onUploadError={(error) => setError(error)}
                           maxFiles={2}
@@ -2339,7 +2014,7 @@ export function LeadFormCredImobil() {
                         <div>
                           <h5 className="text-base font-medium text-gray-800 mb-2">1. Contrato Social Completo</h5>
                           <DocumentUpload
-                            sessionId={sessionId || ''}
+                            sessionId=""
                             documentType="contract_social"
                             label="Contrato Social"
                             description="Contrato social completo da empresa"
@@ -2360,7 +2035,7 @@ export function LeadFormCredImobil() {
                           <h5 className="text-base font-medium text-gray-800 mb-2">2. Última Alteração Contratual</h5>
                           <p className="text-sm text-gray-600 mb-3">Se houver (não é obrigatório)</p>
                           <DocumentUpload
-                            sessionId={sessionId || ''}
+                            sessionId=""
                             documentType="contract_amendment"
                             label="Alteração Contratual"
                             description="Última alteração contratual (opcional)"
@@ -2381,7 +2056,7 @@ export function LeadFormCredImobil() {
                         <div>
                           <h5 className="text-base font-medium text-gray-800 mb-2">3. Cartão CNPJ Atualizado</h5>
                           <DocumentUpload
-                            sessionId={sessionId || ''}
+                            sessionId=""
                             documentType="cnpj"
                             label="Cartão CNPJ"
                             description="Cartão CNPJ atualizado da empresa"
@@ -2414,7 +2089,7 @@ export function LeadFormCredImobil() {
                           <h5 className="text-base font-medium text-gray-800 mb-2">1 e 2. Declaração de Imposto de Renda</h5>
                           <p className="text-sm text-gray-600 mb-3">Completa do último exercício + Recibo de entrega</p>
                           <DocumentUpload
-                            sessionId={sessionId || ''}
+                            sessionId=""
                             documentType="tax_return"
                             label="Declaração de IR"
                             description="Declaração completa + Recibo de entrega"
@@ -2434,7 +2109,7 @@ export function LeadFormCredImobil() {
                         <div>
                           <h5 className="text-base font-medium text-gray-800 mb-2">3. Extratos Bancários</h5>
                           <DocumentUpload
-                            sessionId={sessionId || ''}
+                            sessionId=""
                             documentType="bank_statements"
                             label="Extratos Bancários"
                             description="Extratos bancários dos últimos 3 meses"
@@ -2464,15 +2139,17 @@ export function LeadFormCredImobil() {
                       
                       <div className="space-y-6">
                         <DocumentUpload
-                          sessionId={sessionId || ''}
+                          sessionId=""
                           documentType="spouse_identity"
                           label="Documentos de Identidade do Cônjuge"
                           description="RG, CNH do cônjuge"
                           onUploadComplete={(documents) => {
+                            const newDocuments = [...formData.documents, ...documents];
                             setFormData(prev => ({
                               ...prev,
-                              documents: [...prev.documents, ...documents]
+                              documents: newDocuments
                             }));
+                            updateDocumentFlags(newDocuments);
                           }}
                           onUploadError={(error) => setError(error)}
                           maxFiles={3}
@@ -2480,30 +2157,34 @@ export function LeadFormCredImobil() {
                         />
 
                         <DocumentUpload
-                          sessionId={sessionId || ''}
+                          sessionId=""
                           documentType="spouse_marital_status"
                           label="Comprovante de Estado Civil do Cônjuge"
                           description="Certidões do cônjuge"
                           onUploadComplete={(documents) => {
+                            const newDocuments = [...formData.documents, ...documents];
                             setFormData(prev => ({
                               ...prev,
-                              documents: [...prev.documents, ...documents]
+                              documents: newDocuments
                             }));
+                            updateDocumentFlags(newDocuments);
                           }}
                           onUploadError={(error) => setError(error)}
                           maxFiles={3}
                         />
 
                         <DocumentUpload
-                          sessionId={sessionId || ''}
+                          sessionId=""
                           documentType="spouse_address_proof"
                           label="Comprovante de Residência do Cônjuge"
                           description="Comprovante de residência do cônjuge"
                           onUploadComplete={(documents) => {
+                            const newDocuments = [...formData.documents, ...documents];
                             setFormData(prev => ({
                               ...prev,
-                              documents: [...prev.documents, ...documents]
+                              documents: newDocuments
                             }));
+                            updateDocumentFlags(newDocuments);
                           }}
                           onUploadError={(error) => setError(error)}
                           maxFiles={2}
@@ -2550,7 +2231,7 @@ export function LeadFormCredImobil() {
                     </p>
                     
                     <DocumentUpload
-                      sessionId={sessionId || ''}
+                      sessionId=""
                       documentType="other_documents"
                       label="Outros Documentos"
                       description="Documentos adicionais que considere importantes"
@@ -2656,20 +2337,6 @@ export function LeadFormCredImobil() {
         </div>
       </div>
 
-      {/* Modal para cliente existente */}
-      {existingCustomerData && (
-        <ExistingCustomerModal
-          isOpen={existingCustomerModal}
-          onClose={() => {
-            setExistingCustomerModal(false);
-            setExistingCustomerData(null);
-          }}
-          onContinue={handleContinueAnyway}
-          onAddProcess={handleAddProcess}
-          customerData={existingCustomerData}
-          processType="credito_imobiliario"
-        />
-      )}
     </div>
   );
 }

@@ -4,11 +4,9 @@ import { Button } from '../UI/Button';
 import { Input } from '../UI/Input';
 import { LoadingSpinner } from '../UI/LoadingSpinner';
 import { DocumentUpload } from '../UI/DocumentUpload';
-import { PreRegistrationApi } from '../../services/preRegistrationApi';
-import { PreRegistration } from '../../../shared/types/preRegistration';
-import { DocumentService } from '../../services/documentService';
 import { CPFService } from '../../services/cpfService';
 import { CepService } from '../../services/cepService';
+import { CNPJService } from '../../services/cnpjService';
 import { StateSelect } from '../UI/StateSelect';
 import { CPFValidationService, ExistingCustomerData } from '../../services/cpfValidationService';
 import { ExistingCustomerModal } from '../UI/ExistingCustomerModal';
@@ -38,13 +36,7 @@ interface FormData {
   profession: string;
   employmentType: string;
   monthlyIncome: number;
-  companyName: string;
-  
-  // Dados do Imóvel
-  propertyValue: number;
-  propertyType: string;
-  propertyCity: string;
-  propertyState: string;
+  personalCompanyName: string;
   
   // Gov.br
   govPassword: string;
@@ -98,6 +90,20 @@ interface FormData {
     url: string;
   }>;
   
+  // Dados da Pessoa Jurídica
+  hasCompany: boolean;
+  companyCnpj: string;
+  companyName: string;
+  companyAddress: {
+    street: string;
+    number: string;
+    complement: string;
+    neighborhood: string;
+    city: string;
+    state: string;
+    zipCode: string;
+  };
+  
   // Observações
   notes: string;
 }
@@ -105,11 +111,9 @@ interface FormData {
 export function LeadFormConsultoria() {
   const [currentStep, setCurrentStep] = useState(1);
   const [loading, setLoading] = useState(false);
-  const [initialLoading, setInitialLoading] = useState(true);
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [showGovPassword, setShowGovPassword] = useState(false);
-  const [sessionId, setSessionId] = useState<string | null>(null);
   const [showInstructions, setShowInstructions] = useState(true);
   const [acceptedTerms, setAcceptedTerms] = useState(false);
   const [activeTab, setActiveTab] = useState(0);
@@ -123,6 +127,10 @@ export function LeadFormConsultoria() {
   const [cepConsulted, setCepConsulted] = useState(false);
   const [cepValid, setCepValid] = useState(false);
   const [cepNotFound, setCepNotFound] = useState(false);
+  const [consultingCNPJ, setConsultingCNPJ] = useState(false);
+  const [cnpjConsulted, setCnpjConsulted] = useState(false);
+  const [cnpjValid, setCnpjValid] = useState(false);
+  const [cnpjNotFound, setCnpjNotFound] = useState(false);
   
   // Estados para validação de CPF existente
   const [existingCustomerModal, setExistingCustomerModal] = useState(false);
@@ -147,12 +155,8 @@ export function LeadFormConsultoria() {
     },
     profession: '',
     employmentType: 'clt',
-    monthlyIncome: null,
-    companyName: '',
-    propertyValue: 0,
-    propertyType: 'apartamento',
-    propertyCity: '',
-    propertyState: '',
+    monthlyIncome: 0,
+    personalCompanyName: '',
     govPassword: '',
     hasTwoFactorDisabled: false,
     hasSpouse: false,
@@ -183,15 +187,27 @@ export function LeadFormConsultoria() {
     hasSpouseTaxReturn: false,
     hasSpouseBankStatements: false,
     documents: [],
+    hasCompany: false,
+    companyCnpj: '',
+    companyName: '',
+    companyAddress: {
+      street: '',
+      number: '',
+      complement: '',
+      neighborhood: '',
+      city: '',
+      state: '',
+      zipCode: ''
+    },
     notes: ''
   });
 
-  const totalSteps = 8; // 1-Dados Pessoais, 2-Endereço, 3-Profissional, 4-Imóvel, 5-Cônjuge, 6-Empresa, 7-Gov.br, 8-Documentos
+  const totalSteps = 7; // 1-Dados Pessoais, 2-Endereço, 3-Profissional, 4-Cônjuge, 5-Empresa, 6-Gov.br, 7-Documentos
 
   // Determinar qual é realmente a última etapa (documentos)
   const isLastStep = React.useMemo(() => {
-    // A última etapa é sempre documentos (etapa 8)
-    return currentStep === 8;
+    // A última etapa é sempre documentos (etapa 7)
+    return currentStep === 7;
   }, [currentStep]);
 
   // Corrigir etapa inválida
@@ -202,121 +218,9 @@ export function LeadFormConsultoria() {
     }
   }, [currentStep, totalSteps]);
 
-  // Carregar progresso salvo ao inicializar
+  // Inicialização simples - sempre começa do zero
   useEffect(() => {
-    const loadProgress = async () => {
-      try {
-        setInitialLoading(true);
-        const preRegistration = await PreRegistrationApi.getOrCreatePreRegistration();
-        
-        setSessionId(preRegistration.sessionId);
-        setCurrentStep(preRegistration.currentStep || 1);
-        
-        // Se já há progresso salvo, não mostrar instruções
-        if (preRegistration.currentStep && preRegistration.currentStep > 1) {
-          setShowInstructions(false);
-        }
-        
-        // Carregar dados salvos se existirem
-        if (preRegistration.personalData) {
-          setFormData(prev => ({
-            ...prev,
-            name: preRegistration.personalData?.name || '',
-            email: preRegistration.personalData?.email || '',
-            phone: preRegistration.personalData?.phone || '',
-            cpf: preRegistration.personalData?.cpf || '',
-            birthDate: preRegistration.personalData?.birthDate || ''
-          }));
-        }
-        
-        if (preRegistration.address) {
-          setFormData(prev => ({
-            ...prev,
-            address: {
-              ...prev.address,
-              ...preRegistration.address
-            }
-          }));
-        }
-        
-        if (preRegistration.professionalData) {
-          setFormData(prev => ({
-            ...prev,
-            profession: preRegistration.professionalData?.profession || '',
-            employmentType: preRegistration.professionalData?.employmentType || 'clt',
-            monthlyIncome: preRegistration.professionalData?.monthlyIncome || 0,
-            companyName: preRegistration.professionalData?.companyName || ''
-          }));
-        }
-        
-        if (preRegistration.propertyData) {
-          setFormData(prev => ({
-            ...prev,
-            propertyValue: preRegistration.propertyData?.propertyValue || 0,
-            propertyType: preRegistration.propertyData?.propertyType || 'apartamento',
-            propertyCity: preRegistration.propertyData?.propertyCity || '',
-            propertyState: preRegistration.propertyData?.propertyState || ''
-          }));
-        }
-        
-        if (preRegistration.documents) {
-          setFormData(prev => ({
-            ...prev,
-            hasRG: preRegistration.documents?.hasRG || true,
-            hasCPF: preRegistration.documents?.hasCPF || true,
-            hasAddressProof: preRegistration.documents?.hasAddressProof || false,
-            hasIncomeProof: preRegistration.documents?.hasIncomeProof || false,
-            hasMaritalStatusProof: preRegistration.documents?.hasMaritalStatusProof || false,
-            hasCompanyDocs: preRegistration.documents?.hasCompanyDocs || false,
-            hasTaxReturn: preRegistration.documents?.hasTaxReturn || false,
-            hasBankStatements: preRegistration.documents?.hasBankStatements || false
-          }));
-        }
-        
-        if (preRegistration.maritalStatus) {
-          setFormData(prev => ({
-            ...prev,
-            maritalStatus: preRegistration.maritalStatus
-          }));
-        }
-        
-        if (preRegistration.hasSpouse !== undefined) {
-          setFormData(prev => ({
-            ...prev,
-            hasSpouse: preRegistration.hasSpouse
-          }));
-        }
-        
-        if (preRegistration.spouseName) {
-          setFormData(prev => ({
-            ...prev,
-            spouseName: preRegistration.spouseName
-          }));
-        }
-        
-        if (preRegistration.spouseCpf) {
-          setFormData(prev => ({
-            ...prev,
-            spouseCpf: preRegistration.spouseCpf
-          }));
-        }
-        
-        if (preRegistration.notes) {
-          setFormData(prev => ({
-            ...prev,
-            notes: preRegistration.notes
-          }));
-        }
-        
-      } catch (error) {
-        console.error('Error loading progress:', error);
-        setError('Erro ao carregar progresso salvo');
-      } finally {
-        setInitialLoading(false);
-      }
-    };
-
-    loadProgress();
+    setCurrentStep(1);
   }, []);
 
   const handleChange = (field: string, value: any) => {
@@ -362,6 +266,20 @@ export function LeadFormConsultoria() {
       } else {
         setCepConsulted(false);
         setCepNotFound(false);
+      }
+    }
+
+    // Se for o campo CNPJ, verificar validação e consultar
+    if (field === 'companyCnpj') {
+      const cnpjLimpo = value.replace(/\D/g, '');
+      const isValid = cnpjLimpo.length === 14 && validateCNPJ(value);
+      setCnpjValid(isValid);
+      
+      if (isValid) {
+        consultarCNPJ(value);
+      } else {
+        setCnpjConsulted(false);
+        setCnpjNotFound(false);
       }
     }
   };
@@ -476,6 +394,47 @@ export function LeadFormConsultoria() {
     }
   };
 
+  const consultarCNPJ = async (cnpj: string) => {
+    const cnpjLimpo = cnpj.replace(/\D/g, '');
+    
+    // Só consultar se tiver 14 dígitos
+    if (cnpjLimpo.length === 14) {
+      setConsultingCNPJ(true);
+      setError(null);
+      setCnpjNotFound(false);
+      
+      try {
+        const dadosCNPJ = await CNPJService.consultarCNPJ(cnpj);
+        
+        if (dadosCNPJ) {
+          setFormData(prev => ({
+            ...prev,
+            companyName: dadosCNPJ.razaoSocial,
+            companyAddress: {
+              ...prev.companyAddress,
+              street: dadosCNPJ.endereco.logradouro || '',
+              neighborhood: dadosCNPJ.endereco.bairro || '',
+              city: dadosCNPJ.endereco.municipio || '',
+              state: dadosCNPJ.endereco.uf || '',
+              zipCode: dadosCNPJ.endereco.cep || ''
+            }
+          }));
+          setCnpjConsulted(true);
+          setCnpjNotFound(false);
+        } else {
+          setCnpjNotFound(true);
+          setError('CNPJ não encontrado. Preencha os dados manualmente.');
+        }
+      } catch (error) {
+        console.error('Erro ao consultar CNPJ:', error);
+        setCnpjNotFound(true);
+        setError('Erro ao consultar CNPJ. Preencha os dados manualmente.');
+      } finally {
+        setConsultingCNPJ(false);
+      }
+    }
+  };
+
   // Validações
   const validateCPF = (cpf: string): boolean => {
     const numbers = cpf.replace(/\D/g, '');
@@ -514,10 +473,10 @@ export function LeadFormConsultoria() {
     return numbers.length === 10 || numbers.length === 11;
   };
 
-  const validateCEP = (cep: string): boolean => {
-    const numbers = cep.replace(/\D/g, '');
-    return numbers.length === 8;
+  const validateCNPJ = (cnpj: string): boolean => {
+    return CNPJService.validarCNPJ(cnpj);
   };
+
 
   // RG não tem validação específica pois cada estado tem formato diferente
 
@@ -558,6 +517,14 @@ export function LeadFormConsultoria() {
     return numbers.replace(/(\d{5})(\d{3})/, '$1-$2');
     }
     return value.slice(0, 9); // Limitar a 9 caracteres
+  };
+
+  const formatCNPJ = (value: string) => {
+    const numbers = value.replace(/\D/g, '');
+    if (numbers.length <= 14) {
+      return numbers.replace(/(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})/, '$1.$2.$3/$4-$5');
+    }
+    return value.slice(0, 18); // Limitar a 18 caracteres
   };
 
   // RG não tem formatação específica pois cada estado tem formato diferente
@@ -610,8 +577,6 @@ export function LeadFormConsultoria() {
       setExistingCustomerData(null);
       
       // Continuar para próxima etapa
-      const stepData = getCurrentStepData();
-      await PreRegistrationApi.nextStep(stepData);
       setCurrentStep(currentStep + 1);
       setError(null);
     } catch (error) {
@@ -629,8 +594,6 @@ export function LeadFormConsultoria() {
       setExistingCustomerData(null);
       
       // Continuar normalmente
-      const stepData = getCurrentStepData();
-      await PreRegistrationApi.nextStep(stepData);
       setCurrentStep(currentStep + 1);
       setError(null);
     } catch (error) {
@@ -641,159 +604,32 @@ export function LeadFormConsultoria() {
     }
   };
 
-  const nextStep = async () => {
-    if (currentStep < totalSteps) {
-      try {
-        setLoading(true);
-        
-        // Se está no passo 1 (dados pessoais), verificar CPF
+  const nextStep = () => {
+    if (!isLastStep) {
+      // Validação básica antes de avançar
         if (currentStep === 1) {
-          const cpfValidation = await validateCPFAndCheckExisting();
-          if (!cpfValidation.canProceed) {
-            setError(cpfValidation.message || 'CPF já cadastrado');
-            setLoading(false);
-            return;
-          }
-          
-          // Se CPF existe mas pode adicionar processo, mostrar modal
-          if (cpfValidation.exists && cpfValidation.customerData) {
-            setExistingCustomerData(cpfValidation.customerData);
-            setExistingCustomerModal(true);
-            setLoading(false);
+        // Validar dados pessoais
+        if (!formData.name || !formData.email || !formData.phone || !formData.cpf || !validateCPF(formData.cpf)) {
+          setError('Por favor, preencha todos os campos obrigatórios corretamente');
             return;
           }
         }
         
-        // Salvar dados da etapa atual
-        const stepData = getCurrentStepData();
-        await PreRegistrationApi.nextStep(stepData);
-        
         setCurrentStep(currentStep + 1);
         setError(null);
-      } catch (error) {
-        console.error('Error saving step:', error);
-        setError('Erro ao salvar progresso');
-      } finally {
-        setLoading(false);
-      }
-    } else if (currentStep === totalSteps) {
-      // Se está na última etapa, finalizar
+    } else {
+      // Se está na última etapa (documentos), finalizar
       handleSubmit();
     }
   };
 
-  const prevStep = async () => {
+  const prevStep = () => {
     if (currentStep > 1) {
-      try {
-        setLoading(true);
-        await PreRegistrationApi.previousStep();
         setCurrentStep(currentStep - 1);
         setError(null);
-      } catch (error) {
-        console.error('Error going to previous step:', error);
-        setError('Erro ao voltar etapa');
-      } finally {
-        setLoading(false);
-      }
     }
   };
 
-  const getCurrentStepData = () => {
-    switch (currentStep) {
-      case 1:
-        return {
-          personalData: {
-            name: formData.name,
-            email: formData.email,
-            phone: formData.phone,
-            cpf: formData.cpf,
-            rg: formData.rg,
-            birthDate: formData.birthDate
-          },
-          maritalStatus: formData.maritalStatus
-        };
-      case 2:
-        return {
-          address: formData.address
-        };
-      case 3:
-        return {
-          professionalData: {
-            profession: formData.profession,
-            employmentType: formData.employmentType,
-            monthlyIncome: formData.monthlyIncome,
-            companyName: formData.companyName
-          }
-        };
-      case 4:
-        return {
-          propertyData: {
-            propertyValue: formData.propertyValue,
-            propertyType: formData.propertyType,
-            propertyCity: formData.propertyCity,
-            propertyState: formData.propertyState
-          }
-        };
-      case 5:
-        return {
-          spouseData: {
-            hasSpouse: formData.hasSpouse,
-            spouseName: formData.spouseName,
-            spouseCpf: formData.spouseCpf,
-            spouseRg: formData.spouseRg,
-            spouseBirthDate: formData.spouseBirthDate,
-            spouseProfession: formData.spouseProfession,
-            spouseEmploymentType: formData.spouseEmploymentType,
-            spouseMonthlyIncome: formData.spouseMonthlyIncome,
-            spouseCompanyName: formData.spouseCompanyName
-          }
-        };
-      case 6:
-        return {
-          govCredentials: {
-          govPassword: formData.govPassword,
-          hasTwoFactorDisabled: formData.hasTwoFactorDisabled
-          }
-        };
-      case 7:
-        return {
-          documents: {
-            hasRG: formData.hasRG,
-            hasCPF: formData.hasCPF,
-            hasAddressProof: formData.hasAddressProof,
-            hasMaritalStatusProof: formData.hasMaritalStatusProof,
-            hasCompanyDocs: formData.hasCompanyDocs,
-            hasContractSocial: formData.hasContractSocial,
-            hasCNPJ: formData.hasCNPJ,
-            hasIncomeProof: formData.hasIncomeProof,
-            hasTaxReturn: formData.hasTaxReturn,
-            hasBankStatements: formData.hasBankStatements,
-            hasSpouseRG: formData.hasSpouseRG,
-            hasSpouseCPF: formData.hasSpouseCPF,
-            hasSpouseAddressProof: formData.hasSpouseAddressProof,
-            hasSpouseMaritalStatusProof: formData.hasSpouseMaritalStatusProof,
-            hasSpouseIncomeProof: formData.hasSpouseIncomeProof,
-            hasSpouseTaxReturn: formData.hasSpouseTaxReturn,
-            hasSpouseBankStatements: formData.hasSpouseBankStatements
-          },
-          spouseData: {
-          hasSpouse: formData.hasSpouse,
-          spouseName: formData.spouseName,
-          spouseCpf: formData.spouseCpf,
-            spouseRg: formData.spouseRg,
-            spouseBirthDate: formData.spouseBirthDate,
-            spouseProfession: formData.spouseProfession,
-            spouseEmploymentType: formData.spouseEmploymentType,
-            spouseMonthlyIncome: formData.spouseMonthlyIncome,
-            spouseCompanyName: formData.spouseCompanyName
-          },
-          uploadedDocuments: formData.documents,
-          notes: formData.notes
-        };
-      default:
-        return {};
-    }
-  };
 
   const handleStartForm = () => {
     setShowInstructions(false);
@@ -817,17 +653,6 @@ export function LeadFormConsultoria() {
     setIsAnimating(false);
   };
 
-  const canAccessTab = (tabId: number) => {
-    // Primeira aba sempre acessível
-    if (tabId === 0) return true;
-    
-    // Para acessar outras abas, precisa ter completado a anterior
-    return completedTabs.includes(tabId - 1) || tabId <= activeTab;
-  };
-
-  const isTabCompleted = (tabId: number) => {
-    return completedTabs.includes(tabId);
-  };
 
   const validateCurrentStep = () => {
     switch (currentStep) {
@@ -853,12 +678,7 @@ export function LeadFormConsultoria() {
                formData.monthlyIncome && formData.monthlyIncome > 0 && 
                formData.monthlyIncome >= 1000; // Renda mínima de R$ 1.000
       case 4:
-        return formData.propertyValue > 0 && 
-               formData.propertyValue >= 50000 && // Valor mínimo de R$ 50.000
-               formData.propertyCity.trim().length >= 2 && 
-               formData.propertyState.trim().length === 2;
-      case 5:
-        // Se tem cônjuge, valida os campos obrigatórios do cônjuge
+        // Etapa 4: Dados do Cônjuge
         if (formData.hasSpouse) {
           return formData.spouseName.trim().length >= 2 && 
                  validateCPF(formData.spouseCpf) && 
@@ -870,11 +690,26 @@ export function LeadFormConsultoria() {
                  formData.spouseMonthlyIncome >= 1000;
         }
         return true; // Se não tem cônjuge, etapa é válida
+      case 5:
+        // Etapa 5: Dados da Empresa
+        if (formData.hasCompany) {
+          return formData.companyCnpj.trim().length >= 14 && 
+                 formData.companyName.trim().length >= 2 && 
+                 formData.companyAddress.street.trim().length >= 3 && 
+                 formData.companyAddress.number.trim().length >= 1 && 
+                 formData.companyAddress.neighborhood.trim().length >= 2 && 
+                 formData.companyAddress.city.trim().length >= 2 && 
+                 formData.companyAddress.state.trim().length === 2 && 
+                 formData.companyAddress.zipCode.trim().length >= 8;
+        }
+        return true; // Se não tem empresa, etapa é válida
       case 6:
+        // Etapa 6: Gov.br
         return formData.govPassword.trim().length >= 6 && 
                formData.hasTwoFactorDisabled;
       case 7:
-        return true; // Documentos são opcionais
+        // Etapa 7: Documentos - sempre válida pois são opcionais
+        return true;
       default:
         return true;
     }
@@ -885,37 +720,121 @@ export function LeadFormConsultoria() {
     setError(null);
 
     try {
-      // Primeiro salva os dados da última etapa
-      const stepData = getCurrentStepData();
-      await PreRegistrationApi.nextStep(stepData);
-      
-      // Depois finaliza o pré-cadastro (converte para lead)
-      await PreRegistrationApi.completePreRegistration('lead_consultoria');
+      // Validação final de todos os campos obrigatórios
+      if (!validateCurrentStep()) {
+        setError('Por favor, preencha todos os campos obrigatórios');
+        setLoading(false);
+        return;
+      }
+
+      // Debug: verificar documentos antes do envio
+      console.log('🔍 [DEBUG] Documentos no formData:', formData.documents);
+      console.log('🔍 [DEBUG] Quantidade de documentos:', formData.documents?.length || 0);
+      console.log('🔍 [DEBUG] Estrutura dos documentos:', JSON.stringify(formData.documents, null, 2));
+
+      // Calcular flags de documentos baseado nos documentos enviados
+      const documentFlags = {
+        hasRG: formData.documents.some(doc => doc.documentType === 'identity') || formData.hasRG,
+        hasCPF: formData.documents.some(doc => doc.documentType === 'identity') || formData.hasCPF,
+        hasAddressProof: formData.documents.some(doc => doc.documentType === 'address_proof'),
+        hasMaritalStatusProof: formData.documents.some(doc => doc.documentType === 'marital_status'),
+        hasIncomeProof: formData.documents.some(doc => doc.documentType === 'income_proof'),
+        hasCompanyDocs: formData.documents.some(doc => ['contract_social', 'cnpj'].includes(doc.documentType)),
+        hasContractSocial: formData.documents.some(doc => doc.documentType === 'contract_social'),
+        hasCNPJ: formData.documents.some(doc => doc.documentType === 'cnpj'),
+        hasTaxReturn: formData.documents.some(doc => doc.documentType === 'tax_return'),
+        hasBankStatements: formData.documents.some(doc => doc.documentType === 'bank_statements'),
+        hasSpouseRG: formData.documents.some(doc => doc.documentType === 'spouse_identity'),
+        hasSpouseCPF: formData.documents.some(doc => doc.documentType === 'spouse_identity'),
+        hasSpouseAddressProof: formData.documents.some(doc => doc.documentType === 'spouse_address_proof'),
+        hasSpouseMaritalStatusProof: formData.documents.some(doc => doc.documentType === 'spouse_marital_status'),
+        hasSpouseIncomeProof: formData.documents.some(doc => doc.documentType === 'spouse_income_proof'),
+        hasSpouseTaxReturn: formData.documents.some(doc => doc.documentType === 'spouse_tax_return'),
+        hasSpouseBankStatements: formData.documents.some(doc => doc.documentType === 'spouse_bank_statements'),
+      };
+
+      // Preparar dados do lead
+      const leadData = {
+        name: formData.name,
+        email: formData.email,
+        phone: formData.phone,
+        cpf: formData.cpf,
+        rg: formData.rg,
+        birthDate: formData.birthDate,
+        maritalStatus: formData.maritalStatus,
+        address: formData.address,
+        profession: formData.profession,
+        employmentType: formData.employmentType,
+        monthlyIncome: formData.monthlyIncome,
+        companyName: formData.personalCompanyName,
+        hasCompany: formData.hasCompany,
+        companyCnpj: formData.companyCnpj,
+        companyAddress: formData.companyAddress,
+        hasSpouse: formData.hasSpouse,
+        spouseName: formData.spouseName,
+        spouseCpf: formData.spouseCpf,
+        spouseRg: formData.spouseRg,
+        spouseBirthDate: formData.spouseBirthDate,
+        spouseProfession: formData.spouseProfession,
+        spouseEmploymentType: formData.spouseEmploymentType,
+        spouseMonthlyIncome: formData.spouseMonthlyIncome,
+        spouseCompanyName: formData.spouseCompanyName,
+        govPassword: formData.govPassword,
+        hasTwoFactorDisabled: formData.hasTwoFactorDisabled,
+        // Documentos pessoais
+        hasRG: documentFlags.hasRG,
+        hasCPF: documentFlags.hasCPF,
+        hasAddressProof: documentFlags.hasAddressProof,
+        hasMaritalStatusProof: documentFlags.hasMaritalStatusProof,
+        // Documentos empresariais
+        hasCompanyDocs: documentFlags.hasCompanyDocs,
+        hasContractSocial: documentFlags.hasContractSocial,
+        hasCNPJ: documentFlags.hasCNPJ,
+        // Comprovação de renda
+        hasIncomeProof: documentFlags.hasIncomeProof,
+        hasTaxReturn: documentFlags.hasTaxReturn,
+        hasBankStatements: documentFlags.hasBankStatements,
+        // Documentos do cônjuge
+        hasSpouseRG: documentFlags.hasSpouseRG,
+        hasSpouseCPF: documentFlags.hasSpouseCPF,
+        hasSpouseAddressProof: documentFlags.hasSpouseAddressProof,
+        hasSpouseMaritalStatusProof: documentFlags.hasSpouseMaritalStatusProof,
+        hasSpouseIncomeProof: documentFlags.hasSpouseIncomeProof,
+        hasSpouseTaxReturn: documentFlags.hasSpouseTaxReturn,
+        hasSpouseBankStatements: documentFlags.hasSpouseBankStatements,
+        uploadedDocuments: formData.documents,
+        notes: formData.notes,
+        type: 'consultoria',
+        source: 'lead_consultoria'
+      };
+
+      // Debug: verificar leadData antes do envio
+      console.log('🔍 [DEBUG] leadData completo:', leadData);
+      console.log('🔍 [DEBUG] uploadedDocuments no leadData:', leadData.uploadedDocuments);
+      console.log('🔍 [DEBUG] Quantidade de documentos no leadData:', leadData.uploadedDocuments?.length || 0);
+
+      // Enviar pré-cadastro
+      const response = await fetch('/api/pre-registration', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(leadData),
+      });
+
+      if (!response.ok) {
+        throw new Error('Erro ao enviar formulário');
+      }
       
       setSuccess(true);
     } catch (err) {
-      console.error('Error completing pre-registration:', err);
+      console.error('Error submitting form:', err);
       setError('Erro ao finalizar cadastro. Tente novamente.');
     } finally {
       setLoading(false);
     }
   };
 
-  if (initialLoading) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
-        <div className="card max-w-md w-full text-center">
-          <div className="card-content">
-            <LoadingSpinner size="lg" />
-            <h2 className="text-xl font-bold text-gray-900 mt-4">Carregando...</h2>
-            <p className="text-gray-600 mt-2">
-              Recuperando seu progresso salvo...
-            </p>
-          </div>
-        </div>
-      </div>
-    );
-  }
 
   if (success) {
     return (
@@ -952,21 +871,6 @@ export function LeadFormConsultoria() {
               Processo rápido e seguro para consultoria financeira
             </p>
             
-            {sessionId && (
-              <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-4 mb-6">
-                <p className="text-sm text-blue-100 mb-1">Número da Sessão</p>
-                <div className="space-y-2">
-                  <div className="bg-white/5 rounded-lg p-3">
-                    <p className="text-xs font-mono text-white font-bold break-all leading-tight text-center">
-                      {sessionId}
-                    </p>
-                  </div>
-                  <p className="text-xs text-blue-200/70 text-center">
-                    Guarde este número para referência
-                  </p>
-                </div>
-              </div>
-            )}
 
             <div className="space-y-4">
               <div className="flex items-center space-x-3 text-white/90">
@@ -1145,11 +1049,6 @@ export function LeadFormConsultoria() {
                   <p className="text-xs text-blue-100">Consultoria Financeira</p>
                 </div>
               </div>
-              {sessionId && (
-                <div className="bg-white/10 px-3 py-1 rounded-full max-w-32">
-                  <span className="text-xs font-mono text-white truncate block">{sessionId}</span>
-                </div>
-              )}
             </div>
           </div>
         </div>
@@ -1273,12 +1172,6 @@ export function LeadFormConsultoria() {
                 <p className="text-xs text-gray-500 font-medium">Consultoria Financeira</p>
               </div>
             </div>
-            {sessionId && (
-              <div className="hidden sm:flex items-center space-x-2 bg-blue-50 px-3 py-1 rounded-full">
-                <Activity className="w-4 h-4 text-blue-600" />
-                <span className="text-sm font-mono text-blue-800">{sessionId}</span>
-              </div>
-            )}
           </div>
         </div>
       </div>
@@ -1309,18 +1202,6 @@ export function LeadFormConsultoria() {
             </div>
             
             {/* Status Info */}
-            <div className="flex items-center justify-between text-xs">
-              <div className="flex items-center space-x-2 text-green-600">
-                <CheckCircle className="w-3 h-3" />
-                <span>Progresso salvo</span>
-              </div>
-              {sessionId && (
-                <div className="flex items-center space-x-1 text-blue-600">
-                  <Activity className="w-3 h-3" />
-                  <span className="font-mono truncate max-w-24">{sessionId}</span>
-                </div>
-              )}
-            </div>
           </div>
         </div>
 
@@ -1675,8 +1556,8 @@ export function LeadFormConsultoria() {
 
                   <Input
                     label="Empresa (se aplicável)"
-                    value={formData.companyName}
-                    onChange={(e) => handleChange('companyName', e.target.value)}
+                    value={formData.personalCompanyName}
+                    onChange={(e) => handleChange('personalCompanyName', e.target.value)}
                     placeholder="Nome da empresa"
                     maxLength={100}
                   />
@@ -1684,78 +1565,9 @@ export function LeadFormConsultoria() {
               </div>
             )}
 
-            {/* Step 4: Dados do Imóvel */}
+
+            {/* Step 4: Dados do Cônjuge */}
             {currentStep === 4 && (
-              <div className="space-y-8">
-                <div className="text-center mb-6">
-                  <div className="w-12 h-12 bg-gradient-to-r from-tellus-primary to-blue-600 rounded-xl flex items-center justify-center mx-auto mb-3">
-                    <DollarSign className="w-6 h-6 text-white" />
-                  </div>
-                  <h3 className="text-xl font-bold text-gray-900 mb-2">Dados do Imóvel de Interesse</h3>
-                  <p className="text-sm text-gray-600">Informe sobre o imóvel que deseja financiar</p>
-                </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div>
-                  <Input
-                    label="Valor do Imóvel *"
-                    type="number"
-                    value={formData.propertyValue > 0 ? formData.propertyValue : ''}
-                    onChange={(e) => handleChange('propertyValue', parseFloat(e.target.value) || 0)}
-                    placeholder="300000"
-                      min="50000"
-                      max="50000000"
-                  />
-                    {formData.propertyValue && formData.propertyValue < 50000 && (
-                      <p className="text-red-500 text-xs mt-1">Valor mínimo de R$ 50.000</p>
-                    )}
-                  </div>
-
-                  <div className="space-y-1">
-                    <label className="text-sm font-medium text-gray-700">Tipo do Imóvel *</label>
-                    <select
-                      value={formData.propertyType}
-                      onChange={(e) => handleChange('propertyType', e.target.value)}
-                      className="input"
-                    >
-                      <option value="apartamento">Apartamento</option>
-                      <option value="casa">Casa</option>
-                      <option value="terreno">Terreno</option>
-                      <option value="comercial">Comercial</option>
-                    </select>
-                  </div>
-
-                  <div>
-                  <Input
-                    label="Cidade do Imóvel *"
-                    value={formData.propertyCity}
-                    onChange={(e) => handleChange('propertyCity', e.target.value)}
-                    placeholder="Cidade onde está o imóvel"
-                      maxLength={50}
-                  />
-                    {formData.propertyCity && formData.propertyCity.trim().length < 2 && (
-                      <p className="text-red-500 text-xs mt-1">Cidade deve ter pelo menos 2 caracteres</p>
-                    )}
-                  </div>
-
-                  <div>
-                  <Input
-                    label="Estado do Imóvel *"
-                    value={formData.propertyState}
-                    onChange={(e) => handleChange('propertyState', e.target.value.toUpperCase())}
-                    placeholder="SP"
-                    maxLength={2}
-                  />
-                    {formData.propertyState && formData.propertyState.trim().length !== 2 && (
-                      <p className="text-red-500 text-xs mt-1">Estado deve ter 2 caracteres</p>
-                    )}
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {/* Step 5: Dados do Cônjuge */}
-            {currentStep === 5 && (
               <div className="space-y-8">
                 <div className="text-center mb-6">
                   <div className="w-12 h-12 bg-gradient-to-r from-tellus-primary to-blue-600 rounded-xl flex items-center justify-center mx-auto mb-3">
@@ -1926,6 +1738,188 @@ export function LeadFormConsultoria() {
               </div>
             )}
 
+            {/* Step 5: Dados da Empresa */}
+            {currentStep === 5 && (
+              <div className="space-y-8">
+                <div className="text-center mb-6">
+                  <div className="w-12 h-12 bg-gradient-to-r from-tellus-primary to-blue-600 rounded-xl flex items-center justify-center mx-auto mb-3">
+                    <Briefcase className="w-6 h-6 text-white" />
+                  </div>
+                  <h3 className="text-xl font-bold text-gray-900 mb-2">Dados da Empresa</h3>
+                  <p className="text-sm text-gray-600">Informe se possui empresa e seus dados</p>
+                </div>
+
+                <div className="space-y-6">
+                  {/* Checkbox para Empresa */}
+                  <div className="flex items-start space-x-3 p-4 bg-green-50 border border-green-200 rounded-lg">
+                    <input
+                      type="checkbox"
+                      id="hasCompany"
+                      checked={formData.hasCompany}
+                      onChange={(e) => handleChange('hasCompany', e.target.checked)}
+                      className="h-5 w-5 text-tellus-primary focus:ring-tellus-primary border-gray-300 rounded mt-1"
+                    />
+                    <div className="flex-1">
+                      <label htmlFor="hasCompany" className="text-sm font-medium text-gray-900 cursor-pointer">
+                        Possuo uma empresa (Pessoa Jurídica)
+                      </label>
+                      <p className="text-xs text-gray-600 mt-1">
+                        Marque se você tem uma empresa registrada (CNPJ)
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Formulário da Empresa - Condicional */}
+                  {formData.hasCompany && (
+                    <div className="bg-white border border-gray-200 rounded-lg p-6">
+                      <h4 className="text-lg font-semibold text-gray-900 mb-4">Informações da Empresa</h4>
+                      
+                      <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-6">
+                        <p className="text-sm text-green-800">
+                          <strong>Importante:</strong> Para empresas, é necessário apresentar todos os documentos empresariais obrigatórios.
+                        </p>
+                      </div>
+
+                      <div className="space-y-6 animate-fadeIn">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                          <div className="sm:col-span-2">
+                            <div className="relative">
+                              <Input
+                                label="CNPJ da Empresa *"
+                                value={formatCNPJ(formData.companyCnpj)}
+                                onChange={(e) => handleChange('companyCnpj', e.target.value)}
+                                placeholder="00.000.000/0000-00"
+                                maxLength={18}
+                              />
+                              {consultingCNPJ && (
+                                <div className="absolute right-3 top-8">
+                                  <LoadingSpinner size="sm" />
+                                </div>
+                              )}
+                            </div>
+                            {formData.companyCnpj && !validateCNPJ(formData.companyCnpj) && (
+                              <p className="text-red-500 text-xs mt-1">CNPJ inválido</p>
+                            )}
+                            {cnpjConsulted && (
+                              <p className="text-green-600 text-xs mt-1">✓ Dados preenchidos automaticamente</p>
+                            )}
+                            {cnpjNotFound && (
+                              <p className="text-yellow-600 text-xs mt-1">⚠️ CNPJ válido mas não encontrado. Preencha os dados manualmente.</p>
+                            )}
+                          </div>
+
+                          <div className="sm:col-span-2">
+                            <Input
+                              label="Razão Social da Empresa *"
+                              value={formData.companyName}
+                              onChange={(e) => handleChange('companyName', e.target.value)}
+                              placeholder="Nome completo da empresa"
+                              maxLength={200}
+                            />
+                            {formData.companyName && formData.companyName.trim().length < 2 && (
+                              <p className="text-red-500 text-xs mt-1">Razão social deve ter pelo menos 2 caracteres</p>
+                            )}
+                          </div>
+                        </div>
+
+                        <div className="border-t pt-6">
+                          <h4 className="text-lg font-semibold text-gray-900 mb-4">Endereço da Empresa</h4>
+                          
+                          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                            <div className="sm:col-span-2">
+                              <Input
+                                label="Rua *"
+                                value={formData.companyAddress.street}
+                                onChange={(e) => handleChange('companyAddress.street', e.target.value)}
+                                placeholder="Nome da rua"
+                                maxLength={100}
+                              />
+                              {formData.companyAddress.street && formData.companyAddress.street.trim().length < 3 && (
+                                <p className="text-red-500 text-xs mt-1">Nome da rua deve ter pelo menos 3 caracteres</p>
+                              )}
+                            </div>
+
+                            <div>
+                              <Input
+                                label="Número *"
+                                value={formData.companyAddress.number}
+                                onChange={(e) => handleChange('companyAddress.number', e.target.value)}
+                                placeholder="123"
+                                maxLength={10}
+                              />
+                              {formData.companyAddress.number && formData.companyAddress.number.trim().length < 1 && (
+                                <p className="text-red-500 text-xs mt-1">Número é obrigatório</p>
+                              )}
+                            </div>
+
+                            <div>
+                              <Input
+                                label="Complemento"
+                                value={formData.companyAddress.complement}
+                                onChange={(e) => handleChange('companyAddress.complement', e.target.value)}
+                                placeholder="Sala, andar, etc."
+                                maxLength={50}
+                              />
+                            </div>
+
+                            <div>
+                              <Input
+                                label="Bairro *"
+                                value={formData.companyAddress.neighborhood}
+                                onChange={(e) => handleChange('companyAddress.neighborhood', e.target.value)}
+                                placeholder="Nome do bairro"
+                                maxLength={50}
+                              />
+                              {formData.companyAddress.neighborhood && formData.companyAddress.neighborhood.trim().length < 2 && (
+                                <p className="text-red-500 text-xs mt-1">Nome do bairro deve ter pelo menos 2 caracteres</p>
+                              )}
+                            </div>
+
+                            <div>
+                              <Input
+                                label="Cidade *"
+                                value={formData.companyAddress.city}
+                                onChange={(e) => handleChange('companyAddress.city', e.target.value)}
+                                placeholder="Nome da cidade"
+                                maxLength={50}
+                              />
+                              {formData.companyAddress.city && formData.companyAddress.city.trim().length < 2 && (
+                                <p className="text-red-500 text-xs mt-1">Nome da cidade deve ter pelo menos 2 caracteres</p>
+                              )}
+                            </div>
+
+                            <div>
+                              <StateSelect
+                                label="Estado *"
+                                value={formData.companyAddress.state}
+                                onChange={(value) => handleChange('companyAddress.state', value)}
+                                placeholder="Selecione o estado"
+                                required
+                                error={formData.companyAddress.state && formData.companyAddress.state.trim().length !== 2 ? "Selecione um estado" : undefined}
+                              />
+                            </div>
+
+                            <div>
+                              <Input
+                                label="CEP *"
+                                value={formatCEP(formData.companyAddress.zipCode)}
+                                onChange={(e) => handleChange('companyAddress.zipCode', e.target.value)}
+                                placeholder="00000-000"
+                                maxLength={9}
+                              />
+                              {formData.companyAddress.zipCode && !CepService.validarFormatoCep(formData.companyAddress.zipCode) && (
+                                <p className="text-red-500 text-xs mt-1">CEP inválido</p>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
             {/* Step 6: Gov.br e Finalização */}
             {currentStep === 6 && (
               <div className="space-y-8">
@@ -2001,6 +1995,7 @@ export function LeadFormConsultoria() {
               </div>
             )}
 
+            {/* Step 7: Upload de Documentos */}
             {currentStep === 7 && (
               <div className="space-y-8">
                 <div className="text-center mb-6">
@@ -2025,7 +2020,7 @@ export function LeadFormConsultoria() {
                         <h5 className="text-base font-medium text-gray-800 mb-2">1. Documento de Identidade (RG ou CNH)</h5>
                         <p className="text-sm text-gray-600 mb-3">Pode anexar mais de 1 documento</p>
                         <DocumentUpload
-                          sessionId={sessionId || ''}
+                          sessionId=""
                           documentType="identity"
                           label="Documentos de Identidade"
                           description="RG, CNH ou outros documentos de identificação"
@@ -2046,7 +2041,7 @@ export function LeadFormConsultoria() {
                         <h5 className="text-base font-medium text-gray-800 mb-2">2. Comprovante de Estado Civil</h5>
                         <p className="text-sm text-gray-600 mb-3">Certidão de nascimento, óbito, casamento ou pacto antenupcial (se houver). Pode anexar mais de 1 documento</p>
                         <DocumentUpload
-                          sessionId={sessionId || ''}
+                          sessionId=""
                           documentType="marital_status"
                           label="Comprovante de Estado Civil"
                           description="Certidão de nascimento, óbito, casamento ou pacto antenupcial"
@@ -2067,7 +2062,7 @@ export function LeadFormConsultoria() {
                         <h5 className="text-base font-medium text-gray-800 mb-2">3. Comprovante de Residência</h5>
                         <p className="text-sm text-gray-600 mb-3">Atualizado (últimos 3 meses)</p>
                         <DocumentUpload
-                          sessionId={sessionId || ''}
+                          sessionId=""
                           documentType="address_proof"
                           label="Comprovante de Residência"
                           description="Conta de luz, água, telefone, etc. (últimos 3 meses)"
@@ -2098,7 +2093,7 @@ export function LeadFormConsultoria() {
                         <div>
                           <h5 className="text-base font-medium text-gray-800 mb-2">1. Contrato Social Completo</h5>
                           <DocumentUpload
-                            sessionId={sessionId || ''}
+                            sessionId=""
                             documentType="contract_social"
                             label="Contrato Social"
                             description="Contrato social completo da empresa"
@@ -2119,7 +2114,7 @@ export function LeadFormConsultoria() {
                           <h5 className="text-base font-medium text-gray-800 mb-2">2. Última Alteração Contratual</h5>
                           <p className="text-sm text-gray-600 mb-3">Se houver (não é obrigatório)</p>
                           <DocumentUpload
-                            sessionId={sessionId || ''}
+                            sessionId=""
                             documentType="contract_amendment"
                             label="Alteração Contratual"
                             description="Última alteração contratual (opcional)"
@@ -2131,7 +2126,6 @@ export function LeadFormConsultoria() {
                             }}
                             onUploadError={(error) => setError(error)}
                             maxFiles={1}
-                            optional={true}
                             userCpf={formData.cpf}
                           />
                         </div>
@@ -2140,7 +2134,7 @@ export function LeadFormConsultoria() {
                         <div>
                           <h5 className="text-base font-medium text-gray-800 mb-2">3. Cartão CNPJ Atualizado</h5>
                           <DocumentUpload
-                            sessionId={sessionId || ''}
+                            sessionId=""
                             documentType="cnpj"
                             label="Cartão CNPJ"
                             description="Cartão CNPJ atualizado da empresa"
@@ -2173,7 +2167,7 @@ export function LeadFormConsultoria() {
                           <h5 className="text-base font-medium text-gray-800 mb-2">1 e 2. Declaração de Imposto de Renda</h5>
                           <p className="text-sm text-gray-600 mb-3">Completa do último exercício + Recibo de entrega</p>
                           <DocumentUpload
-                            sessionId={sessionId || ''}
+                            sessionId=""
                             documentType="tax_return"
                             label="Declaração de IR"
                             description="Declaração completa + Recibo de entrega"
@@ -2193,7 +2187,7 @@ export function LeadFormConsultoria() {
                         <div>
                           <h5 className="text-base font-medium text-gray-800 mb-2">3. Extratos Bancários</h5>
                           <DocumentUpload
-                            sessionId={sessionId || ''}
+                            sessionId=""
                             documentType="bank_statements"
                             label="Extratos Bancários"
                             description="Extratos bancários dos últimos 3 meses"
@@ -2223,7 +2217,7 @@ export function LeadFormConsultoria() {
                       
                       <div className="space-y-6">
                         <DocumentUpload
-                          sessionId={sessionId || ''}
+                          sessionId=""
                           documentType="spouse_identity"
                           label="Documentos de Identidade do Cônjuge"
                           description="RG, CNH do cônjuge"
@@ -2239,7 +2233,7 @@ export function LeadFormConsultoria() {
                         />
 
                         <DocumentUpload
-                          sessionId={sessionId || ''}
+                          sessionId=""
                           documentType="spouse_marital_status"
                           label="Comprovante de Estado Civil do Cônjuge"
                           description="Certidões do cônjuge"
@@ -2254,7 +2248,7 @@ export function LeadFormConsultoria() {
                         />
 
                         <DocumentUpload
-                          sessionId={sessionId || ''}
+                          sessionId=""
                           documentType="spouse_address_proof"
                           label="Comprovante de Residência do Cônjuge"
                           description="Comprovante de residência do cônjuge"

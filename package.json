@@ -13,7 +13,9 @@
     "preview": "vite preview",
     "start": "node dist/server/index.js",
     "heroku-postbuild": "npm run build",
-    "create-admin": "tsx scripts/create-admin-user.ts"
+    "create-admin": "tsx scripts/create-admin-user.ts",
+    "push": "npm run build && git push -u origin main" 
+
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.57.4",

@@ -52,6 +52,12 @@ export class PreRegistrationService {
           monthlyIncome: formData.monthlyIncome,
           companyName: formData.personalCompanyName || formData.companyName
         },
+        propertyData: {
+          propertyValue: formData.propertyValue,
+          propertyType: formData.propertyType,
+          propertyCity: formData.propertyCity,
+          propertyState: formData.propertyState
+        },
         spouseData: formData.hasSpouse ? {
           name: formData.spouseName,
           cpf: formData.spouseCpf,

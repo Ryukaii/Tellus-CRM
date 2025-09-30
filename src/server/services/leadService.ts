@@ -137,7 +137,9 @@ class LeadService {
       notes: mongoLead.notes,
       status: mongoLead.status as any,
       rejectionReason: mongoLead.rejectionReason,
-      rejectedAt: mongoLead.rejectedAt?.toISOString(),
+      rejectedAt: mongoLead.rejectedAt instanceof Date 
+        ? mongoLead.rejectedAt.toISOString() 
+        : mongoLead.rejectedAt,
       source: mongoLead.source,
       createdAt: mongoLead.createdAt?.toISOString(),
       updatedAt: mongoLead.updatedAt?.toISOString()
