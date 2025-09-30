@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Activity, CheckCircle, AlertCircle, Eye, EyeOff, User, Home, Briefcase, DollarSign, Shield, FileText, ArrowRight, ArrowLeft, Upload } from 'lucide-react';
+import { Activity, CheckCircle, AlertCircle, User, Home, Briefcase, DollarSign, FileText, ArrowRight, ArrowLeft, Upload } from 'lucide-react';
 import { Button } from '../UI/Button';
 import { Input } from '../UI/Input';
 import { LoadingSpinner } from '../UI/LoadingSpinner';
@@ -38,9 +38,6 @@ interface FormData {
   monthlyIncome: number;
   personalCompanyName: string;
   
-  // Gov.br
-  govPassword: string;
-  hasTwoFactorDisabled: boolean;
   
   // Cônjuge - Dados Pessoais
   hasSpouse: boolean;
@@ -113,7 +110,6 @@ export function LeadFormConsultoria() {
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [showGovPassword, setShowGovPassword] = useState(false);
   const [showInstructions, setShowInstructions] = useState(true);
   const [acceptedTerms, setAcceptedTerms] = useState(false);
   const [activeTab, setActiveTab] = useState(0);
@@ -157,8 +153,6 @@ export function LeadFormConsultoria() {
     employmentType: 'clt',
     monthlyIncome: 0,
     personalCompanyName: '',
-    govPassword: '',
-    hasTwoFactorDisabled: false,
     hasSpouse: false,
     spouseName: '',
     spouseCpf: '',
@@ -202,12 +196,12 @@ export function LeadFormConsultoria() {
     notes: ''
   });
 
-  const totalSteps = 7; // 1-Dados Pessoais, 2-Endereço, 3-Profissional, 4-Cônjuge, 5-Empresa, 6-Gov.br, 7-Documentos
+  const totalSteps = 6; // 1-Dados Pessoais, 2-Endereço, 3-Profissional, 4-Cônjuge, 5-Empresa, 6-Documentos
 
   // Determinar qual é realmente a última etapa (documentos)
   const isLastStep = React.useMemo(() => {
-    // A última etapa é sempre documentos (etapa 7)
-    return currentStep === 7;
+    // A última etapa é sempre documentos (etapa 6)
+    return currentStep === 6;
   }, [currentStep]);
 
   // Corrigir etapa inválida
@@ -704,11 +698,7 @@ export function LeadFormConsultoria() {
         }
         return true; // Se não tem empresa, etapa é válida
       case 6:
-        // Etapa 6: Gov.br
-        return formData.govPassword.trim().length >= 6 && 
-               formData.hasTwoFactorDisabled;
-      case 7:
-        // Etapa 7: Documentos - sempre válida pois são opcionais
+        // Etapa 6: Documentos - sempre válida pois são opcionais
         return true;
       default:
         return true;
@@ -779,8 +769,6 @@ export function LeadFormConsultoria() {
         spouseEmploymentType: formData.spouseEmploymentType,
         spouseMonthlyIncome: formData.spouseMonthlyIncome,
         spouseCompanyName: formData.spouseCompanyName,
-        govPassword: formData.govPassword,
-        hasTwoFactorDisabled: formData.hasTwoFactorDisabled,
         // Documentos pessoais
         hasRG: documentFlags.hasRG,
         hasCPF: documentFlags.hasCPF,
@@ -867,7 +855,7 @@ export function LeadFormConsultoria() {
               <Activity className="w-10 h-10 text-white" />
             </div>
             <h2 className="text-2xl font-bold text-white mb-4">Bem-vindo ao Pré-Cadastro</h2>
-            <p className="text-blue-100 text-lg leading-relaxed mb-8">
+            <p className="text-tellus-gold-100 text-lg leading-relaxed mb-8">
               Processo rápido e seguro para consultoria financeira
             </p>
             
@@ -899,11 +887,11 @@ export function LeadFormConsultoria() {
               <FileText className="w-10 h-10 text-white" />
             </div>
             <h2 className="text-2xl font-bold text-white mb-4">Documentos Necessários</h2>
-            <p className="text-blue-100 text-lg leading-relaxed mb-8">
+            <p className="text-tellus-gold-100 text-lg leading-relaxed mb-8">
               Prepare os documentos listados abaixo para agilizar o processo
             </p>
             
-            <div className="space-y-6 text-left lg:grid lg:grid-cols-3 lg:gap-6 lg:space-y-0">
+            <div className="space-y-6 text-left lg:grid lg:grid-cols-2 lg:gap-6 lg:space-y-0">
               <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6">
                 <h3 className="text-lg font-semibold text-white mb-4 flex items-center">
                   <User className="w-5 h-5 mr-3" />
@@ -945,25 +933,6 @@ export function LeadFormConsultoria() {
                 </div>
               </div>
 
-              <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6">
-                <h3 className="text-lg font-semibold text-white mb-4 flex items-center">
-                  <Shield className="w-5 h-5 mr-3" />
-                  Acesso Gov.br
-                </h3>
-                <div className="space-y-3">
-                  {[
-                    'Cadastro no portal GOV.BR',
-                    'Login e senha GOV',
-                    'Desativar verificação 2FA',
-                    'Acesso ao e-mail/telefone'
-                  ].map((doc, index) => (
-                    <div key={index} className="flex items-center space-x-3 text-white/90">
-                      <CheckCircle className="w-4 h-4 text-green-300 flex-shrink-0" />
-                      <span className="text-sm">{doc}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
             </div>
           </div>
         )
@@ -978,7 +947,7 @@ export function LeadFormConsultoria() {
               <AlertCircle className="w-10 h-10 text-white" />
             </div>
             <h2 className="text-2xl font-bold text-white mb-4">Informações Importantes</h2>
-            <p className="text-blue-100 text-lg leading-relaxed mb-8">
+            <p className="text-tellus-gold-100 text-lg leading-relaxed mb-8">
               Leia atentamente antes de prosseguir
             </p>
             
@@ -1000,12 +969,12 @@ export function LeadFormConsultoria() {
 
               <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6">
                 <h3 className="text-lg font-semibold text-white mb-4 flex items-center">
-                  <Shield className="w-5 h-5 mr-3" />
+                  <AlertCircle className="w-5 h-5 mr-3" />
                   Processo em Duas Etapas
                 </h3>
                 <div className="space-y-2 text-white/90 text-sm">
                   <div>• 1ª Etapa: Documentação pessoal e renda</div>
-                  <div>• 2ª Etapa: Documentação do imóvel (após aprovação)</div>
+                  <div>• 2ª Etapa: Análise e aprovação</div>
                   <div>• Análise Rápida: 1-3 dias úteis</div>
                   <div>• Progresso salvo automaticamente</div>
                   <div>• Atualizações por email</div>
@@ -1025,7 +994,6 @@ export function LeadFormConsultoria() {
               <div className="space-y-2 text-white/90 text-sm">
                 <div>• Documentos pessoais e comprovação de renda</div>
                 <div>• Documentos empresariais (se aplicável)</div>
-                <div>• Acesso ao portal GOV.BR</div>
                 <div>• Documentação do cônjuge (se casado)</div>
               </div>
             </div>
@@ -1035,7 +1003,7 @@ export function LeadFormConsultoria() {
     ];
 
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-600 via-blue-700 to-blue-800">
+      <div className="min-h-screen bg-gradient-to-br from-tellus-charcoal-900 via-tellus-charcoal-800 to-tellus-charcoal-700">
         {/* Header Mobile */}
         <div className="bg-white/10 backdrop-blur-sm">
           <div className="max-w-md mx-auto px-4 py-4">
@@ -1046,7 +1014,7 @@ export function LeadFormConsultoria() {
                 </div>
                 <div>
                   <h1 className="text-lg font-bold text-white">Tellure CRM</h1>
-                  <p className="text-xs text-blue-100">Consultoria Financeira</p>
+                  <p className="text-xs text-tellus-gold-100">Consultoria Financeira</p>
                 </div>
               </div>
             </div>
@@ -1059,7 +1027,7 @@ export function LeadFormConsultoria() {
             {/* Progress Indicator */}
             <div className="px-6 py-4 border-b border-white/20">
               <div className="flex items-center justify-between mb-2">
-                <span className="text-sm text-blue-100">Passo {activeTab + 1} de {steps.length}</span>
+                <span className="text-sm text-tellus-gold-100">Passo {activeTab + 1} de {steps.length}</span>
                 <span className="text-sm text-white font-semibold">{steps[activeTab].title}</span>
               </div>
               <div className="w-full bg-white/20 rounded-full h-2">
@@ -1129,7 +1097,7 @@ export function LeadFormConsultoria() {
                       id="acceptTerms"
                       checked={acceptedTerms}
                       onChange={(e) => setAcceptedTerms(e.target.checked)}
-                      className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-white/30 rounded mt-1"
+                      className="h-4 w-4 text-blue-600 focus:ring-tellus-primary border-white/30 rounded mt-1"
                     />
                     <label htmlFor="acceptTerms" className="text-xs text-white/90 leading-relaxed">
                       <span className="font-semibold text-white">Concordo com os termos de uso</span> e confirmo que tenho todos os documentos necessários para prosseguir com o pré-cadastro.
@@ -1164,7 +1132,7 @@ export function LeadFormConsultoria() {
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
             <div className="flex items-center space-x-3">
-              <div className="w-10 h-10 bg-gradient-to-r from-tellus-primary to-blue-600 rounded-xl flex items-center justify-center shadow-lg">
+              <div className="w-10 h-10 bg-gradient-to-r from-tellus-primary to-tellus-charcoal-900 rounded-xl flex items-center justify-center shadow-lg">
                 <Activity className="w-6 h-6 text-white" />
               </div>
               <div>
@@ -1187,7 +1155,7 @@ export function LeadFormConsultoria() {
                 <p className="text-sm text-gray-600">Etapa {currentStep} de {totalSteps}</p>
                   </div>
               <div className="flex items-center space-x-2 ml-3">
-                <div className="w-10 h-10 bg-gradient-to-r from-tellus-primary to-blue-600 rounded-full flex items-center justify-center text-white font-bold text-sm">
+                <div className="w-10 h-10 bg-gradient-to-r from-tellus-primary to-tellus-charcoal-900 rounded-full flex items-center justify-center text-white font-bold text-sm">
                   {Math.round((currentStep / totalSteps) * 100)}%
                 </div>
               </div>
@@ -1196,7 +1164,7 @@ export function LeadFormConsultoria() {
             {/* Progress Bar */}
             <div className="w-full bg-gray-200 rounded-full h-2 mb-3">
               <div 
-                className="bg-gradient-to-r from-tellus-primary to-blue-600 h-2 rounded-full transition-all duration-500 ease-out"
+                className="bg-gradient-to-r from-tellus-primary to-tellus-charcoal-900 h-2 rounded-full transition-all duration-500 ease-out"
                 style={{ width: `${(currentStep / totalSteps) * 100}%` }}
               />
             </div>
@@ -1212,7 +1180,7 @@ export function LeadFormConsultoria() {
             {currentStep === 1 && (
               <div className="space-y-8 animate-fadeIn">
                 <div className="text-center mb-6">
-                  <div className="w-12 h-12 bg-gradient-to-r from-tellus-primary to-blue-600 rounded-xl flex items-center justify-center mx-auto mb-3">
+                  <div className="w-12 h-12 bg-gradient-to-r from-tellus-primary to-tellus-charcoal-900 rounded-xl flex items-center justify-center mx-auto mb-3">
                     <User className="w-6 h-6 text-white" />
                   </div>
                   <h3 className="text-xl font-bold text-gray-900 mb-2">Dados Pessoais</h3>
@@ -1252,10 +1220,10 @@ export function LeadFormConsultoria() {
 
                   {/* Campos bloqueados até CPF válido */}
                   {!cpfValid && (
-                    <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
+                    <div className="bg-tellus-gold-50 border border-tellus-gold-200 rounded-lg p-4 mb-4">
                       <div className="flex items-center space-x-2">
                         <AlertCircle className="w-5 h-5 text-blue-600" />
-                        <p className="text-sm text-blue-800">
+                        <p className="text-sm text-tellus-charcoal-800">
                           Digite um CPF válido para desbloquear os demais campos
                         </p>
                       </div>
@@ -1359,7 +1327,7 @@ export function LeadFormConsultoria() {
             {currentStep === 2 && (
               <div className="space-y-8">
                 <div className="text-center mb-6">
-                  <div className="w-12 h-12 bg-gradient-to-r from-tellus-primary to-blue-600 rounded-xl flex items-center justify-center mx-auto mb-3">
+                  <div className="w-12 h-12 bg-gradient-to-r from-tellus-primary to-tellus-charcoal-900 rounded-xl flex items-center justify-center mx-auto mb-3">
                     <Home className="w-6 h-6 text-white" />
                   </div>
                   <h3 className="text-xl font-bold text-gray-900 mb-2">Endereço Residencial</h3>
@@ -1399,10 +1367,10 @@ export function LeadFormConsultoria() {
 
                   {/* Campos bloqueados até CEP válido */}
                   {!cepValid && (
-                    <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
+                    <div className="bg-tellus-gold-50 border border-tellus-gold-200 rounded-lg p-4 mb-4">
                       <div className="flex items-center space-x-2">
                         <AlertCircle className="w-5 h-5 text-blue-600" />
-                        <p className="text-sm text-blue-800">
+                        <p className="text-sm text-tellus-charcoal-800">
                           Digite um CEP válido para desbloquear os demais campos
                         </p>
                       </div>
@@ -1497,7 +1465,7 @@ export function LeadFormConsultoria() {
             {currentStep === 3 && (
               <div className="space-y-8">
                 <div className="text-center mb-6">
-                  <div className="w-12 h-12 bg-gradient-to-r from-tellus-primary to-blue-600 rounded-xl flex items-center justify-center mx-auto mb-3">
+                  <div className="w-12 h-12 bg-gradient-to-r from-tellus-primary to-tellus-charcoal-900 rounded-xl flex items-center justify-center mx-auto mb-3">
                     <Briefcase className="w-6 h-6 text-white" />
                   </div>
                   <h3 className="text-xl font-bold text-gray-900 mb-2">Dados Profissionais</h3>
@@ -1570,7 +1538,7 @@ export function LeadFormConsultoria() {
             {currentStep === 4 && (
               <div className="space-y-8">
                 <div className="text-center mb-6">
-                  <div className="w-12 h-12 bg-gradient-to-r from-tellus-primary to-blue-600 rounded-xl flex items-center justify-center mx-auto mb-3">
+                  <div className="w-12 h-12 bg-gradient-to-r from-tellus-primary to-tellus-charcoal-900 rounded-xl flex items-center justify-center mx-auto mb-3">
                     <User className="w-6 h-6 text-white" />
                   </div>
                   <h3 className="text-xl font-bold text-gray-900 mb-2">Dados do Cônjuge</h3>
@@ -1593,8 +1561,8 @@ export function LeadFormConsultoria() {
 
                   {formData.hasSpouse && (
                     <div className="space-y-6 animate-fadeIn">
-                      <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                        <p className="text-sm text-blue-800">
+                      <div className="bg-tellus-gold-50 border border-tellus-gold-200 rounded-lg p-4">
+                        <p className="text-sm text-tellus-charcoal-800">
                           <strong>Importante:</strong> Para casados, ambos devem apresentar todos os documentos pessoais e de renda.
                         </p>
                       </div>
@@ -1742,7 +1710,7 @@ export function LeadFormConsultoria() {
             {currentStep === 5 && (
               <div className="space-y-8">
                 <div className="text-center mb-6">
-                  <div className="w-12 h-12 bg-gradient-to-r from-tellus-primary to-blue-600 rounded-xl flex items-center justify-center mx-auto mb-3">
+                  <div className="w-12 h-12 bg-gradient-to-r from-tellus-primary to-tellus-charcoal-900 rounded-xl flex items-center justify-center mx-auto mb-3">
                     <Briefcase className="w-6 h-6 text-white" />
                   </div>
                   <h3 className="text-xl font-bold text-gray-900 mb-2">Dados da Empresa</h3>
@@ -1920,86 +1888,11 @@ export function LeadFormConsultoria() {
               </div>
             )}
 
-            {/* Step 6: Gov.br e Finalização */}
+            {/* Step 6: Upload de Documentos */}
             {currentStep === 6 && (
               <div className="space-y-8">
                 <div className="text-center mb-6">
-                  <div className="w-12 h-12 bg-gradient-to-r from-tellus-primary to-blue-600 rounded-xl flex items-center justify-center mx-auto mb-3">
-                    <Shield className="w-6 h-6 text-white" />
-                  </div>
-                  <h3 className="text-xl font-bold text-gray-900 mb-2">Acesso ao Gov.br</h3>
-                  <p className="text-sm text-gray-600">Configure o acesso ao portal governamental</p>
-                </div>
-
-                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
-                  <p className="text-sm text-blue-800">
-                    <strong>Importante:</strong> É necessário ter um cadastro ativo no portal GOV.BR para análise do crédito. 
-                    Temporariamente, a verificação de duas etapas precisa ser desativada.
-                  </p>
-                </div>
-
-                <div className="space-y-4">
-                  <div className="space-y-1">
-                    <label className="text-sm font-medium text-gray-700">Senha do Gov.br *</label>
-                    <div className="relative">
-                      <input
-                        type={showGovPassword ? 'text' : 'password'}
-                        value={formData.govPassword}
-                        onChange={(e) => handleChange('govPassword', e.target.value)}
-                        className="input pr-12"
-                        placeholder="Digite sua senha do gov.br"
-                        minLength={6}
-                        maxLength={50}
-                      />
-                      <button
-                        type="button"
-                        onClick={() => setShowGovPassword(!showGovPassword)}
-                        className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
-                      >
-                        {showGovPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                      </button>
-                    </div>
-                    {formData.govPassword && formData.govPassword.trim().length < 6 && (
-                      <p className="text-red-500 text-xs mt-1">Senha deve ter pelo menos 6 caracteres</p>
-                    )}
-                  </div>
-
-                  <div className="flex items-center space-x-2">
-                    <input
-                      type="checkbox"
-                      id="twoFactorDisabled"
-                      checked={formData.hasTwoFactorDisabled}
-                      onChange={(e) => handleChange('hasTwoFactorDisabled', e.target.checked)}
-                      className="h-4 w-4 text-tellus-primary focus:ring-tellus-primary border-gray-300 rounded"
-                    />
-                    <label htmlFor="twoFactorDisabled" className="text-sm text-gray-700">
-                      Confirmo que desativei temporariamente a verificação em duas etapas
-                    </label>
-                  </div>
-                  {!formData.hasTwoFactorDisabled && formData.govPassword && (
-                    <p className="text-red-500 text-xs">É necessário desativar a verificação em duas etapas</p>
-                  )}
-
-                  <div className="space-y-1">
-                    <label className="text-sm font-medium text-gray-700">Observações Adicionais</label>
-                    <textarea
-                      value={formData.notes}
-                      onChange={(e) => handleChange('notes', e.target.value)}
-                      rows={4}
-                      className="input min-h-[100px] resize-y"
-                      placeholder="Informações adicionais que considere importantes..."
-                      maxLength={1000}
-                    />
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {/* Step 7: Upload de Documentos */}
-            {currentStep === 7 && (
-              <div className="space-y-8">
-                <div className="text-center mb-6">
-                  <div className="w-12 h-12 bg-gradient-to-r from-tellus-primary to-blue-600 rounded-xl flex items-center justify-center mx-auto mb-3">
+                  <div className="w-12 h-12 bg-gradient-to-r from-tellus-primary to-tellus-charcoal-900 rounded-xl flex items-center justify-center mx-auto mb-3">
                     <Upload className="w-6 h-6 text-white" />
                   </div>
                   <h3 className="text-xl font-bold text-gray-900 mb-2">Upload de Documentos</h3>
@@ -2267,12 +2160,12 @@ export function LeadFormConsultoria() {
                   )}
 
                   {/* Resumo dos Documentos Enviados */}
-                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-6">
-                    <h4 className="font-semibold text-blue-900 mb-3 flex items-center">
+                  <div className="bg-tellus-gold-50 border border-tellus-gold-200 rounded-lg p-6">
+                    <h4 className="font-semibold text-tellus-charcoal-900 mb-3 flex items-center">
                       <FileText className="w-5 h-5 mr-2" />
                       Documentos Enviados
                     </h4>
-                    <p className="text-sm text-blue-800 mb-3">
+                    <p className="text-sm text-tellus-charcoal-800 mb-3">
                       Total: {formData.documents.length} documento(s) enviado(s)
                     </p>
                     {formData.documents.length > 0 && (
@@ -2281,9 +2174,9 @@ export function LeadFormConsultoria() {
                           <div key={index} className="flex items-center justify-between bg-white rounded-lg p-3">
                             <div className="flex items-center space-x-2">
                               <FileText className="w-4 h-4 text-blue-600" />
-                              <span className="text-sm text-blue-800">{doc.fileName}</span>
+                              <span className="text-sm text-tellus-charcoal-800">{doc.fileName}</span>
                             </div>
-                            <span className="text-xs text-blue-600 bg-blue-100 px-2 py-1 rounded">
+                            <span className="text-xs text-blue-600 bg-tellus-gold-100 px-2 py-1 rounded">
                               {doc.documentType}
                             </span>
                           </div>
@@ -2323,7 +2216,7 @@ export function LeadFormConsultoria() {
                 <div className="text-center">
                   <Button 
                     onClick={() => setCurrentStep(totalSteps)}
-                    className="px-6 py-3 font-medium text-sm bg-gradient-to-r from-tellus-primary to-blue-600 hover:from-tellus-primary/90 hover:to-blue-600/90 shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-105"
+                    className="px-6 py-3 font-medium text-sm bg-gradient-to-r from-tellus-primary to-tellus-charcoal-900 hover:from-tellus-primary/90 hover:to-blue-600/90 shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-105"
                   >
                     Ir para Etapa {totalSteps}
                   </Button>
@@ -2356,7 +2249,7 @@ export function LeadFormConsultoria() {
                 <Button 
                   onClick={nextStep} 
                   disabled={!validateCurrentStep() || loading}
-                  className="px-6 py-3 font-medium text-sm bg-gradient-to-r from-tellus-primary to-blue-600 hover:from-tellus-primary/90 hover:to-blue-600/90 shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-105"
+                  className="px-6 py-3 font-medium text-sm bg-gradient-to-r from-tellus-primary to-tellus-charcoal-900 hover:from-tellus-primary/90 hover:to-blue-600/90 shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-105"
                 >
                   Próximo
                   <ArrowRight className="w-4 h-4 ml-2" />

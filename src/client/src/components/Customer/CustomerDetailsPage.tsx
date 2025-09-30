@@ -426,7 +426,7 @@ export const CustomerDetailsPage: React.FC = () => {
                 onClick={() => setActiveTab('dados')}
                 className={`py-2 px-1 border-b-2 font-medium text-sm ${
                   activeTab === 'dados'
-                    ? 'border-blue-500 text-blue-600 dark:text-blue-400 dark:border-blue-400'
+                    ? 'border-tellus-primary text-tellus-primary dark:text-tellus-primary dark:border-tellus-primary'
                     : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-dark-textSecondary dark:hover:text-dark-text'
                 }`}
               >
@@ -439,7 +439,7 @@ export const CustomerDetailsPage: React.FC = () => {
                 onClick={() => setActiveTab('negocio')}
                 className={`py-2 px-1 border-b-2 font-medium text-sm ${
                   activeTab === 'negocio'
-                    ? 'border-blue-500 text-blue-600 dark:text-blue-400 dark:border-blue-400'
+                    ? 'border-tellus-primary text-tellus-primary dark:text-tellus-primary dark:border-tellus-primary'
                     : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-dark-textSecondary dark:hover:text-dark-text'
                 }`}
               >
@@ -469,7 +469,7 @@ export const CustomerDetailsPage: React.FC = () => {
             <div className="bg-white rounded-lg shadow-sm border dark:bg-dark-card dark:border-dark-border">
               <div className="px-4 sm:px-6 py-3 sm:py-4 border-b dark:border-dark-border">
                 <h2 className="text-base sm:text-lg font-semibold text-gray-900 flex items-center dark:text-dark-text">
-                  <User className="w-4 h-4 sm:w-5 sm:h-5 mr-2 text-blue-500 dark:text-dark-accent" />
+                  <User className="w-4 h-4 sm:w-5 sm:h-5 mr-2 text-tellus-primary dark:text-dark-accent" />
                   Dados Pessoais
                 </h2>
               </div>
@@ -498,7 +498,7 @@ export const CustomerDetailsPage: React.FC = () => {
                       <Mail className="w-4 h-4 text-gray-400 dark:text-dark-textMuted" />
                       <a 
                         href={`mailto:${customer.email}`}
-                        className="text-blue-600 hover:text-blue-700 dark:text-dark-accent dark:hover:text-dark-accentLight"
+                        className="text-tellus-primary hover:text-tellus-charcoal-800 dark:text-dark-accent dark:hover:text-dark-accentLight"
                       >
                         {customer.email}
                       </a>
@@ -511,7 +511,7 @@ export const CustomerDetailsPage: React.FC = () => {
                       <Phone className="w-4 h-4 text-gray-400 dark:text-dark-textMuted" />
                       <a 
                         href={`tel:${customer.phone}`}
-                        className="text-blue-600 hover:text-blue-700 dark:text-dark-accent dark:hover:text-dark-accentLight"
+                        className="text-tellus-primary hover:text-tellus-charcoal-800 dark:text-dark-accent dark:hover:text-dark-accentLight"
                       >
                         {customer.phone}
                       </a>

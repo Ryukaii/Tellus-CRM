@@ -123,7 +123,7 @@ export const DocumentUpload: React.FC<DocumentUploadProps> = ({
 
   const getFileIcon = (fileType: string) => {
     if (fileType.includes('pdf')) return <FileText className="w-4 h-4 text-red-500" />
-    if (fileType.includes('image')) return <FileText className="w-4 h-4 text-blue-500" />
+    if (fileType.includes('image')) return <FileText className="w-4 h-4 text-tellus-primary" />
     return <FileText className="w-4 h-4 text-gray-500" />
   }
 
@@ -142,7 +142,7 @@ export const DocumentUpload: React.FC<DocumentUploadProps> = ({
       <div
         className={`border-2 border-dashed rounded-lg p-6 text-center transition-colors ${
           isDragging
-            ? 'border-blue-400 bg-blue-50'
+            ? 'border-tellus-primary bg-tellus-gold-50'
             : 'border-gray-300 hover:border-gray-400'
         } ${uploading ? 'pointer-events-none opacity-50' : 'cursor-pointer'}`}
         onDragOver={handleDragOver}
@@ -178,7 +178,7 @@ export const DocumentUpload: React.FC<DocumentUploadProps> = ({
             <div key={index} className="bg-gray-50 rounded-lg p-3">
               <div className="flex items-center justify-between mb-2">
                 <div className="flex items-center space-x-2">
-                  {progress.status === 'uploading' && <Loader2 className="w-4 h-4 animate-spin text-blue-500" />}
+                  {progress.status === 'uploading' && <Loader2 className="w-4 h-4 animate-spin text-tellus-primary" />}
                   {progress.status === 'success' && <CheckCircle className="w-4 h-4 text-green-500" />}
                   {progress.status === 'error' && <AlertCircle className="w-4 h-4 text-red-500" />}
                   <span className="text-sm font-medium text-gray-700">{progress.fileName}</span>
@@ -189,7 +189,7 @@ export const DocumentUpload: React.FC<DocumentUploadProps> = ({
               {progress.status === 'uploading' && (
                 <div className="w-full bg-gray-200 rounded-full h-2">
                   <div
-                    className="bg-blue-500 h-2 rounded-full transition-all duration-300"
+                    className="bg-tellus-primary h-2 rounded-full transition-all duration-300"
                     style={{ width: `${progress.progress}%` }}
                   />
                 </div>

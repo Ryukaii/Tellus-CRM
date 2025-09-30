@@ -236,7 +236,7 @@ export const CustomerUploadLinkModal: React.FC<CustomerUploadLinkModalProps> = (
             <button
               onClick={handleCreateLink}
               disabled={loading}
-              className="w-full bg-blue-600 text-white py-3 px-4 rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium"
+              className="w-full bg-tellus-charcoal-900 text-white py-3 px-4 rounded-md hover:bg-tellus-charcoal-800 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium"
             >
               {loading ? 'Criando...' : 'Criar Link de Upload'}
             </button>

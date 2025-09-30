@@ -137,7 +137,7 @@ export const SharedCustomerView: React.FC = () => {
           <p className="text-gray-600 mb-4">{error}</p>
           <button
             onClick={() => window.location.reload()}
-            className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+            className="px-4 py-2 bg-tellus-charcoal-900 text-white rounded-md hover:bg-tellus-charcoal-800"
           >
             Tentar novamente
           </button>
@@ -167,8 +167,8 @@ export const SharedCustomerView: React.FC = () => {
             
             <div className="text-right">
               <div className="flex items-center space-x-2 text-sm">
-                <Clock className="w-4 h-4 text-blue-500" />
-                <span className="text-blue-600 font-medium">
+                <Clock className="w-4 h-4 text-tellus-primary" />
+                <span className="text-tellus-primary font-medium">
                   {timeRemaining}
                 </span>
               </div>
@@ -187,7 +187,7 @@ export const SharedCustomerView: React.FC = () => {
           {shareData.permissions.viewPersonalData && (
             <div className="bg-white rounded-lg shadow-sm border p-6">
               <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
-                <User className="w-5 h-5 mr-2 text-blue-500" />
+                <User className="w-5 h-5 mr-2 text-tellus-primary" />
                 Dados Pessoais
               </h2>
               

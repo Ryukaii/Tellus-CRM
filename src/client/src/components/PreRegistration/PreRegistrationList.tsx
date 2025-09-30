@@ -199,7 +199,7 @@ export function PreRegistrationList({
 
   const getLeadTypeColor = (source: string) => {
     const colorMap: Record<string, string> = {
-      'lead_credito': 'bg-blue-100 text-blue-800',
+      'lead_credito': 'bg-tellus-gold-100 text-tellus-charcoal-800',
       'lead_consultoria': 'bg-purple-100 text-purple-800',
       'lead_agro': 'bg-green-100 text-green-800',
       'lead_geral': 'bg-gray-100 text-gray-800',
@@ -229,7 +229,7 @@ export function PreRegistrationList({
     }
     
     return (
-      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-tellus-gold-100 text-tellus-charcoal-800">
         <Clock className="w-3 h-3 mr-1" />
         Novo
       </span>

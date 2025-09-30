@@ -137,8 +137,8 @@ export const CustomerListView: React.FC<CustomerListViewProps> = ({
           {/* Header com contador */}
           <div className="flex items-center justify-between mb-6">
             <div className="flex items-center space-x-3">
-              <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center dark:bg-dark-surfaceLight">
-                <Search className="w-4 h-4 text-blue-600 dark:text-dark-accent" />
+              <div className="w-8 h-8 bg-tellus-gold-100 rounded-lg flex items-center justify-center dark:bg-dark-surfaceLight">
+                <Search className="w-4 h-4 text-tellus-primary dark:text-dark-accent" />
               </div>
               <div>
                 <h3 className="text-lg font-semibold text-gray-900 dark:text-dark-text">Filtros e Busca</h3>
@@ -172,7 +172,7 @@ export const CustomerListView: React.FC<CustomerListViewProps> = ({
                 placeholder="Buscar por nome, email, CPF ou telefone..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-12 h-12 text-base border-gray-300 focus:border-blue-500 focus:ring-blue-500"
+                className="pl-12 h-12 text-base border-gray-300 focus:border-tellus-primary focus:ring-tellus-primary"
               />
             </div>
 
@@ -236,15 +236,15 @@ export const CustomerListView: React.FC<CustomerListViewProps> = ({
             <div
               key={customer.id}
               onClick={() => handleCustomerClick(customer.id)}
-              className="bg-white rounded-lg border hover:border-blue-300 hover:shadow-md transition-all duration-200 cursor-pointer dark:bg-dark-card dark:border-dark-border dark:hover:bg-dark-cardHover dark:hover:border-dark-accent"
+              className="bg-white rounded-lg border hover:border-tellus-primary hover:shadow-md transition-all duration-200 cursor-pointer dark:bg-dark-card dark:border-dark-border dark:hover:bg-dark-cardHover dark:hover:border-dark-accent"
             >
               <div className="p-4 sm:p-6">
                 {/* Mobile Layout */}
                 <div className="block sm:hidden">
                   <div className="flex items-start space-x-3 mb-3">
                     {/* Avatar */}
-                    <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0 dark:bg-dark-surfaceLight">
-                      <User className="w-5 h-5 text-blue-600 dark:text-dark-accent" />
+                    <div className="w-10 h-10 bg-tellus-gold-100 rounded-full flex items-center justify-center flex-shrink-0 dark:bg-dark-surfaceLight">
+                      <User className="w-5 h-5 text-tellus-primary dark:text-dark-accent" />
                     </div>
 
                     {/* Nome e Status */}
@@ -313,8 +313,8 @@ export const CustomerListView: React.FC<CustomerListViewProps> = ({
                   <div className="flex items-center justify-between">
                     <div className="flex items-center space-x-4 flex-1">
                       {/* Avatar */}
-                      <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center dark:bg-dark-surfaceLight">
-                        <User className="w-6 h-6 text-blue-600 dark:text-dark-accent" />
+                      <div className="w-12 h-12 bg-tellus-gold-100 rounded-full flex items-center justify-center dark:bg-dark-surfaceLight">
+                        <User className="w-6 h-6 text-tellus-primary dark:text-dark-accent" />
                       </div>
 
                       {/* Informações Principais */}
@@ -428,8 +428,8 @@ export const CustomerListView: React.FC<CustomerListViewProps> = ({
         <div className="bg-white rounded-lg border p-4 sm:p-6 dark:bg-dark-card dark:border-dark-border">
           <h3 className="text-base sm:text-lg font-medium text-gray-900 mb-4 dark:text-dark-text">Estatísticas</h3>
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
-            <div className="text-center p-3 bg-blue-50 rounded-lg dark:bg-dark-surfaceLight">
-              <div className="text-xl sm:text-2xl font-bold text-blue-600 dark:text-dark-accent">
+            <div className="text-center p-3 bg-tellus-gold-50 rounded-lg dark:bg-dark-surfaceLight">
+              <div className="text-xl sm:text-2xl font-bold text-tellus-primary dark:text-dark-accent">
                 {filteredCustomers.length}
               </div>
               <div className="text-xs sm:text-sm text-gray-600 dark:text-dark-textSecondary">Total</div>

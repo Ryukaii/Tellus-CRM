@@ -323,7 +323,7 @@ export const BusinessDetails: React.FC<BusinessDetailsProps> = ({
       <div className="bg-white rounded-lg shadow-sm border dark:bg-dark-card dark:border-dark-border">
         <div className="px-4 sm:px-6 py-3 sm:py-4 border-b dark:border-dark-border">
           <h3 className="text-base sm:text-lg font-semibold text-gray-900 flex items-center dark:text-dark-text">
-            <MessageSquare className="w-4 h-4 sm:w-5 sm:h-5 mr-2 text-blue-500 dark:text-blue-400" />
+            <MessageSquare className="w-4 h-4 sm:w-5 sm:h-5 mr-2 text-tellus-primary dark:text-tellus-primary" />
             Comentários ({comentarios?.length || 0})
           </h3>
         </div>
@@ -335,7 +335,7 @@ export const BusinessDetails: React.FC<BusinessDetailsProps> = ({
                 value={newComment}
                 onChange={(e) => setNewComment(e.target.value)}
                 placeholder="Adicione um comentário sobre este negócio..."
-                className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 dark:bg-dark-input dark:border-dark-border dark:text-dark-text dark:focus:ring-dark-accent dark:focus:border-dark-accent"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-tellus-primary focus:border-tellus-primary dark:bg-dark-input dark:border-dark-border dark:text-dark-text dark:focus:ring-dark-accent dark:focus:border-dark-accent"
                 rows={3}
                 disabled={saving}
               />
@@ -377,7 +377,7 @@ export const BusinessDetails: React.FC<BusinessDetailsProps> = ({
                       <textarea
                         value={tempComment}
                         onChange={(e) => setTempComment(e.target.value)}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 dark:bg-dark-input dark:border-dark-border dark:text-dark-text dark:focus:ring-dark-accent dark:focus:border-dark-accent"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-tellus-primary focus:border-tellus-primary dark:bg-dark-input dark:border-dark-border dark:text-dark-text dark:focus:ring-dark-accent dark:focus:border-dark-accent"
                         rows={3}
                         disabled={saving}
                       />

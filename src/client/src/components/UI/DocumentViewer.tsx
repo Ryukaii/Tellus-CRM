@@ -117,8 +117,8 @@ export const DocumentViewer: React.FC<DocumentViewerProps> = ({
             <p className="text-xs text-gray-500">{fileType}</p>
             {timeRemaining && (
               <div className="flex items-center space-x-1 mt-1">
-                <Clock className="w-3 h-3 text-blue-500" />
-                <span className="text-xs text-blue-600">{timeRemaining}</span>
+                <Clock className="w-3 h-3 text-tellus-primary" />
+                <span className="text-xs text-tellus-primary">{timeRemaining}</span>
               </div>
             )}
           </div>
@@ -132,12 +132,12 @@ export const DocumentViewer: React.FC<DocumentViewerProps> = ({
             </div>
           )}
 
-          {loading && <Loader2 className="w-4 h-4 animate-spin text-blue-500" />}
+          {loading && <Loader2 className="w-4 h-4 animate-spin text-tellus-primary" />}
 
           <button
             onClick={handleView}
             disabled={loading}
-            className="flex items-center space-x-1 px-3 py-1.5 text-sm text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded-md transition-colors"
+            className="flex items-center space-x-1 px-3 py-1.5 text-sm text-tellus-primary hover:text-tellus-charcoal-800 hover:bg-tellus-gold-50 rounded-md transition-colors"
           >
             <Eye className="w-4 h-4" />
             <span>Ver</span>

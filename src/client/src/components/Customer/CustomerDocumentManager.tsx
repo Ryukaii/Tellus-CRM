@@ -206,7 +206,7 @@ export const CustomerDocumentManager: React.FC<CustomerDocumentManagerProps> = (
 
   const getFileIcon = (fileType: string) => {
     if (fileType.includes('pdf')) return <FileText className="w-4 h-4 text-red-500" />;
-    if (fileType.includes('image')) return <FileText className="w-4 h-4 text-blue-500" />;
+    if (fileType.includes('image')) return <FileText className="w-4 h-4 text-tellus-primary" />;
     return <FileText className="w-4 h-4 text-gray-500" />;
   };
 
@@ -338,7 +338,7 @@ export const CustomerDocumentManager: React.FC<CustomerDocumentManagerProps> = (
 
                 {/* Botões de ação */}
                 <div className="flex items-center justify-end space-x-2 pt-2 border-t border-gray-100 dark:border-dark-border">
-                  {uploading && <Loader2 className="w-4 h-4 animate-spin text-blue-500 mr-2 dark:text-blue-400" />}
+                  {uploading && <Loader2 className="w-4 h-4 animate-spin text-tellus-primary mr-2 dark:text-blue-400" />}
                   
                   <button
                     onClick={async () => {
@@ -352,7 +352,7 @@ export const CustomerDocumentManager: React.FC<CustomerDocumentManagerProps> = (
                         console.error('Erro ao abrir documento:', err);
                       }
                     }}
-                    className="inline-flex items-center space-x-1 px-2.5 py-1.5 text-xs font-medium text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded-md transition-colors dark:text-blue-400 dark:hover:text-blue-300 dark:hover:bg-blue-900/20"
+                    className="inline-flex items-center space-x-1 px-2.5 py-1.5 text-xs font-medium text-tellus-primary hover:text-tellus-charcoal-800 hover:bg-tellus-gold-50 rounded-md transition-colors dark:text-tellus-primary dark:hover:text-tellus-primary dark:hover:bg-tellus-charcoal-900/20"
                     title="Visualizar documento"
                   >
                     <Eye className="w-3.5 h-3.5" />

@@ -38,11 +38,11 @@ export function ExistingCustomerModal({
   return (
     <Modal isOpen={isOpen} onClose={onClose} title="Cliente já cadastrado">
       <div className="space-y-4">
-        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-          <h3 className="font-semibold text-blue-900 mb-2">
+        <div className="bg-tellus-gold-50 border border-tellus-gold-200 rounded-lg p-4">
+          <h3 className="font-semibold text-tellus-charcoal-900 mb-2">
             CPF já cadastrado no sistema
           </h3>
-          <p className="text-blue-800 text-sm">
+          <p className="text-tellus-charcoal-800 text-sm">
             Encontramos um cadastro existente para este CPF. Você pode adicionar um novo processo ou continuar com o cadastro atual.
           </p>
         </div>
@@ -99,7 +99,7 @@ export function ExistingCustomerModal({
         <div className="flex flex-col sm:flex-row gap-3 pt-4">
           <Button
             onClick={onAddProcess}
-            className="flex-1 bg-blue-600 hover:bg-blue-700 text-white"
+            className="flex-1 bg-tellus-charcoal-900 hover:bg-tellus-charcoal-800 text-white"
           >
             Adicionar {getCurrentProcessDisplayName()}
           </Button>

@@ -148,7 +148,7 @@ export const CustomerUploadPage: React.FC = () => {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
-          <Loader2 className="w-8 h-8 animate-spin text-blue-600 mx-auto mb-4" />
+          <Loader2 className="w-8 h-8 animate-spin text-tellus-primary mx-auto mb-4" />
           <p className="text-gray-600">Carregando...</p>
         </div>
       </div>
@@ -166,7 +166,7 @@ export const CustomerUploadPage: React.FC = () => {
           </p>
           <button
             onClick={() => window.location.reload()}
-            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+            className="px-4 py-2 bg-tellus-charcoal-900 text-white rounded-lg hover:bg-tellus-charcoal-800 transition-colors"
           >
             Tentar Novamente
           </button>
@@ -202,26 +202,26 @@ export const CustomerUploadPage: React.FC = () => {
           </div>
 
           {/* Informações do Link */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-4 bg-blue-50 rounded-lg">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-4 bg-tellus-gold-50 rounded-lg">
             <div className="flex items-center space-x-2">
-              <FileText className="w-5 h-5 text-blue-600" />
+              <FileText className="w-5 h-5 text-tellus-primary" />
               <div>
-                <p className="text-sm font-medium text-blue-900">Máximo de arquivos</p>
-                <p className="text-sm text-blue-700">{uploadLink.maxFiles}</p>
+                <p className="text-sm font-medium text-tellus-charcoal-900">Máximo de arquivos</p>
+                <p className="text-sm text-tellus-charcoal-700">{uploadLink.maxFiles}</p>
               </div>
             </div>
             <div className="flex items-center space-x-2">
-              <Upload className="w-5 h-5 text-blue-600" />
+              <Upload className="w-5 h-5 text-tellus-primary" />
               <div>
-                <p className="text-sm font-medium text-blue-900">Tamanho máximo</p>
-                <p className="text-sm text-blue-700">{uploadLink.maxFileSize}MB por arquivo</p>
+                <p className="text-sm font-medium text-tellus-charcoal-900">Tamanho máximo</p>
+                <p className="text-sm text-tellus-charcoal-700">{uploadLink.maxFileSize}MB por arquivo</p>
               </div>
             </div>
             <div className="flex items-center space-x-2">
-              <CheckCircle className="w-5 h-5 text-blue-600" />
+              <CheckCircle className="w-5 h-5 text-tellus-primary" />
               <div>
-                <p className="text-sm font-medium text-blue-900">Tipos permitidos</p>
-                <p className="text-sm text-blue-700">PDF, JPG, PNG, WEBP</p>
+                <p className="text-sm font-medium text-tellus-charcoal-900">Tipos permitidos</p>
+                <p className="text-sm text-tellus-charcoal-700">PDF, JPG, PNG, WEBP</p>
               </div>
             </div>
           </div>
@@ -236,7 +236,7 @@ export const CustomerUploadPage: React.FC = () => {
           <div
             className={`border-2 border-dashed rounded-lg p-8 text-center transition-colors ${
               dragActive
-                ? 'border-blue-400 bg-blue-50'
+                ? 'border-tellus-primary bg-tellus-gold-50'
                 : 'border-gray-300 hover:border-gray-400'
             } ${uploading ? 'pointer-events-none opacity-50' : 'cursor-pointer'}`}
             onDragEnter={handleDrag}
@@ -301,7 +301,7 @@ export const CustomerUploadPage: React.FC = () => {
               <button
                 onClick={handleUpload}
                 disabled={uploading}
-                className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center space-x-2"
+                className="px-6 py-2 bg-tellus-charcoal-900 text-white rounded-lg hover:bg-tellus-charcoal-800 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center space-x-2"
               >
                 {uploading ? (
                   <Loader2 className="w-4 h-4 animate-spin" />

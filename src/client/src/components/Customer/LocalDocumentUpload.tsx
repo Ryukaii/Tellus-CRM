@@ -145,7 +145,7 @@ export const LocalDocumentUpload: React.FC<LocalDocumentUploadProps> = ({
 
   const getFileIcon = (fileType: string) => {
     if (fileType.includes('pdf')) return <FileText className="w-4 h-4 text-red-500" />;
-    if (fileType.includes('image')) return <FileText className="w-4 h-4 text-blue-500" />;
+    if (fileType.includes('image')) return <FileText className="w-4 h-4 text-tellus-primary" />;
     return <FileText className="w-4 h-4 text-gray-500" />;
   };
 
@@ -164,7 +164,7 @@ export const LocalDocumentUpload: React.FC<LocalDocumentUploadProps> = ({
       <div
         className={`border-2 border-dashed rounded-lg p-6 text-center transition-colors ${
           isDragging
-            ? 'border-blue-400 bg-blue-50'
+            ? 'border-tellus-primary bg-tellus-gold-50'
             : 'border-gray-300 hover:border-gray-400'
         } ${uploading ? 'pointer-events-none opacity-50' : 'cursor-pointer'}`}
         onDragOver={handleDragOver}

@@ -1053,13 +1053,13 @@ export function LeadForm() {
               <Activity className="w-10 h-10 text-white" />
             </div>
             <h2 className="text-2xl font-bold text-white mb-4">Bem-vindo ao Pré-Cadastro</h2>
-            <p className="text-blue-100 text-lg leading-relaxed mb-8">
+            <p className="text-tellus-gold-100 text-lg leading-relaxed mb-8">
               Processo rápido e seguro para análise de crédito imobiliário
             </p>
             
             {sessionId && (
               <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-4 mb-6">
-                <p className="text-sm text-blue-100 mb-1">Número da Sessão</p>
+                <p className="text-sm text-tellus-gold-100 mb-1">Número da Sessão</p>
                 <div className="space-y-2">
                   <div className="bg-white/5 rounded-lg p-3">
                     <p className="text-xs font-mono text-white font-bold break-all leading-tight text-center">
@@ -1100,7 +1100,7 @@ export function LeadForm() {
               <FileText className="w-10 h-10 text-white" />
             </div>
             <h2 className="text-2xl font-bold text-white mb-4">Documentos Necessários</h2>
-            <p className="text-blue-100 text-lg leading-relaxed mb-8">
+            <p className="text-tellus-gold-100 text-lg leading-relaxed mb-8">
               Prepare os documentos listados abaixo para agilizar o processo
             </p>
             
@@ -1179,7 +1179,7 @@ export function LeadForm() {
               <AlertCircle className="w-10 h-10 text-white" />
             </div>
             <h2 className="text-2xl font-bold text-white mb-4">Informações Importantes</h2>
-            <p className="text-blue-100 text-lg leading-relaxed mb-8">
+            <p className="text-tellus-gold-100 text-lg leading-relaxed mb-8">
               Leia atentamente antes de prosseguir
             </p>
             
@@ -1236,7 +1236,7 @@ export function LeadForm() {
     ];
 
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-600 via-blue-700 to-blue-800">
+      <div className="min-h-screen bg-gradient-to-br from-tellus-charcoal-900 via-tellus-charcoal-800 to-tellus-charcoal-700">
         {/* Header Mobile */}
         <div className="bg-white/10 backdrop-blur-sm">
           <div className="max-w-md mx-auto px-4 py-4">
@@ -1247,7 +1247,7 @@ export function LeadForm() {
                 </div>
                 <div>
                   <h1 className="text-lg font-bold text-white">Tellure CRM</h1>
-                  <p className="text-xs text-blue-100">Crédito Imobiliário</p>
+                  <p className="text-xs text-tellus-gold-100">Crédito Imobiliário</p>
                 </div>
               </div>
               {sessionId && (
@@ -1265,7 +1265,7 @@ export function LeadForm() {
             {/* Progress Indicator */}
             <div className="px-6 py-4 border-b border-white/20">
               <div className="flex items-center justify-between mb-2">
-                <span className="text-sm text-blue-100">Passo {activeTab + 1} de {steps.length}</span>
+                <span className="text-sm text-tellus-gold-100">Passo {activeTab + 1} de {steps.length}</span>
                 <span className="text-sm text-white font-semibold">{steps[activeTab].title}</span>
               </div>
               <div className="w-full bg-white/20 rounded-full h-2">
@@ -1335,7 +1335,7 @@ export function LeadForm() {
                       id="acceptTerms"
                       checked={acceptedTerms}
                       onChange={(e) => setAcceptedTerms(e.target.checked)}
-                      className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-white/30 rounded mt-1"
+                      className="h-4 w-4 text-blue-600 focus:ring-tellus-primary border-white/30 rounded mt-1"
                     />
                     <label htmlFor="acceptTerms" className="text-xs text-white/90 leading-relaxed">
                       <span className="font-semibold text-white">Concordo com os termos de uso</span> e confirmo que tenho todos os documentos necessários para prosseguir com o pré-cadastro.
@@ -1370,7 +1370,7 @@ export function LeadForm() {
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
             <div className="flex items-center space-x-3">
-              <div className="w-10 h-10 bg-gradient-to-r from-tellus-primary to-blue-600 rounded-xl flex items-center justify-center shadow-lg">
+              <div className="w-10 h-10 bg-gradient-to-r from-tellus-primary to-tellus-charcoal-900 rounded-xl flex items-center justify-center shadow-lg">
                 <Activity className="w-6 h-6 text-white" />
               </div>
               <div>
@@ -1379,9 +1379,9 @@ export function LeadForm() {
               </div>
             </div>
             {sessionId && (
-              <div className="hidden sm:flex items-center space-x-2 bg-blue-50 px-3 py-1 rounded-full">
+              <div className="hidden sm:flex items-center space-x-2 bg-tellus-gold-50 px-3 py-1 rounded-full">
                 <Activity className="w-4 h-4 text-blue-600" />
-                <span className="text-sm font-mono text-blue-800">{sessionId}</span>
+                <span className="text-sm font-mono text-tellus-charcoal-800">{sessionId}</span>
               </div>
             )}
           </div>
@@ -1399,7 +1399,7 @@ export function LeadForm() {
                 <p className="text-sm text-gray-600">Etapa {currentStep} de {totalSteps}</p>
                   </div>
               <div className="flex items-center space-x-2 ml-3">
-                <div className="w-10 h-10 bg-gradient-to-r from-tellus-primary to-blue-600 rounded-full flex items-center justify-center text-white font-bold text-sm">
+                <div className="w-10 h-10 bg-gradient-to-r from-tellus-primary to-tellus-charcoal-900 rounded-full flex items-center justify-center text-white font-bold text-sm">
                   {Math.round((currentStep / totalSteps) * 100)}%
                 </div>
               </div>
@@ -1408,7 +1408,7 @@ export function LeadForm() {
             {/* Progress Bar */}
             <div className="w-full bg-gray-200 rounded-full h-2 mb-3">
               <div 
-                className="bg-gradient-to-r from-tellus-primary to-blue-600 h-2 rounded-full transition-all duration-500 ease-out"
+                className="bg-gradient-to-r from-tellus-primary to-tellus-charcoal-900 h-2 rounded-full transition-all duration-500 ease-out"
                 style={{ width: `${(currentStep / totalSteps) * 100}%` }}
               />
             </div>
@@ -1436,7 +1436,7 @@ export function LeadForm() {
             {currentStep === 1 && (
               <div className="space-y-8 animate-fadeIn">
                 <div className="text-center mb-6">
-                  <div className="w-12 h-12 bg-gradient-to-r from-tellus-primary to-blue-600 rounded-xl flex items-center justify-center mx-auto mb-3">
+                  <div className="w-12 h-12 bg-gradient-to-r from-tellus-primary to-tellus-charcoal-900 rounded-xl flex items-center justify-center mx-auto mb-3">
                     <User className="w-6 h-6 text-white" />
                   </div>
                   <h3 className="text-xl font-bold text-gray-900 mb-2">Dados Pessoais</h3>
@@ -1476,10 +1476,10 @@ export function LeadForm() {
 
                   {/* Campos bloqueados até CPF válido */}
                   {!cpfValid && (
-                    <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
+                    <div className="bg-tellus-gold-50 border border-tellus-gold-200 rounded-lg p-4 mb-4">
                       <div className="flex items-center space-x-2">
                         <AlertCircle className="w-5 h-5 text-blue-600" />
-                        <p className="text-sm text-blue-800">
+                        <p className="text-sm text-tellus-charcoal-800">
                           Digite um CPF válido para desbloquear os demais campos
                         </p>
                       </div>
@@ -1583,7 +1583,7 @@ export function LeadForm() {
             {currentStep === 2 && (
               <div className="space-y-8">
                 <div className="text-center mb-6">
-                  <div className="w-12 h-12 bg-gradient-to-r from-tellus-primary to-blue-600 rounded-xl flex items-center justify-center mx-auto mb-3">
+                  <div className="w-12 h-12 bg-gradient-to-r from-tellus-primary to-tellus-charcoal-900 rounded-xl flex items-center justify-center mx-auto mb-3">
                     <Home className="w-6 h-6 text-white" />
                   </div>
                   <h3 className="text-xl font-bold text-gray-900 mb-2">Endereço Residencial</h3>
@@ -1623,10 +1623,10 @@ export function LeadForm() {
 
                   {/* Campos bloqueados até CEP válido */}
                   {!cepValid && (
-                    <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
+                    <div className="bg-tellus-gold-50 border border-tellus-gold-200 rounded-lg p-4 mb-4">
                       <div className="flex items-center space-x-2">
                         <AlertCircle className="w-5 h-5 text-blue-600" />
-                        <p className="text-sm text-blue-800">
+                        <p className="text-sm text-tellus-charcoal-800">
                           Digite um CEP válido para desbloquear os demais campos
                         </p>
                       </div>
@@ -1721,7 +1721,7 @@ export function LeadForm() {
             {currentStep === 3 && (
               <div className="space-y-8">
                 <div className="text-center mb-6">
-                  <div className="w-12 h-12 bg-gradient-to-r from-tellus-primary to-blue-600 rounded-xl flex items-center justify-center mx-auto mb-3">
+                  <div className="w-12 h-12 bg-gradient-to-r from-tellus-primary to-tellus-charcoal-900 rounded-xl flex items-center justify-center mx-auto mb-3">
                     <Briefcase className="w-6 h-6 text-white" />
                   </div>
                   <h3 className="text-xl font-bold text-gray-900 mb-2">Dados Profissionais</h3>
@@ -1820,7 +1820,7 @@ export function LeadForm() {
             {currentStep === 4 && (
               <div className="space-y-8">
                 <div className="text-center mb-6">
-                  <div className="w-12 h-12 bg-gradient-to-r from-tellus-primary to-blue-600 rounded-xl flex items-center justify-center mx-auto mb-3">
+                  <div className="w-12 h-12 bg-gradient-to-r from-tellus-primary to-tellus-charcoal-900 rounded-xl flex items-center justify-center mx-auto mb-3">
                     <DollarSign className="w-6 h-6 text-white" />
                   </div>
                   <h3 className="text-xl font-bold text-gray-900 mb-2">Dados do Imóvel de Interesse</h3>
@@ -1890,7 +1890,7 @@ export function LeadForm() {
             {currentStep === 5 && (
               <div className="space-y-8">
                 <div className="text-center mb-6">
-                  <div className="w-12 h-12 bg-gradient-to-r from-tellus-primary to-blue-600 rounded-xl flex items-center justify-center mx-auto mb-3">
+                  <div className="w-12 h-12 bg-gradient-to-r from-tellus-primary to-tellus-charcoal-900 rounded-xl flex items-center justify-center mx-auto mb-3">
                     <User className="w-6 h-6 text-white" />
                   </div>
                   <h3 className="text-xl font-bold text-gray-900 mb-2">Dados do Cônjuge</h3>
@@ -1913,8 +1913,8 @@ export function LeadForm() {
 
                   {formData.hasSpouse && (
                     <div className="space-y-6 animate-fadeIn">
-                      <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                        <p className="text-sm text-blue-800">
+                      <div className="bg-tellus-gold-50 border border-tellus-gold-200 rounded-lg p-4">
+                        <p className="text-sm text-tellus-charcoal-800">
                           <strong>Importante:</strong> Para casados, ambos devem apresentar todos os documentos pessoais e de renda.
                         </p>
                       </div>
@@ -2059,15 +2059,15 @@ export function LeadForm() {
             {currentStep === 6 && (
               <div className="space-y-8">
                 <div className="text-center mb-6">
-                  <div className="w-12 h-12 bg-gradient-to-r from-tellus-primary to-blue-600 rounded-xl flex items-center justify-center mx-auto mb-3">
+                  <div className="w-12 h-12 bg-gradient-to-r from-tellus-primary to-tellus-charcoal-900 rounded-xl flex items-center justify-center mx-auto mb-3">
                     <Shield className="w-6 h-6 text-white" />
                   </div>
                   <h3 className="text-xl font-bold text-gray-900 mb-2">Acesso ao Gov.br</h3>
                   <p className="text-sm text-gray-600">Configure o acesso ao portal governamental</p>
                 </div>
 
-                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
-                  <p className="text-sm text-blue-800">
+                <div className="bg-tellus-gold-50 border border-tellus-gold-200 rounded-lg p-4 mb-6">
+                  <p className="text-sm text-tellus-charcoal-800">
                     <strong>Importante:</strong> É necessário ter um cadastro ativo no portal GOV.BR para análise do crédito. 
                     Temporariamente, a verificação de duas etapas precisa ser desativada.
                   </p>
@@ -2133,7 +2133,7 @@ export function LeadForm() {
             {currentStep === 7 && (
               <div className="space-y-8">
                 <div className="text-center mb-6">
-                  <div className="w-12 h-12 bg-gradient-to-r from-tellus-primary to-blue-600 rounded-xl flex items-center justify-center mx-auto mb-3">
+                  <div className="w-12 h-12 bg-gradient-to-r from-tellus-primary to-tellus-charcoal-900 rounded-xl flex items-center justify-center mx-auto mb-3">
                     <Upload className="w-6 h-6 text-white" />
                   </div>
                   <h3 className="text-xl font-bold text-gray-900 mb-2">Upload de Documentos</h3>
@@ -2402,12 +2402,12 @@ export function LeadForm() {
                   )}
 
                   {/* Resumo dos Documentos Enviados */}
-                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-6">
-                    <h4 className="font-semibold text-blue-900 mb-3 flex items-center">
+                  <div className="bg-tellus-gold-50 border border-tellus-gold-200 rounded-lg p-6">
+                    <h4 className="font-semibold text-tellus-charcoal-900 mb-3 flex items-center">
                       <FileText className="w-5 h-5 mr-2" />
                       Documentos Enviados
                     </h4>
-                    <p className="text-sm text-blue-800 mb-3">
+                    <p className="text-sm text-tellus-charcoal-800 mb-3">
                       Total: {formData.documents.length} documento(s) enviado(s)
                     </p>
                     {formData.documents.length > 0 && (
@@ -2416,9 +2416,9 @@ export function LeadForm() {
                           <div key={index} className="flex items-center justify-between bg-white rounded-lg p-3">
                             <div className="flex items-center space-x-2">
                               <FileText className="w-4 h-4 text-blue-600" />
-                              <span className="text-sm text-blue-800">{doc.fileName}</span>
+                              <span className="text-sm text-tellus-charcoal-800">{doc.fileName}</span>
                             </div>
-                            <span className="text-xs text-blue-600 bg-blue-100 px-2 py-1 rounded">
+                            <span className="text-xs text-blue-600 bg-tellus-gold-100 px-2 py-1 rounded">
                               {doc.documentType}
                             </span>
                           </div>
@@ -2485,7 +2485,7 @@ export function LeadForm() {
                 <div className="text-center">
                   <Button 
                     onClick={() => setCurrentStep(totalSteps)}
-                    className="px-6 py-3 font-medium text-sm bg-gradient-to-r from-tellus-primary to-blue-600 hover:from-tellus-primary/90 hover:to-blue-600/90 shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-105"
+                    className="px-6 py-3 font-medium text-sm bg-gradient-to-r from-tellus-primary to-tellus-charcoal-900 hover:from-tellus-primary/90 hover:to-blue-600/90 shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-105"
                   >
                     Ir para Etapa {totalSteps}
                   </Button>
@@ -2518,7 +2518,7 @@ export function LeadForm() {
                 <Button 
                   onClick={nextStep} 
                   disabled={!validateCurrentStep() || loading}
-                  className="px-6 py-3 font-medium text-sm bg-gradient-to-r from-tellus-primary to-blue-600 hover:from-tellus-primary/90 hover:to-blue-600/90 shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-105"
+                  className="px-6 py-3 font-medium text-sm bg-gradient-to-r from-tellus-primary to-tellus-charcoal-900 hover:from-tellus-primary/90 hover:to-blue-600/90 shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-105"
                 >
                   Próximo
                   <ArrowRight className="w-4 h-4 ml-2" />
