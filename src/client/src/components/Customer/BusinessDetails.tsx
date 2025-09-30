@@ -94,7 +94,7 @@ export const BusinessDetails: React.FC<BusinessDetailsProps> = ({
       const valor = tempValor ? parseFloat(tempValor) : undefined;
       
       // Salvar no backend primeiro
-      await saveBusinessDataWithData(valor, comentarios);
+      await saveBusinessDataWithData(valor, comentarios || []);
       
       // Depois atualizar o estado local
       onValorChange(valor);
@@ -125,7 +125,7 @@ export const BusinessDetails: React.FC<BusinessDetailsProps> = ({
         autor: 'Usuário Atual' // TODO: pegar do contexto de autenticação
       };
 
-      const updatedComentarios = [novoComentario, ...comentarios];
+      const updatedComentarios = [novoComentario, ...(comentarios || [])];
       
       // Salvar no backend primeiro
       await saveBusinessDataWithData(tempValor ? parseFloat(tempValor) : undefined, updatedComentarios);
@@ -142,7 +142,7 @@ export const BusinessDetails: React.FC<BusinessDetailsProps> = ({
   };
 
   const handleEditComment = (commentId: string) => {
-    const comment = comentarios.find(c => c.id === commentId);
+    const comment = comentarios?.find(c => c.id === commentId);
     if (comment) {
       setEditingComment(commentId);
       setTempComment(comment.comentario);
@@ -152,7 +152,7 @@ export const BusinessDetails: React.FC<BusinessDetailsProps> = ({
   const handleSaveComment = async (commentId: string) => {
     try {
       setSaving(true);
-      const updatedComentarios = comentarios.map(comment =>
+      const updatedComentarios = (comentarios || []).map(comment =>
         comment.id === commentId
           ? { ...comment, comentario: tempComment.trim() }
           : comment
@@ -178,7 +178,7 @@ export const BusinessDetails: React.FC<BusinessDetailsProps> = ({
 
     try {
       setSaving(true);
-      const updatedComentarios = comentarios.filter(c => c.id !== commentId);
+      const updatedComentarios = (comentarios || []).filter(c => c.id !== commentId);
       
       // Salvar no backend primeiro
       await saveBusinessDataWithData(tempValor ? parseFloat(tempValor) : undefined, updatedComentarios);
@@ -324,7 +324,7 @@ export const BusinessDetails: React.FC<BusinessDetailsProps> = ({
         <div className="px-4 sm:px-6 py-3 sm:py-4 border-b dark:border-dark-border">
           <h3 className="text-base sm:text-lg font-semibold text-gray-900 flex items-center dark:text-dark-text">
             <MessageSquare className="w-4 h-4 sm:w-5 sm:h-5 mr-2 text-blue-500 dark:text-blue-400" />
-            Comentários ({comentarios.length})
+            Comentários ({comentarios?.length || 0})
           </h3>
         </div>
         <div className="p-4 sm:p-6">
@@ -359,7 +359,7 @@ export const BusinessDetails: React.FC<BusinessDetailsProps> = ({
 
           {/* Lista de Comentários */}
           <div className="space-y-4">
-            {comentarios.length === 0 ? (
+            {(comentarios?.length || 0) === 0 ? (
               <div className="text-center py-8">
                 <MessageSquare className="w-12 h-12 text-gray-300 mx-auto mb-3 dark:text-gray-600" />
                 <p className="text-gray-500 dark:text-dark-textSecondary">
@@ -367,7 +367,7 @@ export const BusinessDetails: React.FC<BusinessDetailsProps> = ({
                 </p>
               </div>
             ) : (
-              comentarios.map((comentario) => (
+              (comentarios || []).map((comentario) => (
                 <div
                   key={comentario.id}
                   className="border border-gray-200 rounded-lg p-4 dark:border-dark-border"
