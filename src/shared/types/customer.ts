@@ -41,6 +41,15 @@ export const CustomerSchema = z.object({
   govPassword: z.string().min(6, 'Senha gov deve ter pelo menos 6 caracteres').optional(),
   processes: z.array(z.enum(['agro', 'credito', 'consultoria', 'credito_imobiliario', 'geral'])).optional(),
   
+  // Campos do negócio
+  valorNegocio: z.number().optional(),
+  comentarios: z.array(z.object({
+    id: z.string(),
+    comentario: z.string(),
+    data: z.string(),
+    autor: z.string().optional()
+  })).optional(),
+  
   // Dados da Pessoa Jurídica
   hasCompany: z.boolean().optional(),
   companyCnpj: z.string().optional(),
@@ -100,7 +109,16 @@ export const CustomerUpdateSchema = z.object({
     z.string().min(6, 'Senha gov deve ter pelo menos 6 caracteres'),
     z.literal('')
   ]).optional(),
-  processes: z.array(z.enum(['agro', 'credito', 'consultoria', 'credito_imobiliario', 'geral'])).optional()
+  processes: z.array(z.enum(['agro', 'credito', 'consultoria', 'credito_imobiliario', 'geral'])).optional(),
+  
+  // Campos do negócio
+  valorNegocio: z.number().optional(),
+  comentarios: z.array(z.object({
+    id: z.string(),
+    comentario: z.string(),
+    data: z.string(),
+    autor: z.string().optional()
+  })).optional()
 }).partial();
 
 export type Customer = z.infer<typeof CustomerSchema>;
@@ -119,4 +137,16 @@ export interface CustomerResponse {
   total: number;
   page: number;
   limit: number;
+}
+
+export interface Comentario {
+  id: string;
+  comentario: string;
+  data: string;
+  autor?: string;
+}
+
+export interface NovoComentario {
+  comentario: string;
+  autor?: string;
 }

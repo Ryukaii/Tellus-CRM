@@ -3,7 +3,8 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { 
   ArrowLeft, User, Mail, Phone, MapPin, Building, DollarSign, 
   Calendar, Heart, FileText, Share2, Edit, Trash2, Eye,
-  AlertCircle, CheckCircle, Clock, Download, Loader2, Upload
+  AlertCircle, CheckCircle, Clock, Download, Loader2, Upload,
+  Briefcase, MessageSquare
 } from 'lucide-react';
 import { Button } from '../UI/Button';
 import { LoadingSpinner } from '../UI/LoadingSpinner';
@@ -12,6 +13,8 @@ import { DocumentViewer, DocumentListViewer } from '../UI/DocumentViewer';
 import { ShareCustomerModal } from './ShareCustomerModal';
 import { CustomerDocumentManager } from './CustomerDocumentManager';
 import { CustomerUploadLinkModal } from './CustomerUploadLinkModal';
+import { BusinessDetails } from './BusinessDetails';
+import { Comentario } from '../../../shared/types/customer';
 
 interface Customer {
   id: string;
@@ -52,6 +55,8 @@ interface Customer {
   source?: string;
   createdAt: string;
   updatedAt?: string;
+  valorNegocio?: number;
+  comentarios?: Comentario[];
 }
 
 export const CustomerDetailsPage: React.FC = () => {
@@ -65,6 +70,7 @@ export const CustomerDetailsPage: React.FC = () => {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [showUploadLinkModal, setShowUploadLinkModal] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [activeTab, setActiveTab] = useState<'dados' | 'negocio'>('dados');
   const [documents, setDocuments] = useState<Array<{
     id: string;
     fileName: string;
@@ -130,6 +136,24 @@ export const CustomerDetailsPage: React.FC = () => {
       setCustomer({
         ...customer,
         uploadedDocuments: newDocuments
+      });
+    }
+  };
+
+  const handleValorChange = (valor: number | undefined) => {
+    if (customer) {
+      setCustomer({
+        ...customer,
+        valorNegocio: valor
+      });
+    }
+  };
+
+  const handleComentariosChange = (comentarios: Comentario[]) => {
+    if (customer) {
+      setCustomer({
+        ...customer,
+        comentarios
       });
     }
   };
@@ -394,7 +418,51 @@ export const CustomerDetailsPage: React.FC = () => {
       </div>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-8">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-8">
+        {/* Abas de Navegação */}
+        <div className="mb-6">
+          <div className="border-b border-gray-200 dark:border-dark-border">
+            <nav className="-mb-px flex space-x-8">
+              <button
+                onClick={() => setActiveTab('dados')}
+                className={`py-2 px-1 border-b-2 font-medium text-sm ${
+                  activeTab === 'dados'
+                    ? 'border-blue-500 text-blue-600 dark:text-blue-400 dark:border-blue-400'
+                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-dark-textSecondary dark:hover:text-dark-text'
+                }`}
+              >
+                <div className="flex items-center space-x-2">
+                  <User className="w-4 h-4" />
+                  <span>Dados do Cliente</span>
+                </div>
+              </button>
+              <button
+                onClick={() => setActiveTab('negocio')}
+                className={`py-2 px-1 border-b-2 font-medium text-sm ${
+                  activeTab === 'negocio'
+                    ? 'border-blue-500 text-blue-600 dark:text-blue-400 dark:border-blue-400'
+                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-dark-textSecondary dark:hover:text-dark-text'
+                }`}
+              >
+                <div className="flex items-center space-x-2">
+                  <Briefcase className="w-4 h-4" />
+                  <span>Detalhes do Negócio</span>
+                </div>
+              </button>
+            </nav>
+          </div>
+        </div>
+
+        {/* Conteúdo das Abas */}
+        {activeTab === 'negocio' ? (
+          <BusinessDetails
+            customerId={customerId || ''}
+            valorNegocio={customer?.valorNegocio}
+            comentarios={customer?.comentarios}
+            onValorChange={handleValorChange}
+            onComentariosChange={handleComentariosChange}
+          />
+        ) : (
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-8">
           {/* Coluna Principal */}
           <div className="lg:col-span-2 space-y-4 sm:space-y-8">
             {/* Dados Pessoais */}
@@ -696,6 +764,7 @@ export const CustomerDetailsPage: React.FC = () => {
             </div>
           </div>
         </div>
+        )}
       </div>
 
       {/* Modal de Compartilhamento */}

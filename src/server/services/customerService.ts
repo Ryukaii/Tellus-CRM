@@ -40,6 +40,13 @@ interface MongoCustomer {
   source?: string;
   govPassword?: string;
   processes?: string[];
+  valorNegocio?: number;
+  comentarios?: Array<{
+    id: string;
+    comentario: string;
+    data: string;
+    autor?: string;
+  }>;
   createdAt?: Date;
   updatedAt?: Date;
 }
@@ -70,6 +77,8 @@ class CustomerService {
       source: mongoCustomer.source,
       govPassword: mongoCustomer.govPassword,
       processes: mongoCustomer.processes as ("agro" | "credito" | "consultoria" | "credito_imobiliario" | "geral")[] | undefined,
+      valorNegocio: mongoCustomer.valorNegocio,
+      comentarios: mongoCustomer.comentarios,
       createdAt: mongoCustomer.createdAt?.toISOString(),
       updatedAt: mongoCustomer.updatedAt?.toISOString()
     };
@@ -98,7 +107,9 @@ class CustomerService {
       status: customerData.status,
       source: customerData.source,
       govPassword: customerData.govPassword,
-      processes: customerData.processes
+      processes: customerData.processes,
+      valorNegocio: customerData.valorNegocio,
+      comentarios: customerData.comentarios
     };
   }
 
@@ -246,6 +257,8 @@ class CustomerService {
       if (customerData.govPassword !== undefined) updateData.govPassword = customerData.govPassword;
       if (customerData.notes !== undefined) updateData.notes = customerData.notes;
       if (customerData.processes !== undefined) updateData.processes = customerData.processes;
+      if (customerData.valorNegocio !== undefined) updateData.valorNegocio = customerData.valorNegocio;
+      if (customerData.comentarios !== undefined) updateData.comentarios = customerData.comentarios;
 
       // Handle address updates - merge with existing address
       if (customerData.address) {

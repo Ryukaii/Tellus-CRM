@@ -130,6 +130,57 @@ router.post('/', async (req, res) => {
   }
 });
 
+// PATCH /api/customers/:id - Atualizar dados específicos do cliente (como negócio)
+router.patch('/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const updateData = req.body;
+    
+    // Validar se os campos são válidos para atualização
+    const allowedFields = ['valorNegocio', 'comentarios'];
+    const filteredData = Object.keys(updateData)
+      .filter(key => allowedFields.includes(key))
+      .reduce((obj, key) => {
+        obj[key] = updateData[key];
+        return obj;
+      }, {} as any);
+    
+    if (Object.keys(filteredData).length === 0) {
+      const response: ApiResponse = {
+        success: false,
+        error: 'Nenhum campo válido para atualização'
+      };
+      return res.status(400).json(response);
+    }
+    
+    const customer = await customerService.updateCustomer(id, filteredData);
+    
+    if (!customer) {
+      const response: ApiResponse = {
+        success: false,
+        error: 'Cliente não encontrado'
+      };
+      return res.status(404).json(response);
+    }
+    
+    const response: ApiResponse = {
+      success: true,
+      data: customer,
+      message: 'Dados atualizados com sucesso'
+    };
+    
+    res.json(response);
+  } catch (error: any) {
+    console.error('Error updating customer business data:', error);
+    
+    const response: ApiResponse = {
+      success: false,
+      error: 'Erro ao atualizar dados do negócio'
+    };
+    res.status(400).json(response);
+  }
+});
+
 // PUT /api/customers/:id - Atualizar cliente
 router.put('/:id', async (req, res) => {
   try {
