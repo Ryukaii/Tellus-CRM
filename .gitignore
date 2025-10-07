@@ -144,6 +144,7 @@ dist-ssr/
 
 # Database files
 data/
+!src/client/src/data/
 *.db
 *.sqlite
 *.sqlite3
