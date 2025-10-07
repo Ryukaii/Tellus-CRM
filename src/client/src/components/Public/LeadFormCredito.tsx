@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { Activity, CheckCircle, AlertCircle, Eye, EyeOff, User, Home, Briefcase, DollarSign, Shield, FileText, ArrowRight, ArrowLeft, Upload } from 'lucide-react';
+import { Activity, CheckCircle, AlertCircle, Eye, EyeOff, User, Home, Briefcase, DollarSign, Shield, FileText, ArrowRight, ArrowLeft, Upload, Plus, Trash2, Building2 } from 'lucide-react';
 import { Button } from '../UI/Button';
 import { Input } from '../UI/Input';
 import { LoadingSpinner } from '../UI/LoadingSpinner';
 import { DocumentUpload } from '../UI/DocumentUpload';
+import { CustomDocumentUpload } from '../UI/CustomDocumentUpload';
+import { creditoDocumentCategories } from '../../data/documentCategories';
 import { CPFService } from '../../services/cpfService';
 import { CepService } from '../../services/cepService';
 import { StateSelect } from '../UI/StateSelect';
@@ -86,21 +88,25 @@ interface FormData {
     documentType: string;
     uploadedAt: string;
     url: string;
+    customTitle?: string; // Título personalizado
   }>;
   
-  // Dados da Pessoa Jurídica
+  // Dados da Pessoa Jurídica (múltiplas empresas)
   hasCompany: boolean;
-  companyCnpj: string;
-  companyName: string;
-  companyAddress: {
-    street: string;
-    number: string;
-    complement: string;
-    neighborhood: string;
-    city: string;
-    state: string;
-    zipCode: string;
-  };
+  companies: Array<{
+    id: string;
+    cnpj: string;
+    name: string;
+    address: {
+      street: string;
+      number: string;
+      complement: string;
+      neighborhood: string;
+      city: string;
+      state: string;
+      zipCode: string;
+    };
+  }>;
   
   // Observações
   notes: string;
@@ -185,17 +191,7 @@ export function LeadFormCredito() {
     hasSpouseTaxReturn: false,
     hasSpouseBankStatements: false,
     hasCompany: false,
-    companyCnpj: '',
-    companyName: '',
-    companyAddress: {
-      street: '',
-      number: '',
-      complement: '',
-      neighborhood: '',
-      city: '',
-      state: '',
-      zipCode: ''
-    },
+    companies: [],
     documents: [],
     notes: ''
   });
@@ -236,15 +232,6 @@ export function LeadFormCredito() {
         ...prev,
         address: {
           ...prev.address,
-          [addressField]: value
-        }
-      }));
-    } else if (field.startsWith('companyAddress.')) {
-      const addressField = field.split('.')[1];
-      setFormData(prev => ({
-        ...prev,
-        companyAddress: {
-          ...prev.companyAddress,
           [addressField]: value
         }
       }));
@@ -422,19 +409,9 @@ export function LeadFormCredito() {
         const dadosCNPJ = await CNPJService.consultarCNPJ(cnpj);
         
         if (dadosCNPJ) {
-          setFormData(prev => ({
-            ...prev,
-            companyName: dadosCNPJ.razaoSocial,
-            companyAddress: {
-              ...prev.companyAddress,
-              street: dadosCNPJ.endereco.logradouro,
-              number: '',
-              neighborhood: dadosCNPJ.endereco.bairro,
-              city: dadosCNPJ.endereco.municipio,
-              state: dadosCNPJ.endereco.uf,
-              zipCode: dadosCNPJ.endereco.cep
-            }
-          }));
+          // Nota: Com múltiplas empresas, não preenchemos automaticamente
+          // O usuário deve preencher manualmente os dados de cada empresa
+          console.log('CNPJ encontrado:', dadosCNPJ);
           setCnpjConsulted(true);
           setCnpjNotFound(false);
         } else {
@@ -449,6 +426,61 @@ export function LeadFormCredito() {
         setConsultingCNPJ(false);
       }
     }
+  };
+
+  // Funções para gerenciar empresas
+  const addCompany = () => {
+    const newCompany = {
+      id: `company-${Date.now()}`,
+      cnpj: '',
+      name: '',
+      address: {
+        street: '',
+        number: '',
+        complement: '',
+        neighborhood: '',
+        city: '',
+        state: '',
+        zipCode: ''
+      }
+    };
+    
+    setFormData(prev => ({
+      ...prev,
+      companies: [...prev.companies, newCompany]
+    }));
+  };
+
+  const removeCompany = (companyId: string) => {
+    setFormData(prev => ({
+      ...prev,
+      companies: prev.companies.filter(c => c.id !== companyId)
+    }));
+  };
+
+  const updateCompany = (companyId: string, field: string, value: any) => {
+    setFormData(prev => ({
+      ...prev,
+      companies: prev.companies.map(company => {
+        if (company.id !== companyId) return company;
+        
+        if (field.startsWith('address.')) {
+          const addressField = field.split('.')[1];
+          return {
+            ...company,
+            address: {
+              ...company.address,
+              [addressField]: value
+            }
+          };
+        } else {
+          return {
+            ...company,
+            [field]: value
+          };
+        }
+      })
+    }));
   };
 
   // Validações
@@ -668,18 +700,19 @@ export function LeadFormCredito() {
         // Se não tem cônjuge, etapa é válida (só checkbox desmarcada)
         return true;
       case 5:
-        // Etapa 5: Dados da Empresa (sempre válida, campos são condicionais)
-        if (formData.hasCompany) {
-          return validateCNPJ(formData.companyCnpj) &&
-                 formData.companyName.trim().length >= 2 &&
-                 formData.companyAddress.street.trim().length >= 3 &&
-                 formData.companyAddress.number.trim().length >= 1 &&
-                 formData.companyAddress.neighborhood.trim().length >= 2 &&
-                 formData.companyAddress.city.trim().length >= 2 &&
-                 formData.companyAddress.state.trim().length === 2 &&
-                 validateCEP(formData.companyAddress.zipCode);
+        // Etapa 5: Dados da Empresa (valida todas as empresas do array)
+        if (formData.hasCompany && formData.companies.length > 0) {
+          return formData.companies.every(company => 
+            company.cnpj.replace(/\D/g, '').length === 14 &&
+            company.name.trim().length >= 2 &&
+            company.address.street.trim().length >= 3 &&
+            company.address.number.trim().length >= 1 &&
+            company.address.city.trim().length >= 2 &&
+            company.address.state.trim().length === 2 &&
+            company.address.zipCode.replace(/\D/g, '').length === 8
+          );
         }
-        // Se não tem empresa, etapa é válida (só checkbox desmarcada)
+        // Se não tem empresa, etapa é válida
         return true;
       case 6:
         // Etapa 6: Gov.br (sempre presente)
@@ -752,6 +785,19 @@ export function LeadFormCredito() {
         personalCompanyName: formData.personalCompanyName,
         hasSpouse: formData.hasSpouse,
         hasCompany: formData.hasCompany,
+        // Múltiplas empresas
+        companies: formData.companies.map(company => ({
+          ...company,
+          cnpj: company.cnpj.replace(/\D/g, ''),
+          address: {
+            ...company.address,
+            zipCode: company.address.zipCode.replace(/\D/g, '')
+          }
+        })),
+        // Campos legados (compatibilidade - primeira empresa)
+        companyCnpj: formData.companies[0]?.cnpj.replace(/\D/g, '') || '',
+        companyName: formData.companies[0]?.name || '',
+        companyAddress: formData.companies[0]?.address || null,
         spouseName: formData.spouseName,
         spouseCpf: formData.spouseCpf,
         spouseRg: formData.spouseRg,
@@ -760,9 +806,6 @@ export function LeadFormCredito() {
         spouseEmploymentType: formData.spouseEmploymentType,
         spouseMonthlyIncome: formData.spouseMonthlyIncome,
         spouseCompanyName: formData.spouseCompanyName,
-        companyCnpj: formData.companyCnpj,
-        companyName: formData.companyName,
-        companyAddress: formData.companyAddress,
         govPassword: formData.govPassword,
         hasTwoFactorDisabled: formData.hasTwoFactorDisabled,
         // Documentos pessoais
@@ -1029,7 +1072,7 @@ export function LeadFormCredito() {
                   <Activity className="w-5 h-5 text-white" />
                 </div>
                 <div>
-                  <h1 className="text-lg font-bold text-white">Tellure CRM</h1>
+                  <h1 className="text-lg font-bold text-white">Tellure</h1>
                   <p className="text-xs text-tellus-gold-100">Crédito Pessoal</p>
                 </div>
               </div>
@@ -1152,7 +1195,7 @@ export function LeadFormCredito() {
                 <Activity className="w-6 h-6 text-white" />
               </div>
               <div>
-                <h1 className="text-xl font-bold text-gray-900">Tellure CRM</h1>
+                <h1 className="text-xl font-bold text-gray-900">Tellure</h1>
                 <p className="text-xs text-gray-500 font-medium">Crédito Pessoal</p>
               </div>
             </div>
@@ -1757,182 +1800,205 @@ export function LeadFormCredito() {
             )}
 
 
-            {/* Step 5: Dados da Empresa */}
+            {/* Step 5: Pessoa Jurídica (Múltiplas Empresas) */}
             {currentStep === 5 && (
               <div className="space-y-8">
                 <div className="text-center mb-6">
-                  <div className="w-12 h-12 bg-gradient-to-r from-tellus-primary to-tellus-charcoal-900 rounded-xl flex items-center justify-center mx-auto mb-3">
-                    <Briefcase className="w-6 h-6 text-white" />
+                  <div className="w-12 h-12 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-xl flex items-center justify-center mx-auto mb-3">
+                    <Building2 className="w-6 h-6 text-white" />
                   </div>
-                  <h3 className="text-xl font-bold text-gray-900 mb-2">Dados da Empresa</h3>
-                  <p className="text-sm text-gray-600">Informe se possui empresa e seus dados</p>
+                  <h3 className="text-xl font-bold text-gray-900 mb-2">Pessoa Jurídica</h3>
+                  <p className="text-sm text-gray-600">Informe os dados da(s) empresa(s) (se aplicável)</p>
                 </div>
 
                 <div className="space-y-6">
-                  {/* Checkbox para Empresa */}
-                  <div className="flex items-start space-x-3 p-4 bg-green-50 border border-green-200 rounded-lg">
-                    <input
-                      type="checkbox"
-                      id="hasCompany"
-                      checked={formData.hasCompany}
-                      onChange={(e) => handleChange('hasCompany', e.target.checked)}
-                      className="h-5 w-5 text-tellus-primary focus:ring-tellus-primary border-gray-300 rounded mt-1"
-                    />
-                    <div className="flex-1">
-                      <label htmlFor="hasCompany" className="text-sm font-medium text-gray-900 cursor-pointer">
-                        Possuo uma empresa (Pessoa Jurídica)
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-2">
+                      <input
+                        type="checkbox"
+                        id="hasCompany"
+                        checked={formData.hasCompany}
+                        onChange={(e) => {
+                          handleChange('hasCompany', e.target.checked);
+                          // Se marcar e não tiver empresas, adicionar primeira empresa
+                          if (e.target.checked && formData.companies.length === 0) {
+                            addCompany();
+                          }
+                        }}
+                        className="h-4 w-4 text-blue-600 focus:ring-blue-600 border-gray-300 rounded"
+                      />
+                      <label htmlFor="hasCompany" className="text-sm font-medium text-gray-700">
+                        Possuo empresa/CNPJ (Pessoa Jurídica)
                       </label>
-                      <p className="text-xs text-gray-600 mt-1">
-                        Marque se você tem uma empresa registrada (CNPJ)
-                      </p>
                     </div>
+                    
+                    {formData.hasCompany && (
+                      <span className="text-sm font-medium text-blue-600">
+                        {formData.companies.length} empresa(s) cadastrada(s)
+                      </span>
+                    )}
                   </div>
 
-                  {/* Formulário da Empresa - Condicional */}
                   {formData.hasCompany && (
-                    <div className="bg-white border border-gray-200 rounded-lg p-6">
-                      <h4 className="text-lg font-semibold text-gray-900 mb-4">Informações da Empresa</h4>
-                      
-                      <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-6">
-                        <p className="text-sm text-green-800">
-                          <strong>Importante:</strong> Para empresas, é necessário apresentar todos os documentos empresariais obrigatórios.
+                    <div className="space-y-6 animate-fadeIn">
+                      <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                        <p className="text-sm text-blue-900">
+                          <strong>Importante:</strong> Será necessário apresentar documentos de cada empresa: Contrato Social, Cartão CNPJ, Declaração de IR PJ, Balanço e DRE.
                         </p>
                       </div>
 
-                      <div className="space-y-6 animate-fadeIn">
+                      {/* Lista de Empresas */}
+                      {formData.companies.map((company, index) => (
+                        <div key={company.id} className="bg-white border-2 border-blue-300 rounded-xl p-6 relative">
+                          {/* Header da Empresa */}
+                          <div className="flex items-center justify-between mb-4 pb-4 border-b border-blue-200">
+                            <h4 className="text-lg font-semibold text-gray-900 flex items-center">
+                              <Building2 className="w-5 h-5 mr-2 text-blue-600" />
+                              Empresa {index + 1}
+                            </h4>
+                            
+                            {formData.companies.length > 1 && (
+                              <button
+                                type="button"
+                                onClick={() => removeCompany(company.id)}
+                                className="text-red-600 hover:text-red-800 hover:bg-red-50 p-2 rounded-lg transition-colors"
+                                title="Remover empresa"
+                              >
+                                <Trash2 className="w-5 h-5" />
+                              </button>
+                            )}
+                          </div>
 
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        <div className="sm:col-span-2">
-                          <div className="relative">
-                            <Input
-                              label="CNPJ da Empresa *"
-                              value={formatCNPJ(formData.companyCnpj)}
-                              onChange={(e) => handleChange('companyCnpj', e.target.value)}
-                              placeholder="00.000.000/0000-00"
-                              maxLength={18}
-                            />
-                            {consultingCNPJ && (
-                              <div className="absolute right-3 top-8">
-                                <LoadingSpinner size="sm" />
+                          {/* Dados da Empresa */}
+                          <div className="space-y-4">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                              <div className="sm:col-span-2">
+                                <Input
+                                  label="CNPJ *"
+                                  value={company.cnpj}
+                                  onChange={(e) => {
+                                    const cnpj = e.target.value.replace(/\D/g, '');
+                                    const formatted = cnpj.replace(/^(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})$/, '$1.$2.$3/$4-$5');
+                                    updateCompany(company.id, 'cnpj', formatted);
+                                  }}
+                                  placeholder="00.000.000/0000-00"
+                                  maxLength={18}
+                                />
+                                {company.cnpj && company.cnpj.replace(/\D/g, '').length !== 14 && (
+                                  <p className="text-red-500 text-xs mt-1">CNPJ deve ter 14 dígitos</p>
+                                )}
                               </div>
-                            )}
-                          </div>
-                          {formData.companyCnpj && !validateCNPJ(formData.companyCnpj) && (
-                            <p className="text-red-500 text-xs mt-1">CNPJ inválido</p>
-                          )}
-                          {cnpjConsulted && (
-                            <p className="text-green-600 text-xs mt-1">✓ Dados preenchidos automaticamente</p>
-                          )}
-                          {cnpjNotFound && (
-                            <p className="text-yellow-600 text-xs mt-1">⚠️ CNPJ válido mas não encontrado. Preencha os dados manualmente.</p>
-                          )}
-                        </div>
 
-                        <div className="sm:col-span-2">
-                          <Input
-                            label="Razão Social da Empresa *"
-                            value={formData.companyName}
-                            onChange={(e) => handleChange('companyName', e.target.value)}
-                            placeholder="Nome completo da empresa"
-                            maxLength={200}
-                          />
-                          {formData.companyName && formData.companyName.trim().length < 2 && (
-                            <p className="text-red-500 text-xs mt-1">Razão social deve ter pelo menos 2 caracteres</p>
-                          )}
-                        </div>
-                      </div>
+                              <div className="sm:col-span-2">
+                                <Input
+                                  label="Razão Social *"
+                                  value={company.name}
+                                  onChange={(e) => updateCompany(company.id, 'name', e.target.value)}
+                                  placeholder="Nome da empresa"
+                                  maxLength={100}
+                                />
+                                {company.name && company.name.trim().length < 2 && (
+                                  <p className="text-red-500 text-xs mt-1">Razão social deve ter pelo menos 2 caracteres</p>
+                                )}
+                              </div>
+                            </div>
 
-                      <div className="border-t pt-6">
-                        <h4 className="text-lg font-semibold text-gray-900 mb-4">Endereço da Empresa</h4>
-                        
-                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                          <div className="sm:col-span-2">
-                            <Input
-                              label="Rua *"
-                              value={formData.companyAddress.street}
-                              onChange={(e) => handleChange('companyAddress.street', e.target.value)}
-                              placeholder="Nome da rua"
-                              maxLength={100}
-                            />
-                            {formData.companyAddress.street && formData.companyAddress.street.trim().length < 3 && (
-                              <p className="text-red-500 text-xs mt-1">Nome da rua deve ter pelo menos 3 caracteres</p>
-                            )}
-                          </div>
+                            {/* Endereço da Empresa */}
+                            <div>
+                              <h5 className="text-base font-medium text-gray-800 mb-3 mt-4">Endereço da Empresa</h5>
+                              
+                              <div className="space-y-4">
+                                <div>
+                                  <Input
+                                    label="CEP *"
+                                    value={company.address.zipCode}
+                                    onChange={(e) => {
+                                      const cep = e.target.value.replace(/\D/g, '');
+                                      const formatted = cep.replace(/^(\d{5})(\d{3})$/, '$1-$2');
+                                      updateCompany(company.id, 'address.zipCode', formatted);
+                                    }}
+                                    placeholder="00000-000"
+                                    maxLength={9}
+                                  />
+                                </div>
 
-                          <div>
-                            <Input
-                              label="Número *"
-                              value={formData.companyAddress.number}
-                              onChange={(e) => handleChange('companyAddress.number', e.target.value)}
-                              placeholder="123"
-                              maxLength={10}
-                            />
-                            {formData.companyAddress.number && formData.companyAddress.number.trim().length < 1 && (
-                              <p className="text-red-500 text-xs mt-1">Número é obrigatório</p>
-                            )}
-                          </div>
+                                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                                  <div className="sm:col-span-2">
+                                    <Input
+                                      label="Rua *"
+                                      value={company.address.street}
+                                      onChange={(e) => updateCompany(company.id, 'address.street', e.target.value)}
+                                      placeholder="Nome da rua"
+                                      maxLength={100}
+                                    />
+                                  </div>
 
-                          <div>
-                            <Input
-                              label="Complemento"
-                              value={formData.companyAddress.complement}
-                              onChange={(e) => handleChange('companyAddress.complement', e.target.value)}
-                              placeholder="Sala, andar, etc."
-                              maxLength={50}
-                            />
-                          </div>
+                                  <div>
+                                    <Input
+                                      label="Número *"
+                                      value={company.address.number}
+                                      onChange={(e) => updateCompany(company.id, 'address.number', e.target.value)}
+                                      placeholder="123"
+                                      maxLength={10}
+                                    />
+                                  </div>
 
-                          <div>
-                            <Input
-                              label="Bairro *"
-                              value={formData.companyAddress.neighborhood}
-                              onChange={(e) => handleChange('companyAddress.neighborhood', e.target.value)}
-                              placeholder="Nome do bairro"
-                              maxLength={50}
-                            />
-                            {formData.companyAddress.neighborhood && formData.companyAddress.neighborhood.trim().length < 2 && (
-                              <p className="text-red-500 text-xs mt-1">Nome do bairro deve ter pelo menos 2 caracteres</p>
-                            )}
-                          </div>
+                                  <div>
+                                    <Input
+                                      label="Complemento"
+                                      value={company.address.complement}
+                                      onChange={(e) => updateCompany(company.id, 'address.complement', e.target.value)}
+                                      placeholder="Sala, andar, etc."
+                                      maxLength={50}
+                                    />
+                                  </div>
 
-                          <div>
-                            <Input
-                              label="Cidade *"
-                              value={formData.companyAddress.city}
-                              onChange={(e) => handleChange('companyAddress.city', e.target.value)}
-                              placeholder="Nome da cidade"
-                              maxLength={50}
-                            />
-                            {formData.companyAddress.city && formData.companyAddress.city.trim().length < 2 && (
-                              <p className="text-red-500 text-xs mt-1">Nome da cidade deve ter pelo menos 2 caracteres</p>
-                            )}
-                          </div>
+                                  <div>
+                                    <Input
+                                      label="Bairro *"
+                                      value={company.address.neighborhood}
+                                      onChange={(e) => updateCompany(company.id, 'address.neighborhood', e.target.value)}
+                                      placeholder="Nome do bairro"
+                                      maxLength={50}
+                                    />
+                                  </div>
 
-                          <div>
-                            <StateSelect
-                              label="Estado *"
-                              value={formData.companyAddress.state}
-                              onChange={(value) => handleChange('companyAddress.state', value)}
-                              placeholder="Selecione o estado"
-                              required
-                              error={formData.companyAddress.state && formData.companyAddress.state.trim().length !== 2 ? "Selecione um estado" : undefined}
-                            />
-                          </div>
+                                  <div>
+                                    <Input
+                                      label="Cidade *"
+                                      value={company.address.city}
+                                      onChange={(e) => updateCompany(company.id, 'address.city', e.target.value)}
+                                      placeholder="Nome da cidade"
+                                      maxLength={50}
+                                    />
+                                  </div>
 
-                          <div>
-                            <Input
-                              label="CEP *"
-                              value={formatCEP(formData.companyAddress.zipCode)}
-                              onChange={(e) => handleChange('companyAddress.zipCode', e.target.value)}
-                              placeholder="00000-000"
-                              maxLength={9}
-                            />
-                            {formData.companyAddress.zipCode && !validateCEP(formData.companyAddress.zipCode) && (
-                              <p className="text-red-500 text-xs mt-1">CEP inválido</p>
-                            )}
+                                  <div>
+                                    <StateSelect
+                                      label="Estado *"
+                                      value={company.address.state}
+                                      onChange={(value) => updateCompany(company.id, 'address.state', value)}
+                                      placeholder="Selecione o estado"
+                                      required
+                                    />
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
                           </div>
                         </div>
-                      </div>
+                      ))}
+
+                      {/* Botão Adicionar Empresa */}
+                      <div className="flex justify-center pt-4">
+                        <button
+                          type="button"
+                          onClick={addCompany}
+                          className="inline-flex items-center px-6 py-3 border-2 border-dashed border-blue-400 rounded-xl text-blue-700 hover:bg-blue-50 hover:border-blue-500 transition-all duration-200 font-medium"
+                        >
+                          <Plus className="w-5 h-5 mr-2" />
+                          Adicionar Outra Empresa
+                        </button>
                       </div>
                     </div>
                   )}
@@ -2027,11 +2093,35 @@ export function LeadFormCredito() {
                 </div>
 
                 <div className="space-y-6">
+                  {/* 📁 UPLOAD COM TÍTULO PERSONALIZADO */}
+                  <div className="bg-gradient-to-br from-purple-600 to-pink-600 rounded-2xl p-6 shadow-xl">
+                    <h4 className="font-bold text-white mb-2 text-xl">
+                      📁 Adicionar Documento com Título Personalizado
+                    </h4>
+                    <p className="text-purple-100 text-sm mb-6">
+                      Organize melhor seus documentos adicionando um título descritivo para cada arquivo
+                    </p>
+                    
+                    <CustomDocumentUpload
+                      cpf={formData.cpf}
+                      documentCategories={creditoDocumentCategories}
+                      onDocumentAdded={(doc) => {
+                        const newDocuments = [...formData.documents, doc];
+                        setFormData(prev => ({
+                          ...prev,
+                          documents: newDocuments
+                        }));
+                        updateDocumentFlags(newDocuments);
+                      }}
+                      onError={(error) => setError(error)}
+                    />
+                  </div>
+
                   {/* Documentos para Comprador e Cônjuge */}
                   <div className="bg-white border border-gray-200 rounded-lg p-6">
                     <h4 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
                       <User className="w-5 h-5 mr-2 text-tellus-primary" />
-                      Para Comprador e Cônjuge (se houver)
+                      Documentos Padrão
                     </h4>
                     
                     <div className="space-y-6">

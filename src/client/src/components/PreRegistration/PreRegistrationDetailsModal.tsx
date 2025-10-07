@@ -12,7 +12,10 @@ import {
   XCircle,
   Clock,
   Heart,
-  Eye
+  Eye,
+  TreePine,
+  Tractor,
+  Receipt
 } from 'lucide-react';
 import { Lead } from '../../../../shared/types/lead';
 import { Modal } from '../UI/Modal';
@@ -168,6 +171,37 @@ export function PreRegistrationDetailsModal({
     return statuses[status || ''] || 'N/A';
   };
 
+  const getRuralPropertyTypeLabel = (type?: string) => {
+    const types: Record<string, string> = {
+      propria: 'Própria',
+      arrendada: 'Arrendada',
+      comodato: 'Comodato',
+      parceria: 'Parceria'
+    };
+    return types[type || ''] || 'N/A';
+  };
+
+  const getCreditLineLabel = (line?: string) => {
+    const lines: Record<string, string> = {
+      pronaf: 'PRONAF - Agricultura Familiar',
+      pronamp: 'PRONAMP - Médio Produtor',
+      moderfrota: 'MODERFROTA - Modernização de Frota',
+      custeio_geral: 'Custeio Geral',
+      investimento_geral: 'Investimento Geral'
+    };
+    return lines[line || ''] || 'N/A';
+  };
+
+  const getCreditPurposeLabel = (purpose?: string) => {
+    const purposes: Record<string, string> = {
+      custeio: 'Custeio',
+      investimento: 'Investimento',
+      comercializacao: 'Comercialização',
+      industrializacao: 'Industrialização'
+    };
+    return purposes[purpose || ''] || 'N/A';
+  };
+
   const getLeadType = (source: string) => {
     const typeMap: Record<string, string> = {
       'lead_credito': 'Crédito Pessoal',
@@ -189,6 +223,7 @@ export function PreRegistrationDetailsModal({
   const shouldShowCompanySection = () => {
     return preRegistration.hasCompany || 
            preRegistration.employmentType === 'empresario' ||
+           (preRegistration as any).companies?.length > 0 ||
            preRegistration.companyCnpj ||
            preRegistration.companyName;
   };
@@ -202,6 +237,14 @@ export function PreRegistrationDetailsModal({
   const shouldShowGovSection = () => {
     return preRegistration.govPassword || 
            preRegistration.hasTwoFactorDisabled !== undefined;
+  };
+
+  const shouldShowRuralPropertySection = () => {
+    return preRegistration.source === 'lead_agro' ||
+           (preRegistration as any).hasRuralProperty ||
+           (preRegistration as any).ruralPropertyCity ||
+           (preRegistration as any).creditLine ||
+           (preRegistration as any).creditPurpose;
   };
 
   const getLeadTypeColor = (source: string) => {
@@ -322,6 +365,15 @@ export function PreRegistrationDetailsModal({
                 <>
                   <p><span className="font-medium">Tipo:</span> Crédito Rural</p>
                   <p><span className="font-medium">Renda:</span> {formatCurrency(preRegistration.monthlyIncome)}</p>
+                  {(preRegistration as any).creditLine && (
+                    <p><span className="font-medium">Linha:</span> {getCreditLineLabel((preRegistration as any).creditLine)}</p>
+                  )}
+                  {(preRegistration as any).creditPurpose && (
+                    <p><span className="font-medium">Finalidade:</span> {getCreditPurposeLabel((preRegistration as any).creditPurpose)}</p>
+                  )}
+                  {(preRegistration as any).ruralPropertySize && (
+                    <p><span className="font-medium">Propriedade:</span> {(preRegistration as any).ruralPropertySize} hectares</p>
+                  )}
                 </>
               )}
               {preRegistration.source === 'lead_geral' && (
@@ -457,6 +509,79 @@ export function PreRegistrationDetailsModal({
           </div>
         </div>
 
+        {/* Dados da Propriedade Rural - apenas para crédito agro */}
+        {shouldShowRuralPropertySection() && (
+          <div>
+            <h3 className="text-lg font-medium text-gray-900 dark:text-tellus-gold-100 mb-3 flex items-center">
+              <TreePine className="w-5 h-5 mr-2" />
+              Propriedade Rural e Crédito
+            </h3>
+            <div className="bg-white dark:bg-tellus-charcoal-700 border border-gray-200 dark:border-tellus-charcoal-600 rounded-lg p-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {/* Dados da Propriedade */}
+                {(preRegistration as any).ruralPropertyType && (
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-tellus-gold-200">Tipo de Propriedade</label>
+                    <p className="mt-1 text-sm text-gray-900 dark:text-tellus-gold-100">
+                      {getRuralPropertyTypeLabel((preRegistration as any).ruralPropertyType)}
+                    </p>
+                  </div>
+                )}
+                {(preRegistration as any).ruralPropertySize && (
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-tellus-gold-200">Tamanho da Propriedade</label>
+                    <p className="mt-1 text-sm text-gray-900 dark:text-tellus-gold-100">
+                      {(preRegistration as any).ruralPropertySize} hectares
+                    </p>
+                  </div>
+                )}
+                {(preRegistration as any).ruralPropertyCity && (
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-tellus-gold-200">Cidade da Propriedade</label>
+                    <p className="mt-1 text-sm text-gray-900 dark:text-tellus-gold-100">
+                      {(preRegistration as any).ruralPropertyCity}
+                    </p>
+                  </div>
+                )}
+                {(preRegistration as any).ruralPropertyState && (
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-tellus-gold-200">Estado da Propriedade</label>
+                    <p className="mt-1 text-sm text-gray-900 dark:text-tellus-gold-100">
+                      {(preRegistration as any).ruralPropertyState}
+                    </p>
+                  </div>
+                )}
+
+                {/* Linha de Crédito */}
+                {(preRegistration as any).creditLine && (
+                  <div className="sm:col-span-2">
+                    <label className="block text-sm font-medium text-gray-700 dark:text-tellus-gold-200">Linha de Crédito</label>
+                    <div className="mt-1 flex items-center space-x-2">
+                      <Tractor className="w-4 h-4 text-green-600 dark:text-green-400" />
+                      <p className="text-sm text-gray-900 dark:text-tellus-gold-100 font-medium">
+                        {getCreditLineLabel((preRegistration as any).creditLine)}
+                      </p>
+                    </div>
+                  </div>
+                )}
+
+                {/* Finalidade do Crédito */}
+                {(preRegistration as any).creditPurpose && (
+                  <div className="sm:col-span-2">
+                    <label className="block text-sm font-medium text-gray-700 dark:text-tellus-gold-200">Finalidade do Crédito</label>
+                    <div className="mt-1 flex items-center space-x-2">
+                      <Receipt className="w-4 h-4 text-purple-600 dark:text-purple-400" />
+                      <p className="text-sm text-gray-900 dark:text-tellus-gold-100 font-medium">
+                        {getCreditPurposeLabel((preRegistration as any).creditPurpose)}
+                      </p>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Dados do Imóvel - apenas para crédito imobiliário e geral */}
         {shouldShowPropertySection() && (
           <div>
@@ -536,57 +661,94 @@ export function PreRegistrationDetailsModal({
           </div>
         )}
 
-        {/* Dados da Empresa */}
+        {/* Dados da Empresa / Empresas */}
         {shouldShowCompanySection() && (
           <div>
             <h3 className="text-lg font-medium text-gray-900 dark:text-tellus-gold-100 mb-3 flex items-center">
               <Briefcase className="w-5 h-5 mr-2" />
-              Dados da Empresa
+              {(preRegistration as any).companies?.length > 0 ? `Empresas (${(preRegistration as any).companies.length})` : 'Dados da Empresa'}
             </h3>
-            <div className="bg-white dark:bg-tellus-charcoal-700 border border-gray-200 dark:border-tellus-charcoal-600 rounded-lg p-4">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-tellus-gold-200">CNPJ</label>
-                  <p className="mt-1 text-sm text-gray-900 dark:text-tellus-gold-100">{preRegistration.companyCnpj || 'N/A'}</p>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-tellus-gold-200">Razão Social</label>
-                  <p className="mt-1 text-sm text-gray-900 dark:text-tellus-gold-100">{preRegistration.companyName || 'N/A'}</p>
-                </div>
-                {preRegistration.companyAddress && (
-                  <>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 dark:text-tellus-gold-200">Logradouro</label>
-                      <p className="mt-1 text-sm text-gray-900 dark:text-tellus-gold-100">{preRegistration.companyAddress.street || 'N/A'}</p>
+            
+            {/* Múltiplas Empresas (Novo Formato) */}
+            {(preRegistration as any).companies && (preRegistration as any).companies.length > 0 ? (
+              <div className="space-y-4">
+                {(preRegistration as any).companies.map((company: any, index: number) => (
+                  <div key={company.id || index} className="bg-white dark:bg-tellus-charcoal-700 border-2 border-blue-300 dark:border-blue-600 rounded-lg p-4">
+                    <h4 className="text-base font-semibold text-blue-900 dark:text-blue-200 mb-3 flex items-center">
+                      <Building2 className="w-5 h-5 mr-2" />
+                      Empresa {index + 1}
+                    </h4>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 dark:text-tellus-gold-200">CNPJ</label>
+                        <p className="mt-1 text-sm text-gray-900 dark:text-tellus-gold-100 font-mono">{company.cnpj || 'N/A'}</p>
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 dark:text-tellus-gold-200">Razão Social</label>
+                        <p className="mt-1 text-sm text-gray-900 dark:text-tellus-gold-100">{company.name || 'N/A'}</p>
+                      </div>
+                      {company.address && (
+                        <>
+                          <div className="sm:col-span-2">
+                            <label className="block text-sm font-medium text-gray-700 dark:text-tellus-gold-200">Endereço</label>
+                            <p className="mt-1 text-sm text-gray-900 dark:text-tellus-gold-100">
+                              {company.address.street}, {company.address.number}
+                              {company.address.complement && ` - ${company.address.complement}`} - {company.address.neighborhood}, {company.address.city}/{company.address.state} - CEP: {company.address.zipCode}
+                            </p>
+                          </div>
+                        </>
+                      )}
                     </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 dark:text-tellus-gold-200">Número</label>
-                      <p className="mt-1 text-sm text-gray-900 dark:text-tellus-gold-100">{preRegistration.companyAddress.number || 'N/A'}</p>
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 dark:text-tellus-gold-200">Complemento</label>
-                      <p className="mt-1 text-sm text-gray-900 dark:text-tellus-gold-100">{preRegistration.companyAddress.complement || 'N/A'}</p>
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 dark:text-tellus-gold-200">Bairro</label>
-                      <p className="mt-1 text-sm text-gray-900 dark:text-tellus-gold-100">{preRegistration.companyAddress.neighborhood || 'N/A'}</p>
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 dark:text-tellus-gold-200">Cidade</label>
-                      <p className="mt-1 text-sm text-gray-900 dark:text-tellus-gold-100">{preRegistration.companyAddress.city || 'N/A'}</p>
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 dark:text-tellus-gold-200">Estado</label>
-                      <p className="mt-1 text-sm text-gray-900 dark:text-tellus-gold-100">{preRegistration.companyAddress.state || 'N/A'}</p>
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 dark:text-tellus-gold-200">CEP</label>
-                      <p className="mt-1 text-sm text-gray-900 dark:text-tellus-gold-100">{preRegistration.companyAddress.zipCode || 'N/A'}</p>
-                    </div>
-                  </>
-                )}
+                  </div>
+                ))}
               </div>
-            </div>
+            ) : (
+              /* Formato Legado (Empresa Única) */
+              <div className="bg-white dark:bg-tellus-charcoal-700 border border-gray-200 dark:border-tellus-charcoal-600 rounded-lg p-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-tellus-gold-200">CNPJ</label>
+                    <p className="mt-1 text-sm text-gray-900 dark:text-tellus-gold-100">{preRegistration.companyCnpj || 'N/A'}</p>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-tellus-gold-200">Razão Social</label>
+                    <p className="mt-1 text-sm text-gray-900 dark:text-tellus-gold-100">{preRegistration.companyName || 'N/A'}</p>
+                  </div>
+                  {preRegistration.companyAddress && (
+                    <>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 dark:text-tellus-gold-200">Logradouro</label>
+                        <p className="mt-1 text-sm text-gray-900 dark:text-tellus-gold-100">{preRegistration.companyAddress.street || 'N/A'}</p>
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 dark:text-tellus-gold-200">Número</label>
+                        <p className="mt-1 text-sm text-gray-900 dark:text-tellus-gold-100">{preRegistration.companyAddress.number || 'N/A'}</p>
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 dark:text-tellus-gold-200">Complemento</label>
+                        <p className="mt-1 text-sm text-gray-900 dark:text-tellus-gold-100">{preRegistration.companyAddress.complement || 'N/A'}</p>
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 dark:text-tellus-gold-200">Bairro</label>
+                        <p className="mt-1 text-sm text-gray-900 dark:text-tellus-gold-100">{preRegistration.companyAddress.neighborhood || 'N/A'}</p>
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 dark:text-tellus-gold-200">Cidade</label>
+                        <p className="mt-1 text-sm text-gray-900 dark:text-tellus-gold-100">{preRegistration.companyAddress.city || 'N/A'}</p>
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 dark:text-tellus-gold-200">Estado</label>
+                        <p className="mt-1 text-sm text-gray-900 dark:text-tellus-gold-100">{preRegistration.companyAddress.state || 'N/A'}</p>
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 dark:text-tellus-gold-200">CEP</label>
+                        <p className="mt-1 text-sm text-gray-900 dark:text-tellus-gold-100">{preRegistration.companyAddress.zipCode || 'N/A'}</p>
+                      </div>
+                    </>
+                  )}
+                </div>
+              </div>
+            )}
           </div>
         )}
 
@@ -625,97 +787,210 @@ export function PreRegistrationDetailsModal({
             </h3>
             <div className="bg-white dark:bg-tellus-charcoal-700 border border-gray-200 dark:border-tellus-charcoal-600 rounded-lg p-4">
               <div className="space-y-4">
-                {preRegistration.uploadedDocuments.map((doc, index) => (
-                  <div key={doc.id || index} className="border border-gray-200 dark:border-tellus-charcoal-600 rounded-lg p-4">
-                    <div className="flex items-start justify-between">
-                      <div className="flex items-start space-x-3 flex-1">
-                        <div className="flex-shrink-0">
-                          <div className="w-10 h-10 bg-tellus-primary rounded-lg flex items-center justify-center">
-                            <FileText className="w-5 h-5 text-white" />
+                {/* Documentos Organizados (com título personalizado) */}
+                {preRegistration.uploadedDocuments.filter((doc: any) => doc.customTitle).length > 0 && (
+                  <div>
+                    <h4 className="text-sm font-semibold text-green-700 dark:text-green-400 mb-3 flex items-center">
+                      <TreePine className="w-4 h-4 mr-2" />
+                      📁 Documentos Organizados ({preRegistration.uploadedDocuments.filter((doc: any) => doc.customTitle).length})
+                    </h4>
+                    <div className="space-y-3">
+                      {preRegistration.uploadedDocuments
+                        .filter((doc: any) => doc.customTitle)
+                        .map((doc: any, index) => (
+                          <div key={doc.id || index} className="border-l-4 border-green-500 bg-green-50 dark:bg-green-900/20 rounded-lg p-4">
+                            <div className="flex items-start justify-between">
+                              <div className="flex items-start space-x-3 flex-1">
+                                <div className="flex-shrink-0">
+                                  <div className="w-10 h-10 bg-green-600 rounded-lg flex items-center justify-center">
+                                    <TreePine className="w-5 h-5 text-white" />
+                                  </div>
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                  <h5 className="text-sm font-bold text-green-900 dark:text-green-200 mb-1">
+                                    {doc.customTitle}
+                                  </h5>
+                                  <h6 className="text-xs text-gray-700 dark:text-tellus-gold-200 truncate mb-2">
+                                    📎 {doc.fileName}
+                                  </h6>
+                                  <div className="mt-1 space-y-1">
+                                    <span className="inline-block text-xs bg-green-200 dark:bg-green-800 text-green-900 dark:text-green-100 px-2 py-1 rounded font-medium">
+                                      {doc.documentType.replace(/_/g, ' ')}
+                                    </span>
+                                    <p className="text-xs text-gray-500 dark:text-tellus-gold-300">
+                                      <span className="font-medium">Tamanho:</span> {doc.fileSize ? (doc.fileSize / 1024 / 1024).toFixed(2) : 'N/A'} MB
+                                    </p>
+                                  </div>
+                                </div>
+                              </div>
+                              <div className="flex items-center space-x-2 ml-4">
+                                <button
+                                  onClick={async () => {
+                                    try {
+                                      const { DocumentViewerService } = await import('../../services/documentViewerService');
+                                      if (signedUrls[doc.id]) {
+                                        window.open(signedUrls[doc.id], '_blank');
+                                        return;
+                                      }
+                                      let filePath = '';
+                                      if (doc.url.includes('/storage/v1/object/sign/')) {
+                                        const urlParts = doc.url.split('/storage/v1/object/sign/');
+                                        if (urlParts.length > 1) {
+                                          const pathWithQuery = urlParts[1];
+                                          const pathOnly = pathWithQuery.split('?')[0];
+                                          const pathParts = pathOnly.split('/');
+                                          if (pathParts.length > 1) {
+                                            filePath = pathParts.slice(1).join('/');
+                                          }
+                                        }
+                                      } else if (doc.url.includes('/storage/v1/object/public/')) {
+                                        const urlParts = doc.url.split('/storage/v1/object/public/');
+                                        if (urlParts.length > 1) {
+                                          const pathWithBucket = urlParts[1];
+                                          const pathParts = pathWithBucket.split('/');
+                                          if (pathParts.length > 1) {
+                                            filePath = pathParts.slice(1).join('/');
+                                          }
+                                        }
+                                      } else if (doc.id && typeof doc.id === 'string' && !doc.id.startsWith('http')) {
+                                        filePath = doc.id;
+                                      }
+                                      if (filePath) {
+                                        const result = await DocumentViewerService.getSignedDocumentUrl(filePath);
+                                        if (result.signedUrl) {
+                                          window.open(result.signedUrl, '_blank');
+                                        } else {
+                                          window.open(doc.url, '_blank');
+                                        }
+                                      } else {
+                                        window.open(doc.url, '_blank');
+                                      }
+                                    } catch (error) {
+                                      console.error('Erro ao abrir documento:', error);
+                                      window.open(doc.url, '_blank');
+                                    }
+                                  }}
+                                  className="inline-flex items-center px-3 py-2 border border-gray-300 dark:border-tellus-charcoal-600 shadow-sm text-sm font-medium rounded-md text-gray-700 dark:text-tellus-gold-100 bg-white dark:bg-tellus-charcoal-700 hover:bg-gray-50 dark:hover:bg-tellus-charcoal-600"
+                                >
+                                  <Eye className="w-4 h-4 mr-2" />
+                                  Ver
+                                </button>
+                                <a
+                                  href={signedUrls[doc.id] || doc.url}
+                                  download={doc.fileName}
+                                  className="inline-flex items-center px-3 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-green-600 hover:bg-green-700"
+                                >
+                                  <FileText className="w-4 h-4 mr-2" />
+                                  Baixar
+                                </a>
+                              </div>
+                            </div>
                           </div>
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <h4 className="text-sm font-medium text-gray-900 dark:text-tellus-gold-100 truncate">
-                            {doc.fileName}
-                          </h4>
-                          <div className="mt-1 space-y-1">
-                            <p className="text-xs text-gray-500 dark:text-tellus-gold-300">
-                              <span className="font-medium">Tipo:</span> {doc.documentType}
-                            </p>
-                            <p className="text-xs text-gray-500 dark:text-tellus-gold-300">
-                              <span className="font-medium">Tamanho:</span> {(doc.fileSize / 1024 / 1024).toFixed(2)} MB
-                            </p>
-                            <p className="text-xs text-gray-500 dark:text-tellus-gold-300">
-                              <span className="font-medium">Enviado em:</span> {new Date(doc.uploadedAt).toLocaleDateString('pt-BR', {
-                                day: '2-digit',
-                                month: '2-digit',
-                                year: 'numeric',
-                                hour: '2-digit',
-                                minute: '2-digit'
-                              })}
-                            </p>
-                          </div>
-                        </div>
-                      </div>
-                      <div className="flex items-center space-x-2 ml-4">
-                        <button
-                          onClick={async () => {
-                            try {
-                              // Usar a mesma abordagem do CustomerDocumentManager
-                              const { DocumentViewerService } = await import('../../services/documentViewerService');
-                              
-                              // Se já temos uma URL assinada, usar ela
-                              if (signedUrls[doc.id]) {
-                                window.open(signedUrls[doc.id], '_blank');
-                                return;
-                              }
-                              
-                              // Se não, gerar uma nova URL assinada
-                              let filePath = '';
-                              
-                              // Extrair o caminho do arquivo da URL
-                              if (doc.url.includes('/storage/v1/object/sign/')) {
-                                const urlParts = doc.url.split('/storage/v1/object/sign/');
-                                if (urlParts.length > 1) {
-                                  const pathWithQuery = urlParts[1];
-                                  const pathOnly = pathWithQuery.split('?')[0];
-                                  const pathParts = pathOnly.split('/');
-                                  if (pathParts.length > 1) {
-                                    filePath = pathParts.slice(1).join('/');
-                                  }
-                                }
-                              } else if (doc.url.includes('/storage/v1/object/public/')) {
-                                const urlParts = doc.url.split('/storage/v1/object/public/');
-                                if (urlParts.length > 1) {
-                                  const pathWithBucket = urlParts[1];
-                                  const pathParts = pathWithBucket.split('/');
-                                  if (pathParts.length > 1) {
-                                    filePath = pathParts.slice(1).join('/');
-                                  }
-                                }
-                              } else if (doc.id && typeof doc.id === 'string' && !doc.id.startsWith('http')) {
-                                filePath = doc.id;
-                              }
-                              
-                              if (filePath) {
-                                const result = await DocumentViewerService.getSignedDocumentUrl(filePath);
-                                if (result.signedUrl) {
-                                  window.open(result.signedUrl, '_blank');
-                                } else {
-                                  console.error('Falha ao gerar URL assinada:', result.error);
-                                  // Fallback: usar URL original
-                                  window.open(doc.url, '_blank');
-                                }
-                              } else {
-                                // Fallback: usar URL original
-                                window.open(doc.url, '_blank');
-                              }
-                            } catch (error) {
-                              console.error('Erro ao abrir documento:', error);
-                              // Fallback: usar URL original
-                              window.open(doc.url, '_blank');
-                            }
-                          }}
+                        ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Documentos Padrão */}
+                {preRegistration.uploadedDocuments.filter((doc: any) => !doc.customTitle).length > 0 && (
+                  <div>
+                    <h4 className="text-sm font-semibold text-blue-700 dark:text-blue-400 mb-3 flex items-center">
+                      <FileText className="w-4 h-4 mr-2" />
+                      📋 Documentos Padrão ({preRegistration.uploadedDocuments.filter((doc: any) => !doc.customTitle).length})
+                    </h4>
+                    <div className="space-y-3">
+                      {preRegistration.uploadedDocuments
+                        .filter((doc: any) => !doc.customTitle)
+                        .map((doc, index) => (
+                          <div key={doc.id || index} className="border border-gray-200 dark:border-tellus-charcoal-600 rounded-lg p-4">
+                            <div className="flex items-start justify-between">
+                              <div className="flex items-start space-x-3 flex-1">
+                                <div className="flex-shrink-0">
+                                  <div className="w-10 h-10 bg-tellus-primary rounded-lg flex items-center justify-center">
+                                    <FileText className="w-5 h-5 text-white" />
+                                  </div>
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                  <h4 className="text-sm font-medium text-gray-900 dark:text-tellus-gold-100 truncate">
+                                    {doc.fileName}
+                                  </h4>
+                                  <div className="mt-1 space-y-1">
+                                    <p className="text-xs text-gray-500 dark:text-tellus-gold-300">
+                                      <span className="font-medium">Tipo:</span> {doc.documentType}
+                                    </p>
+                                    <p className="text-xs text-gray-500 dark:text-tellus-gold-300">
+                                      <span className="font-medium">Tamanho:</span> {doc.fileSize ? (doc.fileSize / 1024 / 1024).toFixed(2) : 'N/A'} MB
+                                    </p>
+                                    <p className="text-xs text-gray-500 dark:text-tellus-gold-300">
+                                      <span className="font-medium">Enviado em:</span> {new Date(doc.uploadedAt).toLocaleDateString('pt-BR', {
+                                        day: '2-digit',
+                                        month: '2-digit',
+                                        year: 'numeric',
+                                        hour: '2-digit',
+                                        minute: '2-digit'
+                                      })}
+                                    </p>
+                                  </div>
+                                </div>
+                              </div>
+                              <div className="flex items-center space-x-2 ml-4">
+                                <button
+                                  onClick={async () => {
+                                    try {
+                                      const { DocumentViewerService } = await import('../../services/documentViewerService');
+                                      
+                                      // Se já temos uma URL assinada, usar ela
+                                      if (signedUrls[doc.id]) {
+                                        window.open(signedUrls[doc.id], '_blank');
+                                        return;
+                                      }
+                                      
+                                      // Se não, gerar uma nova URL assinada
+                                      let filePath = '';
+                                      
+                                      // Extrair o caminho do arquivo da URL
+                                      if (doc.url.includes('/storage/v1/object/sign/')) {
+                                        const urlParts = doc.url.split('/storage/v1/object/sign/');
+                                        if (urlParts.length > 1) {
+                                          const pathWithQuery = urlParts[1];
+                                          const pathOnly = pathWithQuery.split('?')[0];
+                                          const pathParts = pathOnly.split('/');
+                                          if (pathParts.length > 1) {
+                                            filePath = pathParts.slice(1).join('/');
+                                          }
+                                        }
+                                      } else if (doc.url.includes('/storage/v1/object/public/')) {
+                                        const urlParts = doc.url.split('/storage/v1/object/public/');
+                                        if (urlParts.length > 1) {
+                                          const pathWithBucket = urlParts[1];
+                                          const pathParts = pathWithBucket.split('/');
+                                          if (pathParts.length > 1) {
+                                            filePath = pathParts.slice(1).join('/');
+                                          }
+                                        }
+                                      } else if (doc.id && typeof doc.id === 'string' && !doc.id.startsWith('http')) {
+                                        filePath = doc.id;
+                                      }
+                                      
+                                      if (filePath) {
+                                        const result = await DocumentViewerService.getSignedDocumentUrl(filePath);
+                                        if (result.signedUrl) {
+                                          window.open(result.signedUrl, '_blank');
+                                        } else {
+                                          console.error('Falha ao gerar URL assinada:', result.error);
+                                          // Fallback: usar URL original
+                                          window.open(doc.url, '_blank');
+                                        }
+                                      } else {
+                                        // Fallback: usar URL original
+                                        window.open(doc.url, '_blank');
+                                      }
+                                    } catch (error) {
+                                      console.error('Erro ao abrir documento:', error);
+                                      // Fallback: usar URL original
+                                      window.open(doc.url, '_blank');
+                                    }
+                                  }}
                           className="inline-flex items-center px-3 py-2 border border-gray-300 dark:border-tellus-charcoal-600 shadow-sm text-sm font-medium rounded-md text-gray-700 dark:text-tellus-gold-100 bg-white dark:bg-tellus-charcoal-700 hover:bg-gray-50 dark:hover:bg-tellus-charcoal-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-tellus-primary"
                         >
                           <Eye className="w-4 h-4 mr-2" />
@@ -735,8 +1010,11 @@ export function PreRegistrationDetailsModal({
                 ))}
               </div>
             </div>
-          </div>
-        )}
+          )}
+        </div>
+        </div>
+      </div>
+      )}
 
         {/* Observações */}
         {preRegistration.notes && (

@@ -1,6 +1,6 @@
 import React from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { Users, Activity, LogOut, User, FileText, X, Home } from 'lucide-react';
+import { Users, Activity, LogOut, User, FileText, X, Home, Search } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 
 interface SidebarProps {
@@ -55,7 +55,6 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
               </div>
               <div>
                 <h1 className="text-lg font-bold text-tellus-charcoal-900 dark:text-dark-text">Tellure</h1>
-                <p className="text-xs text-tellus-gold-600 dark:text-dark-accent font-medium">CRM</p>
               </div>
             </div>
             
@@ -104,6 +103,18 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
             >
               <FileText className="w-5 h-5" />
               <span>Pré-Cadastros</span>
+            </button>
+
+            <button
+              onClick={() => handleNavigation('/consultas')}
+              className={`w-full flex items-center space-x-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors shadow-sm ${
+                isActive('/consultas')
+                  ? 'bg-gradient-to-r from-tellus-primary to-tellus-gold-600 text-white shadow-md'
+                  : 'text-tellus-charcoal-600 dark:text-dark-textSecondary hover:bg-tellus-gold-50 dark:hover:bg-dark-surfaceLight hover:text-tellus-primary dark:hover:text-dark-accent'
+              }`}
+            >
+              <Search className="w-5 h-5" />
+              <span>Consultas</span>
             </button>
           </nav>
 

@@ -75,8 +75,24 @@ export const LeadSchema = z.object({
   hasSpouseTaxReturn: z.boolean().optional(),
   hasSpouseBankStatements: z.boolean().optional(),
   
-  // Dados da Pessoa Jurídica
+  // Dados da Pessoa Jurídica (suporta múltiplas empresas)
   hasCompany: z.boolean().optional(),
+  companies: z.array(z.object({
+    id: z.string().optional(),
+    cnpj: z.string().min(14, 'CNPJ deve ter 14 dígitos'),
+    name: z.string().min(2, 'Razão Social deve ter pelo menos 2 caracteres'),
+    address: z.object({
+      street: z.string().min(1, 'Rua é obrigatória'),
+      number: z.string().min(1, 'Número é obrigatório'),
+      complement: z.string().optional(),
+      neighborhood: z.string().min(1, 'Bairro é obrigatório'),
+      city: z.string().min(1, 'Cidade é obrigatória'),
+      state: z.string().length(2, 'Estado deve ter 2 caracteres'),
+      zipCode: z.string().regex(/^\d{8}$/, 'CEP deve ter 8 dígitos')
+    })
+  })).optional(),
+  
+  // Campos legados (mantidos para compatibilidade, serão migrados)
   companyCnpj: z.string().optional(),
   companyName: z.string().optional(),
   companyAddress: z.object({

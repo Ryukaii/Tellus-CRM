@@ -4,7 +4,7 @@ import {
   ArrowLeft, User, Mail, Phone, MapPin, Building, DollarSign, 
   Calendar, Heart, FileText, Share2, Edit, Trash2, Eye,
   AlertCircle, CheckCircle, Clock, Download, Loader2, Upload,
-  Briefcase, MessageSquare
+  Briefcase, MessageSquare, TreePine, Tractor, Receipt
 } from 'lucide-react';
 import { Button } from '../UI/Button';
 import { LoadingSpinner } from '../UI/LoadingSpinner';
@@ -245,6 +245,45 @@ export const CustomerDetailsPage: React.FC = () => {
     };
     
     return sourceMap[source || ''] || source || 'Não informado';
+  };
+
+  const getRuralPropertyTypeLabel = (type?: string) => {
+    const types: Record<string, string> = {
+      propria: 'Própria',
+      arrendada: 'Arrendada',
+      comodato: 'Comodato',
+      parceria: 'Parceria'
+    };
+    return types[type || ''] || 'N/A';
+  };
+
+  const getCreditLineLabel = (line?: string) => {
+    const lines: Record<string, string> = {
+      pronaf: 'PRONAF - Agricultura Familiar',
+      pronamp: 'PRONAMP - Médio Produtor',
+      moderfrota: 'MODERFROTA - Modernização de Frota',
+      custeio_geral: 'Custeio Geral',
+      investimento_geral: 'Investimento Geral'
+    };
+    return lines[line || ''] || 'N/A';
+  };
+
+  const getCreditPurposeLabel = (purpose?: string) => {
+    const purposes: Record<string, string> = {
+      custeio: 'Custeio',
+      investimento: 'Investimento',
+      comercializacao: 'Comercialização',
+      industrializacao: 'Industrialização'
+    };
+    return purposes[purpose || ''] || 'N/A';
+  };
+
+  const shouldShowRuralPropertySection = () => {
+    return customer?.source === 'lead_agro' ||
+           (customer as any)?.hasRuralProperty ||
+           (customer as any)?.ruralPropertyCity ||
+           (customer as any)?.creditLine ||
+           (customer as any)?.creditPurpose;
   };
 
   if (loading) {
@@ -648,6 +687,80 @@ export const CustomerDetailsPage: React.FC = () => {
                 </div>
               </div>
             </div>
+
+            {/* Propriedade Rural e Crédito - apenas para origem agro */}
+            {shouldShowRuralPropertySection() && (
+              <div className="bg-white rounded-lg shadow-sm border dark:bg-dark-card dark:border-dark-border">
+                <div className="px-4 sm:px-6 py-3 sm:py-4 border-b dark:border-dark-border">
+                  <h2 className="text-base sm:text-lg font-semibold text-gray-900 flex items-center dark:text-dark-text">
+                    <TreePine className="w-4 h-4 sm:w-5 sm:h-5 mr-2 text-green-600 dark:text-green-400" />
+                    Propriedade Rural e Crédito
+                  </h2>
+                </div>
+                <div className="p-4 sm:p-6">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
+                    {/* Dados da Propriedade */}
+                    {(customer as any)?.ruralPropertyType && (
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1 dark:text-dark-textSecondary">Tipo de Propriedade</label>
+                        <p className="text-gray-900 dark:text-dark-text">
+                          {getRuralPropertyTypeLabel((customer as any).ruralPropertyType)}
+                        </p>
+                      </div>
+                    )}
+
+                    {(customer as any)?.ruralPropertySize && (
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1 dark:text-dark-textSecondary">Tamanho da Propriedade</label>
+                        <p className="text-gray-900 dark:text-dark-text">
+                          {(customer as any).ruralPropertySize} hectares
+                        </p>
+                      </div>
+                    )}
+
+                    {(customer as any)?.ruralPropertyCity && (
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1 dark:text-dark-textSecondary">Cidade da Propriedade</label>
+                        <p className="text-gray-900 dark:text-dark-text">{(customer as any).ruralPropertyCity}</p>
+                      </div>
+                    )}
+
+                    {(customer as any)?.ruralPropertyState && (
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1 dark:text-dark-textSecondary">Estado da Propriedade</label>
+                        <p className="text-gray-900 dark:text-dark-text">{(customer as any).ruralPropertyState}</p>
+                      </div>
+                    )}
+
+                    {/* Linha de Crédito */}
+                    {(customer as any)?.creditLine && (
+                      <div className="sm:col-span-2">
+                        <label className="block text-sm font-medium text-gray-700 mb-1 dark:text-dark-textSecondary">Linha de Crédito</label>
+                        <div className="flex items-center space-x-2">
+                          <Tractor className="w-4 h-4 text-green-600 dark:text-green-400" />
+                          <span className="text-gray-900 font-medium dark:text-dark-text">
+                            {getCreditLineLabel((customer as any).creditLine)}
+                          </span>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Finalidade do Crédito */}
+                    {(customer as any)?.creditPurpose && (
+                      <div className="sm:col-span-2">
+                        <label className="block text-sm font-medium text-gray-700 mb-1 dark:text-dark-textSecondary">Finalidade do Crédito</label>
+                        <div className="flex items-center space-x-2">
+                          <Receipt className="w-4 h-4 text-purple-600 dark:text-purple-400" />
+                          <span className="text-gray-900 font-medium dark:text-dark-text">
+                            {getCreditPurposeLabel((customer as any).creditPurpose)}
+                          </span>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            )}
 
             {/* Documentos */}
             <div className="bg-white rounded-lg shadow-sm border dark:bg-dark-card dark:border-dark-border">

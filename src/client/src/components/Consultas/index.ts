@@ -1,0 +1,2 @@
+export { Consultas } from './Consultas';
+

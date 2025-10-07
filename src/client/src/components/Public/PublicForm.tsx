@@ -231,7 +231,7 @@ export function PublicForm() {
               <Activity className="w-5 h-5 text-white" />
             </div>
             <div>
-              <h1 className="text-xl font-bold text-tellus-dark">Tellure CRM</h1>
+              <h1 className="text-xl font-bold text-tellus-dark">Tellure</h1>
               <p className="text-xs text-gray-500">Crédito Imobiliário</p>
             </div>
           </div>

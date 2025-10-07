@@ -36,7 +36,7 @@ const isPublic = isPublicRoute();
 
 // Atualizar título da página para rota pública e forçar tema light
 if (isPublic) {
-  document.title = 'Tellure CRM - Pré-Cadastro Crédito Imobiliário';
+  document.title = 'Tellure - Pré-Cadastro Crédito Imobiliário';
   // Forçar tema light para formulários públicos
   document.documentElement.classList.remove('dark');
   document.documentElement.classList.add('light');

@@ -4,12 +4,11 @@ import { Button } from '../UI/Button';
 import { Input } from '../UI/Input';
 import { LoadingSpinner } from '../UI/LoadingSpinner';
 import { DocumentUpload } from '../UI/DocumentUpload';
-import { PreRegistrationApi } from '../../services/preRegistrationApi';
+import { CustomDocumentUpload } from '../UI/CustomDocumentUpload';
+import { agroDocumentCategories } from '../../data/documentCategories';
 import { CPFService } from '../../services/cpfService';
 import { CepService } from '../../services/cepService';
 import { StateSelect } from '../UI/StateSelect';
-import { CPFValidationService, ExistingCustomerData } from '../../services/cpfValidationService';
-import { ExistingCustomerModal } from '../UI/ExistingCustomerModal';
 
 interface FormData {
   // Dados Pessoais
@@ -38,11 +37,6 @@ interface FormData {
   monthlyIncome: number;
   companyName: string;
   
-  // Dados do Imóvel
-  propertyValue: number;
-  propertyType: string;
-  propertyCity: string;
-  propertyState: string;
   
   // Gov.br
   govPassword: string;
@@ -104,11 +98,9 @@ interface FormData {
 export function LeadFormAgro() {
   const [currentStep, setCurrentStep] = useState(1);
   const [loading, setLoading] = useState(false);
-  const [initialLoading, setInitialLoading] = useState(true);
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [showGovPassword, setShowGovPassword] = useState(false);
-  const [sessionId, setSessionId] = useState<string | null>(null);
   const [showInstructions, setShowInstructions] = useState(true);
   const [acceptedTerms, setAcceptedTerms] = useState(false);
   const [activeTab, setActiveTab] = useState(0);
@@ -122,10 +114,6 @@ export function LeadFormAgro() {
   const [cepConsulted, setCepConsulted] = useState(false);
   const [cepValid, setCepValid] = useState(false);
   const [cepNotFound, setCepNotFound] = useState(false);
-  
-  // Estados para validação de CPF existente
-  const [existingCustomerModal, setExistingCustomerModal] = useState(false);
-  const [existingCustomerData, setExistingCustomerData] = useState<ExistingCustomerData | null>(null);
 
   const [formData, setFormData] = useState<FormData>({
     name: '',
@@ -148,10 +136,6 @@ export function LeadFormAgro() {
     employmentType: 'clt',
     monthlyIncome: 0,
     companyName: '',
-    propertyValue: 0,
-    propertyType: 'apartamento',
-    propertyCity: '',
-    propertyState: '',
     govPassword: '',
     hasTwoFactorDisabled: false,
     hasSpouse: false,
@@ -185,12 +169,12 @@ export function LeadFormAgro() {
     notes: ''
   });
 
-  const totalSteps = 7; // 1-Dados Pessoais, 2-Endereço, 3-Profissional, 4-Imóvel, 5-Cônjuge, 6-Gov.br, 7-Documentos
+  const totalSteps = 6; // 1-Dados Pessoais, 2-Endereço, 3-Profissional, 4-Cônjuge, 5-Gov.br, 6-Documentos
 
   // Determinar qual é realmente a última etapa (documentos)
   const isLastStep = React.useMemo(() => {
-    // A última etapa é sempre documentos (etapa 7)
-    return currentStep === 7;
+    // A última etapa é sempre documentos (etapa 6)
+    return currentStep === 6;
   }, [currentStep]);
 
   // Corrigir etapa inválida
@@ -201,115 +185,9 @@ export function LeadFormAgro() {
     }
   }, [currentStep, totalSteps]);
 
-  // Carregar progresso salvo ao inicializar
+  // Inicialização simples - sempre começa do zero
   useEffect(() => {
-    const loadProgress = async () => {
-      try {
-        setInitialLoading(true);
-        const preRegistration = await PreRegistrationApi.getOrCreatePreRegistration();
-        
-        setSessionId(preRegistration.sessionId);
-        setCurrentStep(preRegistration.currentStep || 1);
-        
-        // Se já há progresso salvo, não mostrar instruções
-        if (preRegistration.currentStep && preRegistration.currentStep > 1) {
-          setShowInstructions(false);
-        }
-        
-        // Carregar dados salvos se existirem
-        if (preRegistration.personalData) {
-          setFormData(prev => ({
-            ...prev,
-            name: preRegistration.personalData?.name || '',
-            email: preRegistration.personalData?.email || '',
-            phone: preRegistration.personalData?.phone || '',
-            cpf: preRegistration.personalData?.cpf || '',
-            birthDate: preRegistration.personalData?.birthDate || ''
-          }));
-        }
-        
-        if (preRegistration.address) {
-          setFormData(prev => ({
-            ...prev,
-            address: {
-              ...prev.address,
-              ...preRegistration.address
-            }
-          }));
-        }
-        
-        if (preRegistration.professionalData) {
-          setFormData(prev => ({
-            ...prev,
-            profession: preRegistration.professionalData?.profession || '',
-            employmentType: preRegistration.professionalData?.employmentType || 'clt',
-            monthlyIncome: preRegistration.professionalData?.monthlyIncome || 0,
-            companyName: preRegistration.professionalData?.companyName || ''
-          }));
-        }
-        
-        if (preRegistration.propertyData) {
-          setFormData(prev => ({
-            ...prev,
-            propertyValue: preRegistration.propertyData?.propertyValue || 0,
-            propertyType: preRegistration.propertyData?.propertyType || 'apartamento',
-            propertyCity: preRegistration.propertyData?.propertyCity || '',
-            propertyState: preRegistration.propertyData?.propertyState || ''
-          }));
-        }
-        
-        if (preRegistration.documents) {
-          setFormData(prev => ({
-            ...prev,
-            hasRG: preRegistration.documents?.hasRG || true,
-            hasCPF: preRegistration.documents?.hasCPF || true,
-            hasAddressProof: preRegistration.documents?.hasAddressProof || false,
-            hasIncomeProof: preRegistration.documents?.hasIncomeProof || false,
-            hasMaritalStatusProof: preRegistration.documents?.hasMaritalStatusProof || false,
-            hasCompanyDocs: preRegistration.documents?.hasCompanyDocs || false,
-            hasTaxReturn: preRegistration.documents?.hasTaxReturn || false,
-            hasBankStatements: preRegistration.documents?.hasBankStatements || false
-          }));
-        }
-        
-        if (preRegistration.maritalStatus) {
-          setFormData(prev => ({
-            ...prev,
-            maritalStatus: preRegistration.maritalStatus
-          }));
-        }
-        
-        if (preRegistration.spouseData) {
-          setFormData(prev => ({
-            ...prev,
-            hasSpouse: preRegistration.spouseData?.hasSpouse || false,
-            spouseName: preRegistration.spouseData?.spouseName || '',
-            spouseCpf: preRegistration.spouseData?.spouseCpf || '',
-            spouseRg: preRegistration.spouseData?.spouseRg || '',
-            spouseBirthDate: preRegistration.spouseData?.spouseBirthDate || '',
-            spouseProfession: preRegistration.spouseData?.spouseProfession || '',
-            spouseEmploymentType: preRegistration.spouseData?.spouseEmploymentType || 'clt',
-            spouseMonthlyIncome: preRegistration.spouseData?.spouseMonthlyIncome || null,
-            spouseCompanyName: preRegistration.spouseData?.spouseCompanyName || ''
-          }));
-        }
-        
-        if (preRegistration.notes) {
-          setFormData(prev => ({
-            ...prev,
-            notes: preRegistration.notes
-          }));
-        }
-        
-      } catch (error) {
-        console.error('Error loading progress:', error);
-        setError('Erro ao carregar progresso salvo');
-      } finally {
-        setInitialLoading(false);
-      }
-    };
-
-    loadProgress();
+    setCurrentStep(1);
   }, []);
 
   const handleChange = (field: string, value: any) => {
@@ -555,236 +433,29 @@ export function LeadFormAgro() {
 
   // RG não tem formatação específica pois cada estado tem formato diferente
 
-  // Validar CPF e verificar se já existe no sistema
-  const validateCPFAndCheckExisting = async () => {
-    const cleanCPF = formData.cpf.replace(/\D/g, '');
-    
-    if (!validateCPF(cleanCPF)) {
-      return {
-        exists: false,
-        canProceed: false,
-        message: 'CPF inválido'
-      };
-    }
-
-    try {
-      const result = await CPFValidationService.validateCPF(cleanCPF, 'agro');
-      return result;
-    } catch (error) {
-      console.error('Error validating CPF:', error);
-      return {
-        exists: false,
-        canProceed: true,
-        message: 'Erro ao verificar CPF. Tente novamente.'
-      };
-    }
-  };
-
-  // Funções para lidar com o modal de cliente existente
-  const handleAddProcess = async () => {
-    if (!existingCustomerData) return;
-    
-    try {
-      setLoading(true);
-      const cleanCPF = formData.cpf.replace(/\D/g, '');
-      
-      // Adicionar processo ao cliente existente
-      await CPFValidationService.addProcessToExistingCustomer(cleanCPF, 'agro');
-      
-      // Preencher dados do cliente existente
-      setFormData(prev => ({
-        ...prev,
-        name: existingCustomerData.name,
-        email: existingCustomerData.email,
-        phone: existingCustomerData.phone
-      }));
-      
-      setExistingCustomerModal(false);
-      setExistingCustomerData(null);
-      
-      // Continuar para próxima etapa
-      const stepData = getCurrentStepData();
-      await PreRegistrationApi.nextStep(stepData);
-      setCurrentStep(currentStep + 1);
-      setError(null);
-    } catch (error) {
-      console.error('Error adding process:', error);
-      setError('Erro ao adicionar processo. Tente novamente.');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleContinueAnyway = async () => {
-    try {
-      setLoading(true);
-      setExistingCustomerModal(false);
-      setExistingCustomerData(null);
-      
-      // Continuar normalmente
-      const stepData = getCurrentStepData();
-      await PreRegistrationApi.nextStep(stepData);
-      setCurrentStep(currentStep + 1);
-      setError(null);
-    } catch (error) {
-      console.error('Error continuing:', error);
-      setError('Erro ao continuar. Tente novamente.');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const nextStep = async () => {
+  const nextStep = () => {
     if (!isLastStep) {
-      try {
-        setLoading(true);
-        
-        // Se está no passo 1 (dados pessoais), verificar CPF
-        if (currentStep === 1) {
-          const cpfValidation = await validateCPFAndCheckExisting();
-          if (!cpfValidation.canProceed) {
-            setError(cpfValidation.message || 'CPF já cadastrado');
-            setLoading(false);
-            return;
-          }
-          
-          // Se CPF existe mas pode adicionar processo, mostrar modal
-          if (cpfValidation.exists && cpfValidation.customerData) {
-            setExistingCustomerData(cpfValidation.customerData);
-            setExistingCustomerModal(true);
-            setLoading(false);
-            return;
-          }
+      // Validação básica antes de avançar
+      if (currentStep === 1) {
+        // Validar dados pessoais
+        if (!formData.name || !formData.email || !formData.phone || !formData.cpf || !validateCPF(formData.cpf)) {
+          setError('Por favor, preencha todos os campos obrigatórios corretamente');
+          return;
         }
-        
-        // Salvar dados da etapa atual
-        const stepData = getCurrentStepData();
-        await PreRegistrationApi.nextStep(stepData);
-        
-        setCurrentStep(currentStep + 1);
-        setError(null);
-      } catch (error) {
-        console.error('Error saving step:', error);
-        setError('Erro ao salvar progresso');
-      } finally {
-        setLoading(false);
       }
+      
+      setCurrentStep(currentStep + 1);
+      setError(null);
     } else {
       // Se está na última etapa (documentos), finalizar
       handleSubmit();
     }
   };
 
-  const prevStep = async () => {
+  const prevStep = () => {
     if (currentStep > 1) {
-      try {
-        setLoading(true);
-        await PreRegistrationApi.previousStep();
-        setCurrentStep(currentStep - 1);
-        setError(null);
-      } catch (error) {
-        console.error('Error going to previous step:', error);
-        setError('Erro ao voltar etapa');
-      } finally {
-        setLoading(false);
-      }
-    }
-  };
-
-  const getCurrentStepData = () => {
-    switch (currentStep) {
-      case 1:
-        return {
-          personalData: {
-            name: formData.name,
-            email: formData.email,
-            phone: formData.phone,
-            cpf: formData.cpf,
-            rg: formData.rg,
-            birthDate: formData.birthDate
-          },
-          maritalStatus: formData.maritalStatus
-        };
-      case 2:
-        return {
-          address: formData.address
-        };
-      case 3:
-        return {
-          professionalData: {
-            profession: formData.profession,
-            employmentType: formData.employmentType,
-            monthlyIncome: formData.monthlyIncome,
-            companyName: formData.companyName
-          }
-        };
-      case 4:
-        return {
-          propertyData: {
-            propertyValue: formData.propertyValue,
-            propertyType: formData.propertyType,
-            propertyCity: formData.propertyCity,
-            propertyState: formData.propertyState
-          }
-        };
-      case 5:
-        return {
-          spouseData: {
-            hasSpouse: formData.hasSpouse,
-            spouseName: formData.spouseName,
-            spouseCpf: formData.spouseCpf,
-            spouseRg: formData.spouseRg,
-            spouseBirthDate: formData.spouseBirthDate,
-            spouseProfession: formData.spouseProfession,
-            spouseEmploymentType: formData.spouseEmploymentType,
-            spouseMonthlyIncome: formData.spouseMonthlyIncome,
-            spouseCompanyName: formData.spouseCompanyName
-          }
-        };
-      case 6:
-        return {
-          govCredentials: {
-          govPassword: formData.govPassword,
-          hasTwoFactorDisabled: formData.hasTwoFactorDisabled
-          }
-        };
-      case 7:
-        return {
-          documents: {
-            hasRG: formData.hasRG,
-            hasCPF: formData.hasCPF,
-            hasAddressProof: formData.hasAddressProof,
-            hasMaritalStatusProof: formData.hasMaritalStatusProof,
-            hasCompanyDocs: formData.hasCompanyDocs,
-            hasContractSocial: formData.hasContractSocial,
-            hasCNPJ: formData.hasCNPJ,
-            hasIncomeProof: formData.hasIncomeProof,
-            hasTaxReturn: formData.hasTaxReturn,
-            hasBankStatements: formData.hasBankStatements,
-            hasSpouseRG: formData.hasSpouseRG,
-            hasSpouseCPF: formData.hasSpouseCPF,
-            hasSpouseAddressProof: formData.hasSpouseAddressProof,
-            hasSpouseMaritalStatusProof: formData.hasSpouseMaritalStatusProof,
-            hasSpouseIncomeProof: formData.hasSpouseIncomeProof,
-            hasSpouseTaxReturn: formData.hasSpouseTaxReturn,
-            hasSpouseBankStatements: formData.hasSpouseBankStatements
-          },
-          spouseData: {
-          hasSpouse: formData.hasSpouse,
-          spouseName: formData.spouseName,
-          spouseCpf: formData.spouseCpf,
-            spouseRg: formData.spouseRg,
-            spouseBirthDate: formData.spouseBirthDate,
-            spouseProfession: formData.spouseProfession,
-            spouseEmploymentType: formData.spouseEmploymentType,
-            spouseMonthlyIncome: formData.spouseMonthlyIncome,
-            spouseCompanyName: formData.spouseCompanyName
-          },
-          uploadedDocuments: formData.documents,
-          notes: formData.notes
-        };
-      default:
-        return {};
+      setCurrentStep(currentStep - 1);
+      setError(null);
     }
   };
 
@@ -846,12 +517,7 @@ export function LeadFormAgro() {
                formData.monthlyIncome && formData.monthlyIncome > 0 && 
                formData.monthlyIncome >= 1000; // Renda mínima de R$ 1.000
       case 4:
-        return formData.propertyValue > 0 && 
-               formData.propertyValue >= 50000 && // Valor mínimo de R$ 50.000
-               formData.propertyCity.trim().length >= 2 && 
-               formData.propertyState.trim().length === 2;
-      case 5:
-        // Se tem cônjuge, valida os campos obrigatórios do cônjuge
+        // Step 4: Dados do Cônjuge
         if (formData.hasSpouse) {
           const baseValidation = formData.spouseName.trim().length >= 2 && 
                  validateCPF(formData.spouseCpf) && 
@@ -872,10 +538,10 @@ export function LeadFormAgro() {
           return baseValidation;
         }
         return true; // Se não tem cônjuge, etapa é válida
-      case 6:
+      case 5:
         return formData.govPassword.trim().length >= 6 && 
                formData.hasTwoFactorDisabled;
-      case 7:
+      case 6:
         return true; // Documentos são opcionais
       default:
         return true;
@@ -887,37 +553,79 @@ export function LeadFormAgro() {
     setError(null);
 
     try {
-      // Primeiro salva os dados da última etapa
-      const stepData = getCurrentStepData();
-      await PreRegistrationApi.nextStep(stepData);
-      
-      // Depois finaliza o pré-cadastro (converte para lead)
-      await PreRegistrationApi.completePreRegistration('lead_agro');
+      // Preparar dados do lead
+      const leadData = {
+        name: formData.name,
+        email: formData.email,
+        phone: formData.phone,
+        cpf: formData.cpf,
+        rg: formData.rg,
+        birthDate: formData.birthDate,
+        maritalStatus: formData.maritalStatus,
+        address: formData.address,
+        profession: formData.profession,
+        employmentType: formData.employmentType,
+        monthlyIncome: formData.monthlyIncome,
+        companyName: formData.companyName,
+        hasSpouse: formData.hasSpouse,
+        spouseName: formData.spouseName,
+        spouseCpf: formData.spouseCpf,
+        spouseRg: formData.spouseRg,
+        spouseBirthDate: formData.spouseBirthDate,
+        spouseProfession: formData.spouseProfession,
+        spouseEmploymentType: formData.spouseEmploymentType,
+        spouseMonthlyIncome: formData.spouseMonthlyIncome,
+        spouseCompanyName: formData.spouseCompanyName,
+        govPassword: formData.govPassword,
+        hasTwoFactorDisabled: formData.hasTwoFactorDisabled,
+        // Documentos pessoais
+        hasRG: formData.hasRG,
+        hasCPF: formData.hasCPF,
+        hasAddressProof: formData.hasAddressProof,
+        hasMaritalStatusProof: formData.hasMaritalStatusProof,
+        // Documentos empresariais
+        hasCompanyDocs: formData.hasCompanyDocs,
+        hasContractSocial: formData.hasContractSocial,
+        hasCNPJ: formData.hasCNPJ,
+        // Comprovação de renda
+        hasIncomeProof: formData.hasIncomeProof,
+        hasTaxReturn: formData.hasTaxReturn,
+        hasBankStatements: formData.hasBankStatements,
+        // Documentos do cônjuge
+        hasSpouseRG: formData.hasSpouseRG,
+        hasSpouseCPF: formData.hasSpouseCPF,
+        hasSpouseAddressProof: formData.hasSpouseAddressProof,
+        hasSpouseMaritalStatusProof: formData.hasSpouseMaritalStatusProof,
+        hasSpouseIncomeProof: formData.hasSpouseIncomeProof,
+        hasSpouseTaxReturn: formData.hasSpouseTaxReturn,
+        hasSpouseBankStatements: formData.hasSpouseBankStatements,
+        uploadedDocuments: formData.documents,
+        notes: formData.notes,
+        type: 'agro',
+        source: 'lead_agro'
+      };
+
+      // Enviar para API
+      const response = await fetch('/api/pre-registration', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(leadData),
+      });
+
+      if (!response.ok) {
+        throw new Error('Erro ao enviar formulário');
+      }
       
       setSuccess(true);
     } catch (err) {
-      console.error('Error completing pre-registration:', err);
+      console.error('Error submitting form:', err);
       setError('Erro ao finalizar cadastro. Tente novamente.');
     } finally {
       setLoading(false);
     }
   };
-
-  if (initialLoading) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
-        <div className="card max-w-md w-full text-center">
-          <div className="card-content">
-            <LoadingSpinner size="lg" />
-            <h2 className="text-xl font-bold text-gray-900 mt-4">Carregando...</h2>
-            <p className="text-gray-600 mt-2">
-              Recuperando seu progresso salvo...
-            </p>
-          </div>
-        </div>
-      </div>
-    );
-  }
 
   if (success) {
     return (
@@ -954,30 +662,10 @@ export function LeadFormAgro() {
               Processo rápido e seguro para análise de crédito rural
             </p>
             
-            {sessionId && (
-              <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-4 mb-6">
-                <p className="text-sm text-tellus-gold-100 mb-1">Número da Sessão</p>
-                <div className="space-y-2">
-                  <div className="bg-white/5 rounded-lg p-3">
-                    <p className="text-xs font-mono text-white font-bold break-all leading-tight text-center">
-                      {sessionId}
-                    </p>
-                  </div>
-                  <p className="text-xs text-blue-200/70 text-center">
-                    Guarde este número para referência
-                  </p>
-                </div>
-              </div>
-            )}
-
             <div className="space-y-4">
               <div className="flex items-center space-x-3 text-white/90">
                 <CheckCircle className="w-5 h-5 text-green-300" />
                 <span>Processo 100% seguro e confidencial</span>
-              </div>
-              <div className="flex items-center space-x-3 text-white/90">
-                <CheckCircle className="w-5 h-5 text-green-300" />
-                <span>Progresso salvo automaticamente</span>
               </div>
               <div className="flex items-center space-x-3 text-white/90">
                 <CheckCircle className="w-5 h-5 text-green-300" />
@@ -1105,7 +793,6 @@ export function LeadFormAgro() {
                   <div>• 1ª Etapa: Documentação pessoal e renda</div>
                   <div>• 2ª Etapa: Documentação do imóvel (após aprovação)</div>
                   <div>• Análise Rápida: 1-3 dias úteis</div>
-                  <div>• Progresso salvo automaticamente</div>
                   <div>• Atualizações por email</div>
                 </div>
                 </div>
@@ -1143,15 +830,10 @@ export function LeadFormAgro() {
                   <Activity className="w-5 h-5 text-white" />
                 </div>
                 <div>
-                  <h1 className="text-lg font-bold text-white">Tellure CRM</h1>
+                  <h1 className="text-lg font-bold text-white">Tellure</h1>
                   <p className="text-xs text-tellus-gold-100">Crédito Rural</p>
                 </div>
               </div>
-              {sessionId && (
-                <div className="bg-white/10 px-3 py-1 rounded-full max-w-32">
-                  <span className="text-xs font-mono text-white truncate block">{sessionId}</span>
-                </div>
-              )}
             </div>
           </div>
         </div>
@@ -1271,16 +953,10 @@ export function LeadFormAgro() {
                 <Activity className="w-6 h-6 text-white" />
               </div>
               <div>
-                <h1 className="text-xl font-bold text-gray-900">Tellure CRM</h1>
+                <h1 className="text-xl font-bold text-gray-900">Tellure</h1>
                 <p className="text-xs text-gray-500 font-medium">Crédito Rural</p>
               </div>
             </div>
-            {sessionId && (
-              <div className="hidden sm:flex items-center space-x-2 bg-tellus-gold-50 px-3 py-1 rounded-full">
-                <Activity className="w-4 h-4 text-blue-600" />
-                <span className="text-sm font-mono text-tellus-charcoal-800">{sessionId}</span>
-              </div>
-            )}
           </div>
         </div>
       </div>
@@ -1312,16 +988,10 @@ export function LeadFormAgro() {
             
             {/* Status Info */}
             <div className="flex items-center justify-between text-xs">
-              <div className="flex items-center space-x-2 text-green-600">
-                <CheckCircle className="w-3 h-3" />
-                <span>Progresso salvo</span>
+              <div className="flex items-center space-x-2 text-gray-500">
+                <Activity className="w-3 h-3" />
+                <span>Formulário Agro</span>
               </div>
-              {sessionId && (
-                <div className="flex items-center space-x-1 text-blue-600">
-                  <Activity className="w-3 h-3" />
-                  <span className="font-mono truncate max-w-24">{sessionId}</span>
-                </div>
-              )}
             </div>
           </div>
         </div>
@@ -1686,78 +1356,8 @@ export function LeadFormAgro() {
               </div>
             )}
 
-            {/* Step 4: Dados do Imóvel */}
+            {/* Step 4: Dados do Cônjuge */}
             {currentStep === 4 && (
-              <div className="space-y-8">
-                <div className="text-center mb-6">
-                  <div className="w-12 h-12 bg-gradient-to-r from-tellus-primary to-tellus-charcoal-900 rounded-xl flex items-center justify-center mx-auto mb-3">
-                    <DollarSign className="w-6 h-6 text-white" />
-                  </div>
-                  <h3 className="text-xl font-bold text-gray-900 mb-2">Dados do Imóvel de Interesse</h3>
-                  <p className="text-sm text-gray-600">Informe sobre o imóvel que deseja financiar</p>
-                </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div>
-                  <Input
-                    label="Valor do Imóvel *"
-                    type="number"
-                    value={formData.propertyValue > 0 ? formData.propertyValue : ''}
-                    onChange={(e) => handleChange('propertyValue', parseFloat(e.target.value) || 0)}
-                    placeholder="300000"
-                      min="50000"
-                      max="50000000"
-                  />
-                    {formData.propertyValue && formData.propertyValue < 50000 && (
-                      <p className="text-red-500 text-xs mt-1">Valor mínimo de R$ 50.000</p>
-                    )}
-                  </div>
-
-                  <div className="space-y-1">
-                    <label className="text-sm font-medium text-gray-700">Tipo do Imóvel *</label>
-                    <select
-                      value={formData.propertyType}
-                      onChange={(e) => handleChange('propertyType', e.target.value)}
-                      className="input"
-                    >
-                      <option value="apartamento">Apartamento</option>
-                      <option value="casa">Casa</option>
-                      <option value="terreno">Terreno</option>
-                      <option value="comercial">Comercial</option>
-                    </select>
-                  </div>
-
-                  <div>
-                  <Input
-                    label="Cidade do Imóvel *"
-                    value={formData.propertyCity}
-                    onChange={(e) => handleChange('propertyCity', e.target.value)}
-                    placeholder="Cidade onde está o imóvel"
-                      maxLength={50}
-                  />
-                    {formData.propertyCity && formData.propertyCity.trim().length < 2 && (
-                      <p className="text-red-500 text-xs mt-1">Cidade deve ter pelo menos 2 caracteres</p>
-                    )}
-                  </div>
-
-                  <div>
-                  <Input
-                    label="Estado do Imóvel *"
-                    value={formData.propertyState}
-                    onChange={(e) => handleChange('propertyState', e.target.value.toUpperCase())}
-                    placeholder="SP"
-                    maxLength={2}
-                  />
-                    {formData.propertyState && formData.propertyState.trim().length !== 2 && (
-                      <p className="text-red-500 text-xs mt-1">Estado deve ter 2 caracteres</p>
-                    )}
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {/* Step 5: Dados do Cônjuge */}
-            {currentStep === 5 && (
               <div className="space-y-8">
                 <div className="text-center mb-6">
                   <div className="w-12 h-12 bg-gradient-to-r from-tellus-primary to-tellus-charcoal-900 rounded-xl flex items-center justify-center mx-auto mb-3">
@@ -1951,8 +1551,8 @@ export function LeadFormAgro() {
               </div>
             )}
 
-            {/* Step 6: Gov.br e Finalização */}
-            {currentStep === 6 && (
+            {/* Step 5: Gov.br e Finalização */}
+            {currentStep === 5 && (
               <div className="space-y-8">
                 <div className="text-center mb-6">
                   <div className="w-12 h-12 bg-gradient-to-r from-tellus-primary to-tellus-charcoal-900 rounded-xl flex items-center justify-center mx-auto mb-3">
@@ -2026,7 +1626,8 @@ export function LeadFormAgro() {
               </div>
             )}
 
-            {currentStep === 7 && (
+            {/* Step 6: Upload de Documentos */}
+            {currentStep === 6 && (
               <div className="space-y-8">
                 <div className="text-center mb-6">
                   <div className="w-12 h-12 bg-gradient-to-r from-tellus-primary to-tellus-charcoal-900 rounded-xl flex items-center justify-center mx-auto mb-3">
@@ -2037,11 +1638,110 @@ export function LeadFormAgro() {
                 </div>
 
                 <div className="space-y-6">
-                  {/* Documentos para Comprador e Cônjuge */}
+                  {/* 📁 UPLOAD COM TÍTULO PERSONALIZADO - Crédito Rural */}
+                  <div className="bg-gradient-to-br from-purple-600 to-pink-600 rounded-2xl p-6 shadow-xl">
+                    <h4 className="font-bold text-white mb-2 text-xl">
+                      📁 Adicionar Documento com Título Personalizado
+                    </h4>
+                    <p className="text-purple-100 text-sm mb-6">
+                      Organize melhor seus documentos adicionando um título descritivo para cada arquivo
+                    </p>
+                    
+                    <CustomDocumentUpload
+                      cpf={formData.cpf}
+                      documentCategories={agroDocumentCategories}
+                      onDocumentAdded={(doc) => {
+                        setFormData(prev => ({
+                          ...prev,
+                          documents: [...prev.documents, doc]
+                        }));
+                      }}
+                      onError={(error) => setError(error)}
+                    />
+                  </div>
+
+                  {/* DOCUMENTAÇÃO POR LINHA DE CRÉDITO */}
+                  <div className="bg-white border border-gray-200 rounded-lg p-6">
+                    <h4 className="text-lg font-semibold text-gray-900 mb-2">
+                      📋 Documentação por Linha de Crédito (Opcional)
+                    </h4>
+                    <p className="text-sm text-gray-600 mb-4">
+                      PRONAF, PRONAMP, MODERFROTA - envie apenas se estiver solicitando estas linhas específicas
+                    </p>
+                    
+                    <div className="bg-gradient-to-br from-purple-50 to-indigo-50 border-2 border-purple-300 rounded-xl p-6">
+                      <h5 className="text-base font-bold text-purple-900 mb-3 flex items-center">
+                        <FileText className="w-5 h-5 mr-2" />
+                        📁 Adicionar Documento com Título Personalizado
+                      </h5>
+                      <p className="text-sm text-purple-800 mb-4">
+                        Organize melhor seus documentos adicionando um título descritivo para cada arquivo
+                      </p>
+                      
+                      <CustomDocumentUpload
+                        cpf={formData.cpf}
+                        documentCategories={[
+                          { value: 'pronaf_dap', label: 'DAP - Pronaf' },
+                          { value: 'moderfrota_budget', label: 'Orçamento MODERFROTA' }
+                        ]}
+                        onDocumentAdded={(doc) => {
+                          setFormData(prev => ({
+                            ...prev,
+                            documents: [...prev.documents, doc]
+                          }));
+                        }}
+                        onError={(error) => setError(error)}
+                      />
+                    </div>
+                  </div>
+
+                  {/* DOCUMENTAÇÃO POR FINALIDADE */}
+                  <div className="bg-white border border-gray-200 rounded-lg p-6">
+                    <h4 className="text-lg font-semibold text-gray-900 mb-2">
+                      🎯 Documentação por Finalidade do Crédito (Opcional)
+                    </h4>
+                    <p className="text-sm text-gray-600 mb-4">
+                      Custeio, Investimento, Comercialização ou Industrialização - conforme o objetivo do financiamento
+                    </p>
+                    
+                    <div className="bg-gradient-to-br from-purple-50 to-indigo-50 border-2 border-purple-300 rounded-xl p-6">
+                      <h5 className="text-base font-bold text-purple-900 mb-3 flex items-center">
+                        <FileText className="w-5 h-5 mr-2" />
+                        📁 Adicionar Documento com Título Personalizado
+                      </h5>
+                      <p className="text-sm text-purple-800 mb-4">
+                        Organize melhor seus documentos adicionando um título descritivo para cada arquivo
+                      </p>
+                      
+                      <CustomDocumentUpload
+                        cpf={formData.cpf}
+                        documentCategories={[
+                          { value: 'custeio_budget', label: 'Custeio - Orçamento e Planejamento da Safra' },
+                          { value: 'harvest_planning', label: 'Custeio - Planejamento da Safra' },
+                          { value: 'investment_project', label: 'Investimento - Projeto Técnico' },
+                          { value: 'investment_budgets', label: 'Investimento - Orçamentos (mínimo 3)' },
+                          { value: 'licenses_authorizations', label: 'Investimento - Licenças e Autorizações' },
+                          { value: 'production_proof', label: 'Comercialização - Comprovação de Produção' },
+                          { value: 'sale_contracts', label: 'Comercialização - Contratos de Venda' },
+                          { value: 'industrial_project', label: 'Industrialização - Projeto Industrial' },
+                          { value: 'specific_licenses', label: 'Industrialização - Licenças Específicas' }
+                        ]}
+                        onDocumentAdded={(doc) => {
+                          setFormData(prev => ({
+                            ...prev,
+                            documents: [...prev.documents, doc]
+                          }));
+                        }}
+                        onError={(error) => setError(error)}
+                      />
+                    </div>
+                  </div>
+
+                  {/* Documentos Padrão (mantém compatibilidade) */}
                   <div className="bg-white border border-gray-200 rounded-lg p-6">
                     <h4 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
                       <User className="w-5 h-5 mr-2 text-tellus-primary" />
-                      Para Comprador e Cônjuge (se houver)
+                      Documentos Padrão
                     </h4>
                     
                     <div className="space-y-6">
@@ -2050,7 +1750,7 @@ export function LeadFormAgro() {
                         <h5 className="text-base font-medium text-gray-800 mb-2">1. Documento de Identidade (RG ou CNH)</h5>
                         <p className="text-sm text-gray-600 mb-3">Pode anexar mais de 1 documento</p>
                         <DocumentUpload
-                          sessionId={sessionId || ''}
+                          sessionId=""
                           documentType="identity"
                           label="Documentos de Identidade"
                           description="RG, CNH ou outros documentos de identificação"
@@ -2071,7 +1771,7 @@ export function LeadFormAgro() {
                         <h5 className="text-base font-medium text-gray-800 mb-2">2. Comprovante de Estado Civil</h5>
                         <p className="text-sm text-gray-600 mb-3">Certidão de nascimento, óbito, casamento ou pacto antenupcial (se houver). Pode anexar mais de 1 documento</p>
                         <DocumentUpload
-                          sessionId={sessionId || ''}
+                          sessionId=""
                           documentType="marital_status"
                           label="Comprovante de Estado Civil"
                           description="Certidão de nascimento, óbito, casamento ou pacto antenupcial"
@@ -2092,7 +1792,7 @@ export function LeadFormAgro() {
                         <h5 className="text-base font-medium text-gray-800 mb-2">3. Comprovante de Residência</h5>
                         <p className="text-sm text-gray-600 mb-3">Atualizado (últimos 3 meses)</p>
                         <DocumentUpload
-                          sessionId={sessionId || ''}
+                          sessionId=""
                           documentType="address_proof"
                           label="Comprovante de Residência"
                           description="Conta de luz, água, telefone, etc. (últimos 3 meses)"
@@ -2123,7 +1823,7 @@ export function LeadFormAgro() {
                         <div>
                           <h5 className="text-base font-medium text-gray-800 mb-2">1. Contrato Social Completo</h5>
                           <DocumentUpload
-                            sessionId={sessionId || ''}
+                            sessionId=""
                             documentType="contract_social"
                             label="Contrato Social"
                             description="Contrato social completo da empresa"
@@ -2144,7 +1844,7 @@ export function LeadFormAgro() {
                           <h5 className="text-base font-medium text-gray-800 mb-2">2. Última Alteração Contratual</h5>
                           <p className="text-sm text-gray-600 mb-3">Se houver (não é obrigatório)</p>
                           <DocumentUpload
-                            sessionId={sessionId || ''}
+                            sessionId=""
                             documentType="contract_amendment"
                             label="Alteração Contratual"
                             description="Última alteração contratual (opcional)"
@@ -2164,7 +1864,7 @@ export function LeadFormAgro() {
                         <div>
                           <h5 className="text-base font-medium text-gray-800 mb-2">3. Cartão CNPJ Atualizado</h5>
                           <DocumentUpload
-                            sessionId={sessionId || ''}
+                            sessionId=""
                             documentType="cnpj"
                             label="Cartão CNPJ"
                             description="Cartão CNPJ atualizado da empresa"
@@ -2197,7 +1897,7 @@ export function LeadFormAgro() {
                           <h5 className="text-base font-medium text-gray-800 mb-2">1 e 2. Declaração de Imposto de Renda</h5>
                           <p className="text-sm text-gray-600 mb-3">Completa do último exercício + Recibo de entrega</p>
                           <DocumentUpload
-                            sessionId={sessionId || ''}
+                            sessionId=""
                             documentType="tax_return"
                             label="Declaração de IR"
                             description="Declaração completa + Recibo de entrega"
@@ -2217,7 +1917,7 @@ export function LeadFormAgro() {
                         <div>
                           <h5 className="text-base font-medium text-gray-800 mb-2">3. Extratos Bancários</h5>
                           <DocumentUpload
-                            sessionId={sessionId || ''}
+                            sessionId=""
                             documentType="bank_statements"
                             label="Extratos Bancários"
                             description="Extratos bancários dos últimos 3 meses"
@@ -2247,7 +1947,7 @@ export function LeadFormAgro() {
                       
                       <div className="space-y-6">
                         <DocumentUpload
-                          sessionId={sessionId || ''}
+                          sessionId=""
                           documentType="spouse_identity"
                           label="Documentos de Identidade do Cônjuge"
                           description="RG, CNH do cônjuge"
@@ -2263,7 +1963,7 @@ export function LeadFormAgro() {
                         />
 
                         <DocumentUpload
-                          sessionId={sessionId || ''}
+                          sessionId=""
                           documentType="spouse_marital_status"
                           label="Comprovante de Estado Civil do Cônjuge"
                           description="Certidões do cônjuge"
@@ -2278,7 +1978,7 @@ export function LeadFormAgro() {
                         />
 
                         <DocumentUpload
-                          sessionId={sessionId || ''}
+                          sessionId=""
                           documentType="spouse_address_proof"
                           label="Comprovante de Residência do Cônjuge"
                           description="Comprovante de residência do cônjuge"
@@ -2438,21 +2138,6 @@ export function LeadFormAgro() {
           </div>
         </div>
       </div>
-
-      {/* Modal para cliente existente */}
-      {existingCustomerData && (
-        <ExistingCustomerModal
-          isOpen={existingCustomerModal}
-          onClose={() => {
-            setExistingCustomerModal(false);
-            setExistingCustomerData(null);
-          }}
-          onContinue={handleContinueAnyway}
-          onAddProcess={handleAddProcess}
-          customerData={existingCustomerData}
-          processType="agro"
-        />
-      )}
     </div>
   );
 }

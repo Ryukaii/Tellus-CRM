@@ -187,7 +187,7 @@ export class PreRegistrationApi {
   }
 }
 
-// ========== API ADMINISTRATIVA (para CRM) ==========
+// ========== API ADMINISTRATIVA ==========
 
 export class AdminPreRegistrationApi {
   private static API_BASE_URL = import.meta.env.VITE_API_URL || (import.meta.env.PROD ? '/api' : 'http://localhost:3001/api');

@@ -525,7 +525,7 @@ export function CustomerForm({ customer, onSubmit, onCancel, loading = false, sh
               Origem
             </label>
             <select
-              value={formData.source}
+              value={formData.source || ''}
               onChange={(e) => handleChange('source', e.target.value)}
               className="input"
             >

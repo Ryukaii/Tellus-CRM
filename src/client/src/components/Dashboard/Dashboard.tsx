@@ -143,7 +143,7 @@ export function Dashboard() {
       <div className="space-y-6">
         <div>
           <h1 className="text-3xl font-bold text-gray-900 dark:text-dark-text">Dashboard</h1>
-          <p className="mt-2 text-gray-600 dark:text-dark-textSecondary">Visão geral do seu CRM Tellure</p>
+          <p className="mt-2 text-gray-600 dark:text-dark-textSecondary">Visão geral do Tellure</p>
         </div>
         <div className="bg-red-50 border border-red-200 rounded-lg p-6 dark:bg-red-900/20 dark:border-red-800">
           <div className="flex items-center">
@@ -170,7 +170,7 @@ export function Dashboard() {
       <div className="bg-gradient-to-r from-tellus-primary via-tellus-gold-500 to-tellus-bronze-600 rounded-lg shadow-lg p-6 text-white">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold">Bem-vindo ao Tellure CRM</h1>
+            <h1 className="text-3xl font-bold">Bem-vindo ao Tellure</h1>
             <p className="text-tellus-gold-100 mt-1">
               Gerencie seus clientes e leads de forma eficiente
             </p>
@@ -185,7 +185,7 @@ export function Dashboard() {
       <div>
         <h2 className="text-2xl font-bold text-tellus-charcoal-900 dark:text-dark-text">Dashboard</h2>
         <p className="mt-2 text-tellus-charcoal-600 dark:text-dark-textSecondary">
-          Visão geral do seu CRM Tellure
+          Visão geral do Tellure
         </p>
       </div>
 

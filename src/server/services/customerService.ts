@@ -23,6 +23,20 @@ interface MongoCustomer {
   employmentType?: string;
   monthlyIncome?: number;
   companyName?: string;
+  companies?: Array<{
+    id: string;
+    cnpj: string;
+    name: string;
+    address: {
+      street: string;
+      number: string;
+      complement?: string;
+      neighborhood: string;
+      city: string;
+      state: string;
+      zipCode: string;
+    };
+  }>;
   propertyValue?: number;
   propertyType?: string;
   propertyCity?: string;
@@ -67,6 +81,7 @@ class CustomerService {
       employmentType: mongoCustomer.employmentType,
       monthlyIncome: mongoCustomer.monthlyIncome,
       personalCompanyName: mongoCustomer.companyName,
+      companies: (mongoCustomer as any).companies || [],
       propertyValue: mongoCustomer.propertyValue,
       propertyType: mongoCustomer.propertyType,
       propertyCity: mongoCustomer.propertyCity,
@@ -98,6 +113,7 @@ class CustomerService {
       employmentType: customerData.employmentType,
       monthlyIncome: customerData.monthlyIncome,
       companyName: customerData.personalCompanyName,
+      companies: (customerData as any).companies || [],
       propertyValue: customerData.propertyValue,
       propertyType: customerData.propertyType,
       propertyCity: customerData.propertyCity,

@@ -923,7 +923,7 @@ export function LeadFormCredImobil() {
                   <Activity className="w-5 h-5 text-white" />
                 </div>
                 <div>
-                  <h1 className="text-lg font-bold text-white">Tellure CRM</h1>
+                  <h1 className="text-lg font-bold text-white">Tellure</h1>
                   <p className="text-xs text-tellus-gold-100">Crédito Imobiliário</p>
                 </div>
               </div>
@@ -1046,7 +1046,7 @@ export function LeadFormCredImobil() {
                 <Activity className="w-6 h-6 text-white" />
               </div>
               <div>
-                <h1 className="text-xl font-bold text-gray-900">Tellure CRM</h1>
+                <h1 className="text-xl font-bold text-gray-900">Tellure</h1>
                 <p className="text-xs text-gray-500 font-medium">Crédito Imobiliário</p>
               </div>
             </div>

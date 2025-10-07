@@ -30,7 +30,6 @@ export function Header() {
               </div>
               <div>
                 <h1 className="text-lg sm:text-xl font-bold text-tellus-charcoal-900 dark:text-dark-text">Tellure</h1>
-                <p className="text-xs text-tellus-gold-600 dark:text-dark-accent hidden sm:block font-medium">CRM</p>
               </div>
             </div>
           </div>

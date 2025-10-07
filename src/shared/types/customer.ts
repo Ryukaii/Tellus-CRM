@@ -63,6 +63,21 @@ export const CustomerSchema = z.object({
     state: z.string().optional(),
     zipCode: z.string().optional()
   }).optional(),
+  // Array de múltiplas empresas
+  companies: z.array(z.object({
+    id: z.string(),
+    cnpj: z.string(),
+    name: z.string(),
+    address: z.object({
+      street: z.string(),
+      number: z.string(),
+      complement: z.string().optional(),
+      neighborhood: z.string(),
+      city: z.string(),
+      state: z.string(),
+      zipCode: z.string()
+    })
+  })).optional(),
   
   createdAt: z.string().optional(),
   updatedAt: z.string().optional()

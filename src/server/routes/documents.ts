@@ -90,7 +90,7 @@ router.post('/upload', upload.single('file'), async (req, res) => {
       throw new Error(uploadResult.error || 'Erro no upload');
     }
 
-    // Retornar dados do documento
+    // Retornar dados do documento (incluindo customTitle se fornecido)
     const documentData = {
       id: filePath,
       fileName: uploadedFile.originalname,
@@ -99,7 +99,8 @@ router.post('/upload', upload.single('file'), async (req, res) => {
       documentType,
       uploadedAt: new Date(),
       url: uploadResult.url,
-      filePath: uploadResult.filePath
+      filePath: uploadResult.filePath,
+      customTitle: req.body.customTitle || undefined // Suporte a título personalizado
     };
 
     res.json({

@@ -69,6 +69,9 @@ export class PreRegistrationService {
           companyName: formData.spouseCompanyName
         } : null,
         companyData: formData.hasCompany ? {
+          // Novo formato: array de empresas
+          companies: formData.companies || [],
+          // Formato legado (compatibilidade)
           cnpj: formData.companyCnpj,
           name: formData.companyName,
           address: formData.companyAddress
@@ -297,6 +300,9 @@ export class PreRegistrationService {
         spouseMonthlyIncome: preRegistration.spouseData?.monthlyIncome,
         spouseCompanyName: preRegistration.spouseData?.companyName,
         // Dados da empresa
+        // Dados de empresa (novo formato e legado)
+        hasCompany: !!preRegistration.companyData,
+        companies: preRegistration.companyData?.companies || [],
         companyCnpj: preRegistration.companyData?.cnpj,
         companyAddress: preRegistration.companyData?.address,
         // Documentos pessoais

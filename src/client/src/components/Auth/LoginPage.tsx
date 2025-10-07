@@ -47,7 +47,7 @@ export function LoginPage() {
           <div className="inline-flex items-center justify-center w-12 h-12 sm:w-16 sm:h-16 bg-white rounded-xl sm:rounded-2xl shadow-lg mb-3 sm:mb-4">
             <Activity className="w-6 h-6 sm:w-8 sm:h-8 text-tellus-primary" />
           </div>
-          <h1 className="text-2xl sm:text-3xl font-bold text-white mb-2">Tellure CRM</h1>
+          <h1 className="text-2xl sm:text-3xl font-bold text-white mb-2">Tellure</h1>
           <p className="text-tellus-gold-100 text-sm sm:text-base">Faça login para acessar o sistema</p>
         </div>
 
@@ -125,7 +125,7 @@ export function LoginPage() {
         {/* Footer */}
         <div className="text-center mt-6 sm:mt-8">
           <p className="text-tellus-gold-100 text-xs sm:text-sm">
-            © 2024 Tellure CRM. Sistema de gerenciamento de clientes.
+            © 2024 Tellure. Sistema de gerenciamento de clientes.
           </p>
         </div>
       </div>
