@@ -5,7 +5,7 @@ import { Input } from '../UI/Input';
 import { LoadingSpinner } from '../UI/LoadingSpinner';
 import { DocumentUpload } from '../UI/DocumentUpload';
 import { CustomDocumentUpload } from '../UI/CustomDocumentUpload';
-import { agroDocumentCategories } from '@data/documentCategories';
+import { agroDocumentCategories } from '../../data/documentCategories.ts';
 import { CPFService } from '../../services/cpfService';
 import { CepService } from '../../services/cepService';
 import { StateSelect } from '../UI/StateSelect';
