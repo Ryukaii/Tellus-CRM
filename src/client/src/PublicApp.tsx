@@ -3,6 +3,7 @@ import { LeadFormAgro } from './components/Public/LeadFormAgro';
 import { LeadFormCredito } from './components/Public/LeadFormCredito';
 import { LeadFormConsultoria } from './components/Public/LeadFormConsultoria';
 import { LeadFormCredImobil } from './components/Public/LeadFormCredImobil';
+import { LeadFormIncorporadoras } from './components/Public/LeadFormIncorporadoras';
 
 function PublicApp() {
   // Detectar qual formulário usar baseado na URL
@@ -15,7 +16,8 @@ function PublicApp() {
     '/cadastro/agro',
     '/cadastro/credito', 
     '/cadastro/consultoria',
-    '/cadastro/creditoimobiliario'
+    '/cadastro/creditoimobiliario',
+    '/cadastro/incorporadoras'
   ];
   
   // Verificar se a rota é válida
@@ -65,6 +67,12 @@ function PublicApp() {
     return (
       <PublicFormWrapper>
         <LeadFormCredImobil />
+      </PublicFormWrapper>
+    );
+  } else if (path === '/cadastro/incorporadoras' || formParam === 'incorporadoras') {
+    return (
+      <PublicFormWrapper>
+        <LeadFormIncorporadoras />
       </PublicFormWrapper>
     );
   } else {

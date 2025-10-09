@@ -51,6 +51,12 @@ export function CopyRegistrationLinks({ isOpen, onClose }: CopyRegistrationLinks
       url: `${baseUrl}/cadastro/creditoimobiliario`,
       description: 'Formulário para cadastro de leads de crédito imobiliário',
       type: 'creditoimobiliario'
+    },
+    {
+      name: 'Incorporadoras',
+      url: `${baseUrl}/cadastro/incorporadoras`,
+      description: 'Formulário para cadastro de incorporadoras e projetos imobiliários',
+      type: 'incorporadoras'
     }
   ];
 

@@ -116,4 +116,50 @@ export const consultoriaDocumentCategories = [
   { value: 'other', label: '📎 Outros Documentos' }
 ];
 
+export const incorporadorasDocumentCategories = [
+  // Documentos da Incorporadora
+  { value: 'contract_social', label: '🏢 Contrato Social Completo' },
+  { value: 'contract_amendment', label: '🏢 Última Alteração Contratual' },
+  { value: 'cnpj', label: '🏢 Cartão CNPJ' },
+  { value: 'company_tax_return', label: '🏢 Declaração de IR (PJ)' },
+  { value: 'balance_sheet', label: '🏢 Balanço Patrimonial' },
+  { value: 'dre', label: '🏢 DRE - Demonstrativo de Resultados' },
+  { value: 'company_address_proof', label: '🏢 Comprovante Endereço da Empresa' },
+  
+  // Documentos dos Sócios
+  { value: 'partner_identity', label: '👤 RG/CPF dos Sócios' },
+  { value: 'partner_address_proof', label: '👤 Comprovante Residência Sócios' },
+  { value: 'partner_marital_status', label: '👤 Estado Civil dos Sócios' },
+  
+  // Documentos do Projeto/Empreendimento
+  { value: 'project_memorial', label: '🏗️ Memorial Descritivo' },
+  { value: 'project_plans', label: '🏗️ Plantas do Projeto' },
+  { value: 'project_budget', label: '🏗️ Orçamento da Obra' },
+  { value: 'construction_schedule', label: '🏗️ Cronograma de Obra' },
+  { value: 'project_feasibility', label: '🏗️ Estudo de Viabilidade' },
+  { value: 'sales_table', label: '🏗️ Tabela de Vendas' },
+  
+  // Documentos Legais
+  { value: 'building_permit', label: '📋 Alvará de Construção' },
+  { value: 'environmental_license', label: '📋 Licença Ambiental' },
+  { value: 'rgi', label: '📋 RGI - Registro Geral de Incorporação' },
+  { value: 'convention_project', label: '📋 Projeto de Convenção de Condomínio' },
+  { value: 'art_rrt', label: '📋 ART/RRT Responsável Técnico' },
+  
+  // Documentos do Terreno
+  { value: 'property_registration', label: '🏠 Matrícula do Terreno' },
+  { value: 'property_deed', label: '🏠 Escritura do Terreno' },
+  { value: 'property_iptu', label: '🏠 IPTU do Terreno' },
+  { value: 'topographic_survey', label: '🏠 Levantamento Topográfico' },
+  
+  // Documentos Financeiros
+  { value: 'sales_contracts', label: '💰 Contratos de Venda' },
+  { value: 'bank_statements', label: '💰 Extratos Bancários' },
+  { value: 'revenue_receivable', label: '💰 Contas a Receber' },
+  { value: 'construction_contracts', label: '💰 Contratos de Construção' },
+  
+  // Outros
+  { value: 'other', label: '📎 Outros Documentos' }
+];
+
 

@@ -113,6 +113,14 @@ app.get('/cadastro/creditoimobiliario', (_req, res) => {
   }
 });
 
+app.get('/cadastro/incorporadoras', (_req, res) => {
+  if (process.env.NODE_ENV === 'production') {
+    res.sendFile(path.join(__dirname, '../client/public-form.html'));
+  } else {
+    res.redirect('http://localhost:3000/public-form.html?form=incorporadoras');
+  }
+});
+
 // Serve static files in production
 if (process.env.NODE_ENV === 'production') {
   const clientPath = path.join(__dirname, '../client');

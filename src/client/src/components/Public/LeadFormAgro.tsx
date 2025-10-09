@@ -2033,7 +2033,7 @@ export function LeadFormAgro() {
                     </p>
                     
                     <DocumentUpload
-                      sessionId={sessionId || ''}
+                      sessionId=""
                       documentType="other_documents"
                       label="Outros Documentos"
                       description="Documentos adicionais que considere importantes"

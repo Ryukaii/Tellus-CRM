@@ -136,6 +136,13 @@ TellureCrm/
 - `PUT /api/customers/:id` - Atualizar cliente
 - `DELETE /api/customers/:id` - Deletar cliente
 
+### Formulários Públicos
+- `GET /cadastro/agro` - Formulário de Agronegócio
+- `GET /cadastro/credito` - Formulário de Crédito Pessoal
+- `GET /cadastro/consultoria` - Formulário de Consultoria
+- `GET /cadastro/creditoimobiliario` - Formulário de Crédito Imobiliário
+- `GET /cadastro/incorporadoras` - Formulário para Incorporadoras
+
 ### Health Check
 - `GET /api/health` - Status da API
 
